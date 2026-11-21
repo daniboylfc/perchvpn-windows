@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="$(var.ProductName)"
+      Manufacturer="$(var.Manufacturer)"
+      Version="$(var.Version)"
+      Language="1033"
+      InstallerVersion="500"
+      Scope="perMachine"
+      UpgradeCode="{12FCCBC8-3CAF-40ED-AB2A-F5A388D60DEC}">
+    <MajorUpgrade
+        DowngradeErrorMessage="A newer version of $(var.ProductName) is already installed."
+        Schedule="afterInstallInitialize" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Feature Id="MainFeature" Title="$(var.ProductName)" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ShortcutComponents" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="$(var.ProductName)" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="$(var.ProductName)" />
+    </StandardDirectory>
+
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Files Include="!(bindpath.SourceDir)\**" />
+    </ComponentGroup>
+
+    <ComponentGroup Id="ShortcutComponents">
+      <Component Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Guid="{BC3BF1C2-FC92-4DE8-AE2C-8A95FF27FE8A}">
+        <Shortcut
+            Id="StartMenuShortcut"
+            Name="$(var.ProductName)"
+            Target="[INSTALLFOLDER]PerchVPN.exe"
+            WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveApplicationProgramsFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue
+            Root="HKLM"
+            Key="Software\$(var.Manufacturer)\$(var.ProductName)"
+            Name="StartMenu"
+            Type="integer"
+            Value="1"
+            KeyPath="yes" />
+      </Component>
+
+      <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="{F34C10DE-AF77-46CB-A1D0-EA0736C2BCE7}">
+        <Shortcut
+            Id="DesktopShortcut"
+            Name="$(var.ProductName)"
+            Target="[INSTALLFOLDER]PerchVPN.exe"
+            WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue
+            Root="HKLM"
+            Key="Software\$(var.Manufacturer)\$(var.ProductName)"
+            Name="Desktop"
+            Type="integer"
+            Value="1"
+            KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

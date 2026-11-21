@@ -1,0 +1,8 @@
+.venv/
+dist/
+dist-candidate/
+build/
+bin/
+*.exe
+*.dll
+__pycache__/

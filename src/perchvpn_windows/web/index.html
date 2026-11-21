@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perch VPN</title>
+    <link rel="icon" type="image/x-icon" href="/assets/perch.ico">
+    <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Left navigation rail -->
+        <aside class="rail" id="rail" role="navigation" aria-label="Main navigation">
+            <div class="rail__brand">
+                <img class="rail__logo" src="/assets/perch-vixen.png" alt="" width="26" height="26" draggable="false">
+                <span class="rail__title">Perch VPN</span>
+            </div>
+
+            <nav class="rail__nav" role="tablist" aria-label="Application sections">
+                <button class="rail__item rail__item--active" role="tab" aria-selected="true" aria-controls="dashboard-panel" id="tab-dashboard" data-tab="dashboard" title="Dashboard">
+                    <span class="rail__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg>
+                    </span>
+                    <span class="rail__label">Dashboard</span>
+                </button>
+                <button class="rail__item" role="tab" aria-selected="false" aria-controls="network-panel" id="tab-network" data-tab="network" title="Network">
+                    <span class="rail__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
+                    </span>
+                    <span class="rail__label">Network</span>
+                </button>
+                <button class="rail__item" role="tab" aria-selected="false" aria-controls="account-panel" id="tab-account" data-tab="account" title="Account">
+                    <span class="rail__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/></svg>
+                    </span>
+                    <span class="rail__label">Account</span>
+                </button>
+            </nav>
+
+            <div class="rail__footer">
+                <div class="rail__motto" aria-hidden="true">
+                    <span>PRIVATE</span>
+                    <span>ENCRYPTED</span>
+                    <span>INDEPENDENT</span>
+                </div>
+                <button class="rail__collapse" id="rail-collapse" type="button" aria-label="Collapse navigation" aria-expanded="true" aria-controls="rail">
+                    <span class="rail__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/></svg>
+                    </span>
+                    <span class="rail__label">Collapse</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main column -->
+        <div class="app-main">
+            <header class="app-header" role="banner">
+                <div class="app-header__brand-block">
+                    <span class="app-header__emblem" aria-hidden="true">
+                        <img class="app-header__emblem-img" src="/assets/perch-vixen.png" alt="" width="44" height="44" draggable="false">
+                    </span>
+                    <div class="app-header__titles">
+                        <h1 class="app-header__brand">Perch VPN</h1>
+                        <p class="app-header__tagline"><em>Private by design &middot; Secure by default</em></p>
+                    </div>
+                </div>
+                <div class="app-header__heritage" aria-hidden="true">
+                    <span class="app-header__heritage-line">ENCRYPTED TUNNEL</span>
+                    <span class="app-header__heritage-line">WINDOWS CLIENT</span>
+                </div>
+                <div class="app-header__motif" aria-hidden="true">PERCH</div>
+                <div class="app-header__status">
+                    <span class="status-indicator status-indicator--disconnected" id="global-status" aria-live="polite" aria-atomic="true">
+                        <span class="status-indicator__dot" aria-hidden="true"></span>
+                        <span class="status-indicator__text">Disconnected</span>
+                    </span>
+                </div>
+            </header>
+
+            <main class="app-content" role="main">
+                <!-- Signed-out onboarding prompt: rendered only while the
+                     account state is definitively signed out; hidden while
+                     auth state is loading/unknown and for signed-in users. -->
+                <div class="onboarding-banner" id="onboarding-banner" role="status" hidden>
+                    <button type="button" class="onboarding-banner__message" id="onboarding-message">
+                        <span class="onboarding-banner__text">Welcome to PerchVPN. To get started, open the Account tab and sign in with your account credentials.</span>
+                    </button>
+                    <button type="button" class="btn btn--primary onboarding-banner__action" id="onboarding-signin">Sign In</button>
+                </div>
+                <!-- Dashboard Panel -->
+                <section class="tab-panel tab-panel--active" id="dashboard-panel" role="tabpanel" aria-labelledby="tab-dashboard">
+                    <div class="dashboard-grid">
+                        <!-- Main telemetry row -->
+                        <section class="dashboard-telemetry" aria-labelledby="connection-heading">
+                            <div class="dashboard-telemetry__stack">
+                                <article class="card card--status" aria-labelledby="exit-status-heading">
+                                    <header class="card__header">
+                                        <h3 id="exit-status-heading" class="card__title">Exit Information</h3>
+                                    </header>
+                                    <div class="card__body">
+                                        <dl class="info-list">
+                                            <div class="info-item">
+                                                <dt class="info-label">Exit IP</dt>
+                                                <dd class="info-value info-value--mono" id="exit-ip">—</dd>
+                                            </div>
+                                            <div class="info-item">
+                                                <dt class="info-label">Country</dt>
+                                                <dd class="info-value" id="country-value">—</dd>
+                                            </div>
+                                            <div class="info-item">
+                                                <dt class="info-label">Verification</dt>
+                                                <dd class="info-value info-value--unavailable" id="exit-verification">Not applicable</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                </article>
+
+                                <article class="card card--status" aria-labelledby="system-status-heading">
+                                    <header class="card__header">
+                                        <h3 id="system-status-heading" class="card__title">System Status</h3>
+                                    </header>
+                                    <div class="card__body">
+                                        <dl class="info-list">
+                                            <div class="info-item">
+                                                <dt class="info-label">Status</dt>
+                                                <dd class="info-value info-value--disconnected" id="status-value">Disconnected</dd>
+                                            </div>
+                                            <div class="info-item">
+                                                <dt class="info-label">System Tunnel</dt>
+                                                <dd class="info-value info-value--unavailable" id="tunnel-value">Not enabled (SOCKS5 only)</dd>
+                                            </div>
+                                            <div class="info-item">
+                                                <dt class="info-label">Uptime</dt>
+                                                <dd class="info-value" id="uptime-value">—</dd>
+                                            </div>
+                                            <div class="info-item">
+                                                <dt class="info-label">SOCKS5 Proxy</dt>
+                                                <dd class="info-value info-value--mono" id="socks5-addr">—</dd>
+                                            </div>
+                                            <div class="info-item">
+                                                <dt class="info-label">Transport</dt>
+                                                <dd class="info-value" id="transport-value">—</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                </article>
+                            </div>
+
+                            <article class="card card--connection" aria-labelledby="connection-heading">
+                                <header class="card__header">
+                                    <h2 id="connection-heading" class="card__title">Connection</h2>
+                                    <span class="connection-state is-disconnected" id="connection-state" aria-live="polite">
+                                        <span class="connection-state__indicator" aria-hidden="true"></span>
+                                        <span class="connection-state__text">Disconnected</span>
+                                    </span>
+                                </header>
+                                <div class="card__body">
+                                    <div class="connection-dial">
+                                        <button class="btn btn--primary btn--connection" id="connection-toggle" type="button" aria-pressed="false" aria-label="Connect to VPN">
+                                            <span class="gearcore" aria-hidden="true">
+                                                <svg class="gearcore__scene" viewBox="0 0 200 200" focusable="false">
+                                                    <defs>
+                                                        <radialGradient id="gcRuby" cx="36%" cy="30%" r="80%">
+                                                            <stop offset="0%" stop-color="#ff8a96"/>
+                                                            <stop offset="35%" stop-color="#e02842"/>
+                                                            <stop offset="75%" stop-color="#8f0f22"/>
+                                                            <stop offset="100%" stop-color="#560814"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcRadiance" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="rgba(255,64,88,0.42)"/>
+                                                            <stop offset="18%" stop-color="rgba(240,52,80,0.32)"/>
+                                                            <stop offset="38%" stop-color="rgba(224,40,66,0.18)"/>
+                                                            <stop offset="58%" stop-color="rgba(212,28,56,0.09)"/>
+                                                            <stop offset="78%" stop-color="rgba(200,16,46,0.03)"/>
+                                                            <stop offset="100%" stop-color="rgba(200,16,46,0)"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcAO" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="rgba(0,0,0,0.6)"/>
+                                                            <stop offset="70%" stop-color="rgba(0,0,0,0.25)"/>
+                                                            <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcPlate" cx="46%" cy="42%" r="62%">
+                                                            <stop offset="0%" stop-color="#17181d"/>
+                                                            <stop offset="55%" stop-color="#101114"/>
+                                                            <stop offset="88%" stop-color="#0a0b0d"/>
+                                                            <stop offset="100%" stop-color="#060608"/>
+                                                        </radialGradient>
+                                                        <linearGradient id="gcPlateRing" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="0%" stop-color="rgba(255,255,255,0.13)"/>
+                                                            <stop offset="46%" stop-color="rgba(255,255,255,0.03)"/>
+                                                            <stop offset="60%" stop-color="rgba(0,0,0,0.35)"/>
+                                                            <stop offset="100%" stop-color="rgba(0,0,0,0.75)"/>
+                                                        </linearGradient>
+                                                        <radialGradient id="gcFaceC" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="#242830"/>
+                                                            <stop offset="12%" stop-color="#1a1c22"/>
+                                                            <stop offset="16%" stop-color="#282c34"/>
+                                                            <stop offset="27%" stop-color="#1b1e24"/>
+                                                            <stop offset="31%" stop-color="#262a32"/>
+                                                            <stop offset="44%" stop-color="#1a1c22"/>
+                                                            <stop offset="48%" stop-color="#262931"/>
+                                                            <stop offset="62%" stop-color="#191b21"/>
+                                                            <stop offset="67%" stop-color="#24272e"/>
+                                                            <stop offset="82%" stop-color="#1a1c22"/>
+                                                            <stop offset="88%" stop-color="#21242b"/>
+                                                            <stop offset="100%" stop-color="#171a1f"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcFaceS_L" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="#f0d488"/>
+                                                            <stop offset="20%" stop-color="#c9a04d"/>
+                                                            <stop offset="34%" stop-color="#eecf7f"/>
+                                                            <stop offset="55%" stop-color="#a37c33"/>
+                                                            <stop offset="74%" stop-color="#d8b263"/>
+                                                            <stop offset="100%" stop-color="#6e501f"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcFaceS_R" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="#f0d488"/>
+                                                            <stop offset="20%" stop-color="#c9a04d"/>
+                                                            <stop offset="34%" stop-color="#eecf7f"/>
+                                                            <stop offset="55%" stop-color="#a37c33"/>
+                                                            <stop offset="74%" stop-color="#d8b263"/>
+                                                            <stop offset="100%" stop-color="#6e501f"/>
+                                                        </radialGradient>
+                                                        <linearGradient id="gcBevelC" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="0%" stop-color="rgba(255,255,255,0.32)"/>
+                                                            <stop offset="30%" stop-color="rgba(255,255,255,0.06)"/>
+                                                            <stop offset="55%" stop-color="rgba(0,0,0,0.25)"/>
+                                                            <stop offset="100%" stop-color="rgba(0,0,0,0.6)"/>
+                                                        </linearGradient>
+                                                        <linearGradient id="gcBevelS" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="0%" stop-color="rgba(255,240,200,0.55)"/>
+                                                            <stop offset="35%" stop-color="rgba(255,225,160,0.12)"/>
+                                                            <stop offset="62%" stop-color="rgba(60,40,8,0.4)"/>
+                                                            <stop offset="100%" stop-color="rgba(40,26,4,0.7)"/>
+                                                        </linearGradient>
+                                                        <radialGradient id="gcHub" cx="38%" cy="32%" r="75%">
+                                                            <stop offset="0%" stop-color="#3a3f48"/>
+                                                            <stop offset="55%" stop-color="#1e2127"/>
+                                                            <stop offset="100%" stop-color="#101216"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcBloom" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="rgba(200,16,46,0.5)"/>
+                                                            <stop offset="45%" stop-color="rgba(200,16,46,0.16)"/>
+                                                            <stop offset="78%" stop-color="rgba(200,16,46,0.04)"/>
+                                                            <stop offset="100%" stop-color="rgba(200,16,46,0)"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcCrater" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="rgba(255,74,92,0.85)"/>
+                                                            <stop offset="38%" stop-color="rgba(200,16,46,0.55)"/>
+                                                            <stop offset="72%" stop-color="rgba(200,16,46,0.18)"/>
+                                                            <stop offset="100%" stop-color="rgba(200,16,46,0)"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcRing" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="rgba(200,16,46,0)"/>
+                                                            <stop offset="72%" stop-color="rgba(200,16,46,0)"/>
+                                                            <stop offset="86%" stop-color="rgba(230,40,64,0.5)"/>
+                                                            <stop offset="94%" stop-color="rgba(255,120,110,0.28)"/>
+                                                            <stop offset="100%" stop-color="rgba(200,16,46,0)"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcSheen" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="rgba(224,40,66,0.5)"/>
+                                                            <stop offset="38%" stop-color="rgba(200,16,46,0.2)"/>
+                                                            <stop offset="72%" stop-color="rgba(200,16,46,0.04)"/>
+                                                            <stop offset="100%" stop-color="rgba(200,16,46,0)"/>
+                                                        </radialGradient>
+                                                        <radialGradient id="gcTopLight" cx="50%" cy="0%" r="110%">
+                                                            <stop offset="0%" stop-color="rgba(255,255,255,0.16)"/>
+                                                            <stop offset="30%" stop-color="rgba(255,255,255,0.05)"/>
+                                                            <stop offset="70%" stop-color="rgba(255,255,255,0)"/>
+                                                        </radialGradient>
+                                                        <filter id="gcGrain" x="-8%" y="-8%" width="116%" height="116%">
+                                                            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="7" result="noise"/>
+                                                            <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0.7 0.7 0 0" result="grain"/>
+                                                            <feComposite in="grain" in2="SourceGraphic" operator="in" result="masked"/>
+                                                            <feMerge>
+                                                                <feMergeNode in="SourceGraphic"/>
+                                                                <feMergeNode in="masked"/>
+                                                            </feMerge>
+                                                        </filter>
+                                                    </defs>
+                                                    <g class="gearcore__plate">
+                                                        <circle cx="100" cy="100" r="97" fill="url(#gcPlate)"/>
+                                                        <circle cx="100" cy="100" r="93" fill="none" stroke="url(#gcPlateRing)" stroke-width="3.2"/>
+                                                        <circle cx="100" cy="100" r="96" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.7"/>
+                                                        <circle cx="185.00" cy="122.78" r="2.20" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+<circle cx="122.78" cy="185.00" r="2.20" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+<circle cx="37.77" cy="162.23" r="2.20" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+<circle cx="15.00" cy="77.22" r="2.20" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+<circle cx="77.22" cy="15.00" r="2.20" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+<circle cx="162.23" cy="37.77" r="2.20" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+                                                    </g>
+                                                    <g class="gearcore__ao">
+                                                        <circle cx="42" cy="100" r="24.5" fill="url(#gcAO)"/>
+                                                        <circle cx="158" cy="100" r="24.5" fill="url(#gcAO)"/>
+                                                        <circle cx="100" cy="100" r="45" fill="url(#gcAO)"/>
+                                                    </g>
+                                                    <g class="gearcore__ticks">
+                                                        <line x1="188.00" y1="100.00" x2="193.60" y2="100.00" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="189.11" y1="109.37" x2="192.09" y2="109.68" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="187.64" y1="118.63" x2="190.58" y2="119.25" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="185.21" y1="127.69" x2="188.07" y2="128.61" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="181.85" y1="136.44" x2="184.59" y2="137.66" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="176.21" y1="144.00" x2="181.06" y2="146.80" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="172.49" y1="152.67" x2="174.91" y2="154.43" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="166.59" y1="159.95" x2="168.82" y2="161.96" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="159.95" y1="166.59" x2="161.96" y2="168.82" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="152.67" y1="172.49" x2="154.43" y2="174.91" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="144.00" y1="176.21" x2="146.80" y2="181.06" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="136.44" y1="181.85" x2="137.66" y2="184.59" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="127.69" y1="185.21" x2="128.61" y2="188.07" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="118.63" y1="187.64" x2="119.25" y2="190.58" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="109.37" y1="189.11" x2="109.68" y2="192.09" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="100.00" y1="188.00" x2="100.00" y2="193.60" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="90.63" y1="189.11" x2="90.32" y2="192.09" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="81.37" y1="187.64" x2="80.75" y2="190.58" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="72.31" y1="185.21" x2="71.39" y2="188.07" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="63.56" y1="181.85" x2="62.34" y2="184.59" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="56.00" y1="176.21" x2="53.20" y2="181.06" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="47.33" y1="172.49" x2="45.57" y2="174.91" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="40.05" y1="166.59" x2="38.04" y2="168.82" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="33.41" y1="159.95" x2="31.18" y2="161.96" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="27.51" y1="152.67" x2="25.09" y2="154.43" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="23.79" y1="144.00" x2="18.94" y2="146.80" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="18.15" y1="136.44" x2="15.41" y2="137.66" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="14.79" y1="127.69" x2="11.93" y2="128.61" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="12.36" y1="118.63" x2="9.42" y2="119.25" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="10.89" y1="109.37" x2="7.91" y2="109.68" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="12.00" y1="100.00" x2="6.40" y2="100.00" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="10.89" y1="90.63" x2="7.91" y2="90.32" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="12.36" y1="81.37" x2="9.42" y2="80.75" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="14.79" y1="72.31" x2="11.93" y2="71.39" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="18.15" y1="63.56" x2="15.41" y2="62.34" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="23.79" y1="56.00" x2="18.94" y2="53.20" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="27.51" y1="47.33" x2="25.09" y2="45.57" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="33.41" y1="40.05" x2="31.18" y2="38.04" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="40.05" y1="33.41" x2="38.04" y2="31.18" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="47.33" y1="27.51" x2="45.57" y2="25.09" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="56.00" y1="23.79" x2="53.20" y2="18.94" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="63.56" y1="18.15" x2="62.34" y2="15.41" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="72.31" y1="14.79" x2="71.39" y2="11.93" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="81.37" y1="12.36" x2="80.75" y2="9.42" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="90.63" y1="10.89" x2="90.32" y2="7.91" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="100.00" y1="12.00" x2="100.00" y2="6.40" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="109.37" y1="10.89" x2="109.68" y2="7.91" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="118.63" y1="12.36" x2="119.25" y2="9.42" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="127.69" y1="14.79" x2="128.61" y2="11.93" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="136.44" y1="18.15" x2="137.66" y2="15.41" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="144.00" y1="23.79" x2="146.80" y2="18.94" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="152.67" y1="27.51" x2="154.43" y2="25.09" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="159.95" y1="33.41" x2="161.96" y2="31.18" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="166.59" y1="40.05" x2="168.82" y2="38.04" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="172.49" y1="47.33" x2="174.91" y2="45.57" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="176.21" y1="56.00" x2="181.06" y2="53.20" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+<line x1="181.85" y1="63.56" x2="184.59" y2="62.34" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="185.21" y1="72.31" x2="188.07" y2="71.39" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="187.64" y1="81.37" x2="190.58" y2="80.75" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+<line x1="189.11" y1="90.63" x2="192.09" y2="90.32" stroke="rgba(255,255,255,0.11)" stroke-width="0.45"/>
+                                                    </g>
+                                                    <g class="gearcore__glow">
+                                                        <circle class="gearcore__bloom" cx="100" cy="100" r="64" fill="url(#gcBloom)"/>
+                                                        <circle class="gearcore__ring" cx="100" cy="100" r="24" fill="url(#gcRing)"/>
+                                                        <circle class="gearcore__crater" cx="100" cy="100" r="30" fill="url(#gcCrater)"/>
+                                                    </g>
+                                                    <g class="gearcore__radiance" style="mix-blend-mode:screen">
+                                                        <circle cx="100" cy="100" r="44" fill="url(#gcRadiance)"/>
+                                                        <g class="gearcore__rays">
+                                                            <path d="M129.99 99.16 L146.00 100.00 L129.99 100.84 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M127.38 112.26 L141.44 119.96 L126.66 113.77 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M119.35 122.92 L128.68 135.96 L118.04 123.97 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M107.49 129.05 L110.24 144.85 L105.86 129.42 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M94.14 129.42 L89.76 144.85 L92.51 129.05 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M81.96 123.97 L71.32 135.96 L80.65 122.92 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M73.34 113.77 L58.56 119.96 L72.62 112.26 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M70.01 100.84 L54.00 100.00 L70.01 99.16 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M72.62 87.74 L58.56 80.04 L73.34 86.23 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M80.65 77.08 L71.32 64.04 L81.96 76.03 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M92.51 70.95 L89.76 55.15 L94.14 70.58 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M105.86 70.58 L110.24 55.15 L107.49 70.95 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M118.04 76.03 L128.68 64.04 L119.35 77.08 Z" fill="rgba(230,50,74,0.28)"/>
+                                                            <path d="M126.66 86.23 L141.44 80.04 L127.38 87.74 Z" fill="rgba(230,50,74,0.28)"/>
+                                                        </g>
+                                                    </g>
+                                                    <g class="gearcore__gears">
+                                                <g class="gear gear--l">
+                                                    <path class="gear__body" transform="translate(42 100)" d="M-16.40 4.66 L-16.74 4.75 L-17.08 4.85 L-17.42 4.95 L-17.76 5.04 L-18.11 5.12 L-18.47 5.15 L-18.84 5.14 L-19.21 5.12 L-19.59 5.07 L-19.97 5.00 L-20.35 4.92 L-20.74 4.81 L-21.13 4.69 L-21.52 4.56 L-21.62 4.07 L-21.71 3.57 L-21.78 3.08 L-21.46 2.82 L-21.14 2.57 L-20.81 2.34 L-20.48 2.13 L-20.14 1.94 L-19.80 1.76 L-19.46 1.61 L-19.11 1.48 L-18.77 1.38 L-18.42 1.33 L-18.06 1.31 L-17.71 1.28 L-17.36 1.26 L-17.01 1.23 L-17.02 0.96 L-17.04 0.69 L-17.05 0.41 L-17.05 0.14 L-17.05 -0.14 L-17.05 -0.41 L-17.04 -0.69 L-17.02 -0.96 L-17.01 -1.23 L-17.36 -1.26 L-17.71 -1.28 L-18.06 -1.31 L-18.42 -1.33 L-18.77 -1.38 L-19.11 -1.48 L-19.46 -1.61 L-19.80 -1.76 L-20.14 -1.94 L-20.48 -2.13 L-20.81 -2.34 L-21.14 -2.57 L-21.46 -2.82 L-21.78 -3.08 L-21.71 -3.57 L-21.62 -4.07 L-21.52 -4.56 L-21.13 -4.69 L-20.74 -4.81 L-20.35 -4.92 L-19.97 -5.00 L-19.59 -5.07 L-19.21 -5.12 L-18.84 -5.14 L-18.47 -5.15 L-18.11 -5.12 L-17.76 -5.04 L-17.42 -4.95 L-17.08 -4.85 L-16.74 -4.75 L-16.40 -4.66 L-16.32 -4.92 L-16.24 -5.18 L-16.16 -5.44 L-16.07 -5.70 L-15.97 -5.96 L-15.88 -6.22 L-15.77 -6.47 L-15.67 -6.72 L-15.56 -6.97 L-15.88 -7.12 L-16.20 -7.26 L-16.53 -7.41 L-16.85 -7.55 L-17.16 -7.72 L-17.46 -7.93 L-17.73 -8.17 L-18.00 -8.43 L-18.26 -8.71 L-18.51 -9.00 L-18.75 -9.32 L-18.98 -9.65 L-19.20 -9.99 L-19.42 -10.34 L-19.18 -10.78 L-18.93 -11.22 L-18.67 -11.64 L-18.25 -11.64 L-17.84 -11.62 L-17.44 -11.58 L-17.05 -11.53 L-16.67 -11.46 L-16.30 -11.38 L-15.94 -11.28 L-15.59 -11.15 L-15.26 -11.00 L-14.97 -10.81 L-14.68 -10.61 L-14.39 -10.40 L-14.11 -10.19 L-13.82 -9.99 L-13.66 -10.21 L-13.49 -10.43 L-13.32 -10.64 L-13.15 -10.85 L-12.97 -11.06 L-12.79 -11.27 L-12.61 -11.48 L-12.42 -11.68 L-12.23 -11.88 L-12.49 -12.12 L-12.74 -12.37 L-13.00 -12.61 L-13.25 -12.86 L-13.49 -13.12 L-13.69 -13.42 L-13.87 -13.74 L-14.04 -14.08 L-14.18 -14.43 L-14.32 -14.79 L-14.43 -15.17 L-14.54 -15.56 L-14.63 -15.95 L-14.71 -16.36 L-14.33 -16.69 L-13.95 -17.01 L-13.56 -17.33 L-13.17 -17.18 L-12.80 -17.02 L-12.43 -16.85 L-12.08 -16.67 L-11.75 -16.47 L-11.43 -16.27 L-11.12 -16.05 L-10.84 -15.81 L-10.58 -15.56 L-10.36 -15.28 L-10.17 -14.99 L-9.97 -14.70 L-9.77 -14.40 L-9.57 -14.11 L-9.34 -14.26 L-9.11 -14.41 L-8.88 -14.56 L-8.64 -14.70 L-8.41 -14.83 L-8.17 -14.97 L-7.92 -15.10 L-7.68 -15.22 L-7.44 -15.34 L-7.59 -15.66 L-7.74 -15.98 L-7.90 -16.30 L-8.05 -16.62 L-8.19 -16.94 L-8.28 -17.29 L-8.34 -17.66 L-8.37 -18.03 L-8.39 -18.41 L-8.39 -18.80 L-8.38 -19.19 L-8.34 -19.59 L-8.29 -20.00 L-8.22 -20.40 L-7.76 -20.59 L-7.29 -20.76 L-6.82 -20.92 L-6.50 -20.65 L-6.20 -20.37 L-5.92 -20.09 L-5.65 -19.79 L-5.40 -19.50 L-5.17 -19.19 L-4.96 -18.88 L-4.78 -18.57 L-4.62 -18.24 L-4.51 -17.90 L-4.43 -17.56 L-4.34 -17.22 L-4.25 -16.88 L-4.17 -16.53 L-3.90 -16.60 L-3.63 -16.66 L-3.36 -16.71 L-3.10 -16.77 L-2.83 -16.81 L-2.55 -16.86 L-2.28 -16.90 L-2.01 -16.93 L-1.74 -16.96 L-1.78 -17.31 L-1.81 -17.66 L-1.85 -18.02 L-1.88 -18.37 L-1.90 -18.72 L-1.86 -19.08 L-1.79 -19.44 L-1.70 -19.81 L-1.59 -20.17 L-1.46 -20.53 L-1.31 -20.90 L-1.14 -21.26 L-0.95 -21.63 L-0.75 -21.99 L-0.25 -22.00 L0.25 -22.00 L0.75 -21.99 L0.95 -21.63 L1.14 -21.26 L1.31 -20.90 L1.46 -20.53 L1.59 -20.17 L1.70 -19.81 L1.79 -19.44 L1.86 -19.08 L1.90 -18.72 L1.88 -18.37 L1.85 -18.02 L1.81 -17.66 L1.78 -17.31 L1.74 -16.96 L2.01 -16.93 L2.28 -16.90 L2.55 -16.86 L2.83 -16.81 L3.10 -16.77 L3.36 -16.71 L3.63 -16.66 L3.90 -16.60 L4.17 -16.53 L4.25 -16.88 L4.34 -17.22 L4.43 -17.56 L4.51 -17.90 L4.62 -18.24 L4.78 -18.57 L4.96 -18.88 L5.17 -19.19 L5.40 -19.50 L5.65 -19.79 L5.92 -20.09 L6.20 -20.37 L6.50 -20.65 L6.82 -20.92 L7.29 -20.76 L7.76 -20.59 L8.22 -20.40 L8.29 -20.00 L8.34 -19.59 L8.38 -19.19 L8.39 -18.80 L8.39 -18.41 L8.37 -18.03 L8.34 -17.66 L8.28 -17.29 L8.19 -16.94 L8.05 -16.62 L7.90 -16.30 L7.74 -15.98 L7.59 -15.66 L7.44 -15.34 L7.68 -15.22 L7.92 -15.10 L8.17 -14.97 L8.41 -14.83 L8.64 -14.70 L8.88 -14.56 L9.11 -14.41 L9.34 -14.26 L9.57 -14.11 L9.77 -14.40 L9.97 -14.70 L10.17 -14.99 L10.36 -15.28 L10.58 -15.56 L10.84 -15.81 L11.12 -16.05 L11.43 -16.27 L11.75 -16.47 L12.08 -16.67 L12.43 -16.85 L12.80 -17.02 L13.17 -17.18 L13.56 -17.33 L13.95 -17.01 L14.33 -16.69 L14.71 -16.36 L14.63 -15.95 L14.54 -15.56 L14.43 -15.17 L14.32 -14.79 L14.18 -14.43 L14.04 -14.08 L13.87 -13.74 L13.69 -13.42 L13.49 -13.12 L13.25 -12.86 L13.00 -12.61 L12.74 -12.37 L12.49 -12.12 L12.23 -11.88 L12.42 -11.68 L12.61 -11.48 L12.79 -11.27 L12.97 -11.06 L13.15 -10.85 L13.32 -10.64 L13.49 -10.43 L13.66 -10.21 L13.82 -9.99 L14.11 -10.19 L14.39 -10.40 L14.68 -10.61 L14.97 -10.81 L15.26 -11.00 L15.59 -11.15 L15.94 -11.28 L16.30 -11.38 L16.67 -11.46 L17.05 -11.53 L17.44 -11.58 L17.84 -11.62 L18.25 -11.64 L18.67 -11.64 L18.93 -11.22 L19.18 -10.78 L19.42 -10.34 L19.20 -9.99 L18.98 -9.65 L18.75 -9.32 L18.51 -9.00 L18.26 -8.71 L18.00 -8.43 L17.73 -8.17 L17.46 -7.93 L17.16 -7.72 L16.85 -7.55 L16.53 -7.41 L16.20 -7.26 L15.88 -7.12 L15.56 -6.97 L15.67 -6.72 L15.77 -6.47 L15.88 -6.22 L15.97 -5.96 L16.07 -5.70 L16.16 -5.44 L16.24 -5.18 L16.32 -4.92 L16.40 -4.66 L16.74 -4.75 L17.08 -4.85 L17.42 -4.95 L17.76 -5.04 L18.11 -5.12 L18.47 -5.15 L18.84 -5.14 L19.21 -5.12 L19.59 -5.07 L19.97 -5.00 L20.35 -4.92 L20.74 -4.81 L21.13 -4.69 L21.52 -4.56 L21.62 -4.07 L21.71 -3.57 L21.78 -3.08 L21.46 -2.82 L21.14 -2.57 L20.81 -2.34 L20.48 -2.13 L20.14 -1.94 L19.80 -1.76 L19.46 -1.61 L19.11 -1.48 L18.77 -1.38 L18.42 -1.33 L18.06 -1.31 L17.71 -1.28 L17.36 -1.26 L17.01 -1.23 L17.02 -0.96 L17.04 -0.69 L17.05 -0.41 L17.05 -0.14 L17.05 0.14 L17.05 0.41 L17.04 0.69 L17.02 0.96 L17.01 1.23 L17.36 1.26 L17.71 1.28 L18.06 1.31 L18.42 1.33 L18.77 1.38 L19.11 1.48 L19.46 1.61 L19.80 1.76 L20.14 1.94 L20.48 2.13 L20.81 2.34 L21.14 2.57 L21.46 2.82 L21.78 3.08 L21.71 3.57 L21.62 4.07 L21.52 4.56 L21.13 4.69 L20.74 4.81 L20.35 4.92 L19.97 5.00 L19.59 5.07 L19.21 5.12 L18.84 5.14 L18.47 5.15 L18.11 5.12 L17.76 5.04 L17.42 4.95 L17.08 4.85 L16.74 4.75 L16.40 4.66 L16.32 4.92 L16.24 5.18 L16.16 5.44 L16.07 5.70 L15.97 5.96 L15.88 6.22 L15.77 6.47 L15.67 6.72 L15.56 6.97 L15.88 7.12 L16.20 7.26 L16.53 7.41 L16.85 7.55 L17.16 7.72 L17.46 7.93 L17.73 8.17 L18.00 8.43 L18.26 8.71 L18.51 9.00 L18.75 9.32 L18.98 9.65 L19.20 9.99 L19.42 10.34 L19.18 10.78 L18.93 11.22 L18.67 11.64 L18.25 11.64 L17.84 11.62 L17.44 11.58 L17.05 11.53 L16.67 11.46 L16.30 11.38 L15.94 11.28 L15.59 11.15 L15.26 11.00 L14.97 10.81 L14.68 10.61 L14.39 10.40 L14.11 10.19 L13.82 9.99 L13.66 10.21 L13.49 10.43 L13.32 10.64 L13.15 10.85 L12.97 11.06 L12.79 11.27 L12.61 11.48 L12.42 11.68 L12.23 11.88 L12.49 12.12 L12.74 12.37 L13.00 12.61 L13.25 12.86 L13.49 13.12 L13.69 13.42 L13.87 13.74 L14.04 14.08 L14.18 14.43 L14.32 14.79 L14.43 15.17 L14.54 15.56 L14.63 15.95 L14.71 16.36 L14.33 16.69 L13.95 17.01 L13.56 17.33 L13.17 17.18 L12.80 17.02 L12.43 16.85 L12.08 16.67 L11.75 16.47 L11.43 16.27 L11.12 16.05 L10.84 15.81 L10.58 15.56 L10.36 15.28 L10.17 14.99 L9.97 14.70 L9.77 14.40 L9.57 14.11 L9.34 14.26 L9.11 14.41 L8.88 14.56 L8.64 14.70 L8.41 14.83 L8.17 14.97 L7.92 15.10 L7.68 15.22 L7.44 15.34 L7.59 15.66 L7.74 15.98 L7.90 16.30 L8.05 16.62 L8.19 16.94 L8.28 17.29 L8.34 17.66 L8.37 18.03 L8.39 18.41 L8.39 18.80 L8.38 19.19 L8.34 19.59 L8.29 20.00 L8.22 20.40 L7.76 20.59 L7.29 20.76 L6.82 20.92 L6.50 20.65 L6.20 20.37 L5.92 20.09 L5.65 19.79 L5.40 19.50 L5.17 19.19 L4.96 18.88 L4.78 18.57 L4.62 18.24 L4.51 17.90 L4.43 17.56 L4.34 17.22 L4.25 16.88 L4.17 16.53 L3.90 16.60 L3.63 16.66 L3.36 16.71 L3.10 16.77 L2.83 16.81 L2.55 16.86 L2.28 16.90 L2.01 16.93 L1.74 16.96 L1.78 17.31 L1.81 17.66 L1.85 18.02 L1.88 18.37 L1.90 18.72 L1.86 19.08 L1.79 19.44 L1.70 19.81 L1.59 20.17 L1.46 20.53 L1.31 20.90 L1.14 21.26 L0.95 21.63 L0.75 21.99 L0.25 22.00 L-0.25 22.00 L-0.75 21.99 L-0.95 21.63 L-1.14 21.26 L-1.31 20.90 L-1.46 20.53 L-1.59 20.17 L-1.70 19.81 L-1.79 19.44 L-1.86 19.08 L-1.90 18.72 L-1.88 18.37 L-1.85 18.02 L-1.81 17.66 L-1.78 17.31 L-1.74 16.96 L-2.01 16.93 L-2.28 16.90 L-2.55 16.86 L-2.83 16.81 L-3.10 16.77 L-3.36 16.71 L-3.63 16.66 L-3.90 16.60 L-4.17 16.53 L-4.25 16.88 L-4.34 17.22 L-4.43 17.56 L-4.51 17.90 L-4.62 18.24 L-4.78 18.57 L-4.96 18.88 L-5.17 19.19 L-5.40 19.50 L-5.65 19.79 L-5.92 20.09 L-6.20 20.37 L-6.50 20.65 L-6.82 20.92 L-7.29 20.76 L-7.76 20.59 L-8.22 20.40 L-8.29 20.00 L-8.34 19.59 L-8.38 19.19 L-8.39 18.80 L-8.39 18.41 L-8.37 18.03 L-8.34 17.66 L-8.28 17.29 L-8.19 16.94 L-8.05 16.62 L-7.90 16.30 L-7.74 15.98 L-7.59 15.66 L-7.44 15.34 L-7.68 15.22 L-7.92 15.10 L-8.17 14.97 L-8.41 14.83 L-8.64 14.70 L-8.88 14.56 L-9.11 14.41 L-9.34 14.26 L-9.57 14.11 L-9.77 14.40 L-9.97 14.70 L-10.17 14.99 L-10.36 15.28 L-10.58 15.56 L-10.84 15.81 L-11.12 16.05 L-11.43 16.27 L-11.75 16.47 L-12.08 16.67 L-12.43 16.85 L-12.80 17.02 L-13.17 17.18 L-13.56 17.33 L-13.95 17.01 L-14.33 16.69 L-14.71 16.36 L-14.63 15.95 L-14.54 15.56 L-14.43 15.17 L-14.32 14.79 L-14.18 14.43 L-14.04 14.08 L-13.87 13.74 L-13.69 13.42 L-13.49 13.12 L-13.25 12.86 L-13.00 12.61 L-12.74 12.37 L-12.49 12.12 L-12.23 11.88 L-12.42 11.68 L-12.61 11.48 L-12.79 11.27 L-12.97 11.06 L-13.15 10.85 L-13.32 10.64 L-13.49 10.43 L-13.66 10.21 L-13.82 9.99 L-14.11 10.19 L-14.39 10.40 L-14.68 10.61 L-14.97 10.81 L-15.26 11.00 L-15.59 11.15 L-15.94 11.28 L-16.30 11.38 L-16.67 11.46 L-17.05 11.53 L-17.44 11.58 L-17.84 11.62 L-18.25 11.64 L-18.67 11.64 L-18.93 11.22 L-19.18 10.78 L-19.42 10.34 L-19.20 9.99 L-18.98 9.65 L-18.75 9.32 L-18.51 9.00 L-18.26 8.71 L-18.00 8.43 L-17.73 8.17 L-17.46 7.93 L-17.16 7.72 L-16.85 7.55 L-16.53 7.41 L-16.20 7.26 L-15.88 7.12 L-15.56 6.97 L-15.67 6.72 L-15.77 6.47 L-15.88 6.22 L-15.97 5.96 L-16.07 5.70 L-16.16 5.44 L-16.24 5.18 L-16.32 4.92 Z" fill="url(#gcFaceS_L)" stroke="url(#gcBevelS)" stroke-width="0.8"/>
+                                                    <circle cx="42" cy="100.0" r="14.6" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1.3"/>
+                                                    <circle cx="42" cy="100.0" r="13.6" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.7"/>
+                                                    <circle cx="42" cy="100.0" r="8.8" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="0.9"/>
+                                                    <circle cx="42.00" cy="111.40" r="1.05"/>
+<circle cx="30.73" cy="94.30" r="1.05"/>
+<circle cx="50.47" cy="94.30" r="1.05"/>
+                                                    <circle cx="42" cy="100.0" r="5.2" fill="url(#gcHub)" stroke="rgba(0,0,0,0.55)" stroke-width="0.8"/>
+                                                    <circle cx="42" cy="100.0" r="4.1" fill="#0d0e12"/>
+                                                    <circle cx="42" cy="100.0" r="3.1" fill="url(#gcRuby)" stroke="#e6c67a" stroke-width="0.7"/>
+                                                    <circle cx="39.8" cy="98.7" r="0.8" fill="rgba(255,255,255,0.85)"/>
+                                                </g>
+                                                <g class="gear gear--r">
+                                                    <path class="gear__body" transform="translate(158 100)" d="M-16.40 4.66 L-16.74 4.75 L-17.08 4.85 L-17.42 4.95 L-17.76 5.04 L-18.11 5.12 L-18.47 5.15 L-18.84 5.14 L-19.21 5.12 L-19.59 5.07 L-19.97 5.00 L-20.35 4.92 L-20.74 4.81 L-21.13 4.69 L-21.52 4.56 L-21.62 4.07 L-21.71 3.57 L-21.78 3.08 L-21.46 2.82 L-21.14 2.57 L-20.81 2.34 L-20.48 2.13 L-20.14 1.94 L-19.80 1.76 L-19.46 1.61 L-19.11 1.48 L-18.77 1.38 L-18.42 1.33 L-18.06 1.31 L-17.71 1.28 L-17.36 1.26 L-17.01 1.23 L-17.02 0.96 L-17.04 0.69 L-17.05 0.41 L-17.05 0.14 L-17.05 -0.14 L-17.05 -0.41 L-17.04 -0.69 L-17.02 -0.96 L-17.01 -1.23 L-17.36 -1.26 L-17.71 -1.28 L-18.06 -1.31 L-18.42 -1.33 L-18.77 -1.38 L-19.11 -1.48 L-19.46 -1.61 L-19.80 -1.76 L-20.14 -1.94 L-20.48 -2.13 L-20.81 -2.34 L-21.14 -2.57 L-21.46 -2.82 L-21.78 -3.08 L-21.71 -3.57 L-21.62 -4.07 L-21.52 -4.56 L-21.13 -4.69 L-20.74 -4.81 L-20.35 -4.92 L-19.97 -5.00 L-19.59 -5.07 L-19.21 -5.12 L-18.84 -5.14 L-18.47 -5.15 L-18.11 -5.12 L-17.76 -5.04 L-17.42 -4.95 L-17.08 -4.85 L-16.74 -4.75 L-16.40 -4.66 L-16.32 -4.92 L-16.24 -5.18 L-16.16 -5.44 L-16.07 -5.70 L-15.97 -5.96 L-15.88 -6.22 L-15.77 -6.47 L-15.67 -6.72 L-15.56 -6.97 L-15.88 -7.12 L-16.20 -7.26 L-16.53 -7.41 L-16.85 -7.55 L-17.16 -7.72 L-17.46 -7.93 L-17.73 -8.17 L-18.00 -8.43 L-18.26 -8.71 L-18.51 -9.00 L-18.75 -9.32 L-18.98 -9.65 L-19.20 -9.99 L-19.42 -10.34 L-19.18 -10.78 L-18.93 -11.22 L-18.67 -11.64 L-18.25 -11.64 L-17.84 -11.62 L-17.44 -11.58 L-17.05 -11.53 L-16.67 -11.46 L-16.30 -11.38 L-15.94 -11.28 L-15.59 -11.15 L-15.26 -11.00 L-14.97 -10.81 L-14.68 -10.61 L-14.39 -10.40 L-14.11 -10.19 L-13.82 -9.99 L-13.66 -10.21 L-13.49 -10.43 L-13.32 -10.64 L-13.15 -10.85 L-12.97 -11.06 L-12.79 -11.27 L-12.61 -11.48 L-12.42 -11.68 L-12.23 -11.88 L-12.49 -12.12 L-12.74 -12.37 L-13.00 -12.61 L-13.25 -12.86 L-13.49 -13.12 L-13.69 -13.42 L-13.87 -13.74 L-14.04 -14.08 L-14.18 -14.43 L-14.32 -14.79 L-14.43 -15.17 L-14.54 -15.56 L-14.63 -15.95 L-14.71 -16.36 L-14.33 -16.69 L-13.95 -17.01 L-13.56 -17.33 L-13.17 -17.18 L-12.80 -17.02 L-12.43 -16.85 L-12.08 -16.67 L-11.75 -16.47 L-11.43 -16.27 L-11.12 -16.05 L-10.84 -15.81 L-10.58 -15.56 L-10.36 -15.28 L-10.17 -14.99 L-9.97 -14.70 L-9.77 -14.40 L-9.57 -14.11 L-9.34 -14.26 L-9.11 -14.41 L-8.88 -14.56 L-8.64 -14.70 L-8.41 -14.83 L-8.17 -14.97 L-7.92 -15.10 L-7.68 -15.22 L-7.44 -15.34 L-7.59 -15.66 L-7.74 -15.98 L-7.90 -16.30 L-8.05 -16.62 L-8.19 -16.94 L-8.28 -17.29 L-8.34 -17.66 L-8.37 -18.03 L-8.39 -18.41 L-8.39 -18.80 L-8.38 -19.19 L-8.34 -19.59 L-8.29 -20.00 L-8.22 -20.40 L-7.76 -20.59 L-7.29 -20.76 L-6.82 -20.92 L-6.50 -20.65 L-6.20 -20.37 L-5.92 -20.09 L-5.65 -19.79 L-5.40 -19.50 L-5.17 -19.19 L-4.96 -18.88 L-4.78 -18.57 L-4.62 -18.24 L-4.51 -17.90 L-4.43 -17.56 L-4.34 -17.22 L-4.25 -16.88 L-4.17 -16.53 L-3.90 -16.60 L-3.63 -16.66 L-3.36 -16.71 L-3.10 -16.77 L-2.83 -16.81 L-2.55 -16.86 L-2.28 -16.90 L-2.01 -16.93 L-1.74 -16.96 L-1.78 -17.31 L-1.81 -17.66 L-1.85 -18.02 L-1.88 -18.37 L-1.90 -18.72 L-1.86 -19.08 L-1.79 -19.44 L-1.70 -19.81 L-1.59 -20.17 L-1.46 -20.53 L-1.31 -20.90 L-1.14 -21.26 L-0.95 -21.63 L-0.75 -21.99 L-0.25 -22.00 L0.25 -22.00 L0.75 -21.99 L0.95 -21.63 L1.14 -21.26 L1.31 -20.90 L1.46 -20.53 L1.59 -20.17 L1.70 -19.81 L1.79 -19.44 L1.86 -19.08 L1.90 -18.72 L1.88 -18.37 L1.85 -18.02 L1.81 -17.66 L1.78 -17.31 L1.74 -16.96 L2.01 -16.93 L2.28 -16.90 L2.55 -16.86 L2.83 -16.81 L3.10 -16.77 L3.36 -16.71 L3.63 -16.66 L3.90 -16.60 L4.17 -16.53 L4.25 -16.88 L4.34 -17.22 L4.43 -17.56 L4.51 -17.90 L4.62 -18.24 L4.78 -18.57 L4.96 -18.88 L5.17 -19.19 L5.40 -19.50 L5.65 -19.79 L5.92 -20.09 L6.20 -20.37 L6.50 -20.65 L6.82 -20.92 L7.29 -20.76 L7.76 -20.59 L8.22 -20.40 L8.29 -20.00 L8.34 -19.59 L8.38 -19.19 L8.39 -18.80 L8.39 -18.41 L8.37 -18.03 L8.34 -17.66 L8.28 -17.29 L8.19 -16.94 L8.05 -16.62 L7.90 -16.30 L7.74 -15.98 L7.59 -15.66 L7.44 -15.34 L7.68 -15.22 L7.92 -15.10 L8.17 -14.97 L8.41 -14.83 L8.64 -14.70 L8.88 -14.56 L9.11 -14.41 L9.34 -14.26 L9.57 -14.11 L9.77 -14.40 L9.97 -14.70 L10.17 -14.99 L10.36 -15.28 L10.58 -15.56 L10.84 -15.81 L11.12 -16.05 L11.43 -16.27 L11.75 -16.47 L12.08 -16.67 L12.43 -16.85 L12.80 -17.02 L13.17 -17.18 L13.56 -17.33 L13.95 -17.01 L14.33 -16.69 L14.71 -16.36 L14.63 -15.95 L14.54 -15.56 L14.43 -15.17 L14.32 -14.79 L14.18 -14.43 L14.04 -14.08 L13.87 -13.74 L13.69 -13.42 L13.49 -13.12 L13.25 -12.86 L13.00 -12.61 L12.74 -12.37 L12.49 -12.12 L12.23 -11.88 L12.42 -11.68 L12.61 -11.48 L12.79 -11.27 L12.97 -11.06 L13.15 -10.85 L13.32 -10.64 L13.49 -10.43 L13.66 -10.21 L13.82 -9.99 L14.11 -10.19 L14.39 -10.40 L14.68 -10.61 L14.97 -10.81 L15.26 -11.00 L15.59 -11.15 L15.94 -11.28 L16.30 -11.38 L16.67 -11.46 L17.05 -11.53 L17.44 -11.58 L17.84 -11.62 L18.25 -11.64 L18.67 -11.64 L18.93 -11.22 L19.18 -10.78 L19.42 -10.34 L19.20 -9.99 L18.98 -9.65 L18.75 -9.32 L18.51 -9.00 L18.26 -8.71 L18.00 -8.43 L17.73 -8.17 L17.46 -7.93 L17.16 -7.72 L16.85 -7.55 L16.53 -7.41 L16.20 -7.26 L15.88 -7.12 L15.56 -6.97 L15.67 -6.72 L15.77 -6.47 L15.88 -6.22 L15.97 -5.96 L16.07 -5.70 L16.16 -5.44 L16.24 -5.18 L16.32 -4.92 L16.40 -4.66 L16.74 -4.75 L17.08 -4.85 L17.42 -4.95 L17.76 -5.04 L18.11 -5.12 L18.47 -5.15 L18.84 -5.14 L19.21 -5.12 L19.59 -5.07 L19.97 -5.00 L20.35 -4.92 L20.74 -4.81 L21.13 -4.69 L21.52 -4.56 L21.62 -4.07 L21.71 -3.57 L21.78 -3.08 L21.46 -2.82 L21.14 -2.57 L20.81 -2.34 L20.48 -2.13 L20.14 -1.94 L19.80 -1.76 L19.46 -1.61 L19.11 -1.48 L18.77 -1.38 L18.42 -1.33 L18.06 -1.31 L17.71 -1.28 L17.36 -1.26 L17.01 -1.23 L17.02 -0.96 L17.04 -0.69 L17.05 -0.41 L17.05 -0.14 L17.05 0.14 L17.05 0.41 L17.04 0.69 L17.02 0.96 L17.01 1.23 L17.36 1.26 L17.71 1.28 L18.06 1.31 L18.42 1.33 L18.77 1.38 L19.11 1.48 L19.46 1.61 L19.80 1.76 L20.14 1.94 L20.48 2.13 L20.81 2.34 L21.14 2.57 L21.46 2.82 L21.78 3.08 L21.71 3.57 L21.62 4.07 L21.52 4.56 L21.13 4.69 L20.74 4.81 L20.35 4.92 L19.97 5.00 L19.59 5.07 L19.21 5.12 L18.84 5.14 L18.47 5.15 L18.11 5.12 L17.76 5.04 L17.42 4.95 L17.08 4.85 L16.74 4.75 L16.40 4.66 L16.32 4.92 L16.24 5.18 L16.16 5.44 L16.07 5.70 L15.97 5.96 L15.88 6.22 L15.77 6.47 L15.67 6.72 L15.56 6.97 L15.88 7.12 L16.20 7.26 L16.53 7.41 L16.85 7.55 L17.16 7.72 L17.46 7.93 L17.73 8.17 L18.00 8.43 L18.26 8.71 L18.51 9.00 L18.75 9.32 L18.98 9.65 L19.20 9.99 L19.42 10.34 L19.18 10.78 L18.93 11.22 L18.67 11.64 L18.25 11.64 L17.84 11.62 L17.44 11.58 L17.05 11.53 L16.67 11.46 L16.30 11.38 L15.94 11.28 L15.59 11.15 L15.26 11.00 L14.97 10.81 L14.68 10.61 L14.39 10.40 L14.11 10.19 L13.82 9.99 L13.66 10.21 L13.49 10.43 L13.32 10.64 L13.15 10.85 L12.97 11.06 L12.79 11.27 L12.61 11.48 L12.42 11.68 L12.23 11.88 L12.49 12.12 L12.74 12.37 L13.00 12.61 L13.25 12.86 L13.49 13.12 L13.69 13.42 L13.87 13.74 L14.04 14.08 L14.18 14.43 L14.32 14.79 L14.43 15.17 L14.54 15.56 L14.63 15.95 L14.71 16.36 L14.33 16.69 L13.95 17.01 L13.56 17.33 L13.17 17.18 L12.80 17.02 L12.43 16.85 L12.08 16.67 L11.75 16.47 L11.43 16.27 L11.12 16.05 L10.84 15.81 L10.58 15.56 L10.36 15.28 L10.17 14.99 L9.97 14.70 L9.77 14.40 L9.57 14.11 L9.34 14.26 L9.11 14.41 L8.88 14.56 L8.64 14.70 L8.41 14.83 L8.17 14.97 L7.92 15.10 L7.68 15.22 L7.44 15.34 L7.59 15.66 L7.74 15.98 L7.90 16.30 L8.05 16.62 L8.19 16.94 L8.28 17.29 L8.34 17.66 L8.37 18.03 L8.39 18.41 L8.39 18.80 L8.38 19.19 L8.34 19.59 L8.29 20.00 L8.22 20.40 L7.76 20.59 L7.29 20.76 L6.82 20.92 L6.50 20.65 L6.20 20.37 L5.92 20.09 L5.65 19.79 L5.40 19.50 L5.17 19.19 L4.96 18.88 L4.78 18.57 L4.62 18.24 L4.51 17.90 L4.43 17.56 L4.34 17.22 L4.25 16.88 L4.17 16.53 L3.90 16.60 L3.63 16.66 L3.36 16.71 L3.10 16.77 L2.83 16.81 L2.55 16.86 L2.28 16.90 L2.01 16.93 L1.74 16.96 L1.78 17.31 L1.81 17.66 L1.85 18.02 L1.88 18.37 L1.90 18.72 L1.86 19.08 L1.79 19.44 L1.70 19.81 L1.59 20.17 L1.46 20.53 L1.31 20.90 L1.14 21.26 L0.95 21.63 L0.75 21.99 L0.25 22.00 L-0.25 22.00 L-0.75 21.99 L-0.95 21.63 L-1.14 21.26 L-1.31 20.90 L-1.46 20.53 L-1.59 20.17 L-1.70 19.81 L-1.79 19.44 L-1.86 19.08 L-1.90 18.72 L-1.88 18.37 L-1.85 18.02 L-1.81 17.66 L-1.78 17.31 L-1.74 16.96 L-2.01 16.93 L-2.28 16.90 L-2.55 16.86 L-2.83 16.81 L-3.10 16.77 L-3.36 16.71 L-3.63 16.66 L-3.90 16.60 L-4.17 16.53 L-4.25 16.88 L-4.34 17.22 L-4.43 17.56 L-4.51 17.90 L-4.62 18.24 L-4.78 18.57 L-4.96 18.88 L-5.17 19.19 L-5.40 19.50 L-5.65 19.79 L-5.92 20.09 L-6.20 20.37 L-6.50 20.65 L-6.82 20.92 L-7.29 20.76 L-7.76 20.59 L-8.22 20.40 L-8.29 20.00 L-8.34 19.59 L-8.38 19.19 L-8.39 18.80 L-8.39 18.41 L-8.37 18.03 L-8.34 17.66 L-8.28 17.29 L-8.19 16.94 L-8.05 16.62 L-7.90 16.30 L-7.74 15.98 L-7.59 15.66 L-7.44 15.34 L-7.68 15.22 L-7.92 15.10 L-8.17 14.97 L-8.41 14.83 L-8.64 14.70 L-8.88 14.56 L-9.11 14.41 L-9.34 14.26 L-9.57 14.11 L-9.77 14.40 L-9.97 14.70 L-10.17 14.99 L-10.36 15.28 L-10.58 15.56 L-10.84 15.81 L-11.12 16.05 L-11.43 16.27 L-11.75 16.47 L-12.08 16.67 L-12.43 16.85 L-12.80 17.02 L-13.17 17.18 L-13.56 17.33 L-13.95 17.01 L-14.33 16.69 L-14.71 16.36 L-14.63 15.95 L-14.54 15.56 L-14.43 15.17 L-14.32 14.79 L-14.18 14.43 L-14.04 14.08 L-13.87 13.74 L-13.69 13.42 L-13.49 13.12 L-13.25 12.86 L-13.00 12.61 L-12.74 12.37 L-12.49 12.12 L-12.23 11.88 L-12.42 11.68 L-12.61 11.48 L-12.79 11.27 L-12.97 11.06 L-13.15 10.85 L-13.32 10.64 L-13.49 10.43 L-13.66 10.21 L-13.82 9.99 L-14.11 10.19 L-14.39 10.40 L-14.68 10.61 L-14.97 10.81 L-15.26 11.00 L-15.59 11.15 L-15.94 11.28 L-16.30 11.38 L-16.67 11.46 L-17.05 11.53 L-17.44 11.58 L-17.84 11.62 L-18.25 11.64 L-18.67 11.64 L-18.93 11.22 L-19.18 10.78 L-19.42 10.34 L-19.20 9.99 L-18.98 9.65 L-18.75 9.32 L-18.51 9.00 L-18.26 8.71 L-18.00 8.43 L-17.73 8.17 L-17.46 7.93 L-17.16 7.72 L-16.85 7.55 L-16.53 7.41 L-16.20 7.26 L-15.88 7.12 L-15.56 6.97 L-15.67 6.72 L-15.77 6.47 L-15.88 6.22 L-15.97 5.96 L-16.07 5.70 L-16.16 5.44 L-16.24 5.18 L-16.32 4.92 Z" fill="url(#gcFaceS_R)" stroke="url(#gcBevelS)" stroke-width="0.8"/>
+                                                    <circle cx="158" cy="100.0" r="14.6" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1.3"/>
+                                                    <circle cx="158" cy="100.0" r="13.6" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.7"/>
+                                                    <circle cx="158" cy="100.0" r="8.8" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="0.9"/>
+                                                    <circle cx="169.27" cy="105.70" r="1.05"/>
+<circle cx="149.53" cy="105.70" r="1.05"/>
+<circle cx="158.00" cy="88.60" r="1.05"/>
+                                                    <circle cx="158" cy="100.0" r="5.2" fill="url(#gcHub)" stroke="rgba(0,0,0,0.55)" stroke-width="0.8"/>
+                                                    <circle cx="158" cy="100.0" r="4.1" fill="#0d0e12"/>
+                                                    <circle cx="158" cy="100.0" r="3.1" fill="url(#gcRuby)" stroke="#e6c67a" stroke-width="0.7"/>
+                                                    <circle cx="158.6" cy="98.7" r="0.8" fill="rgba(255,255,255,0.85)"/>
+                                                </g>
+                                                <g class="gear gear--c">
+                                                    <path class="gear__body" transform="translate(100 100)" d="M36.8 -2.2 L37.1 -2.2 L37.5 -2.2 L37.9 -2.1 L38.2 -2.1 L38.6 -2.0 L38.9 -1.9 L39.3 -1.8 L39.6 -1.7 L40.0 -1.6 L40.4 -1.4 L40.7 -1.3 L41.1 -1.2 L41.4 -1.0 L41.8 -0.8 L41.8 -0.3 L41.8 0.3 L41.8 0.8 L41.4 1.0 L41.1 1.2 L40.7 1.3 L40.4 1.4 L40.0 1.6 L39.6 1.7 L39.3 1.8 L38.9 1.9 L38.6 2.0 L38.2 2.1 L37.9 2.1 L37.5 2.2 L37.1 2.2 L36.8 2.2 L36.8 2.4 L36.8 2.6 L36.7 2.9 L36.7 3.1 L36.7 3.3 L36.7 3.6 L36.7 3.8 L36.6 4.0 L36.6 4.3 L37.0 4.3 L37.3 4.4 L37.6 4.5 L38.0 4.6 L38.3 4.7 L38.7 4.9 L39.0 5.0 L39.3 5.2 L39.7 5.4 L40.0 5.6 L40.3 5.8 L40.7 6.0 L41.0 6.2 L41.3 6.4 L41.2 7.0 L41.1 7.5 L41.0 8.1 L40.6 8.2 L40.3 8.3 L39.9 8.4 L39.5 8.4 L39.1 8.5 L38.7 8.6 L38.4 8.6 L38.0 8.6 L37.6 8.7 L37.3 8.7 L36.9 8.7 L36.5 8.6 L36.2 8.6 L35.9 8.5 L35.8 8.7 L35.7 9.0 L35.7 9.2 L35.6 9.4 L35.6 9.7 L35.5 9.9 L35.4 10.1 L35.4 10.3 L35.3 10.6 L35.6 10.7 L36.0 10.8 L36.3 10.9 L36.6 11.1 L36.9 11.3 L37.2 11.5 L37.5 11.7 L37.8 12.0 L38.1 12.2 L38.4 12.4 L38.7 12.7 L39.0 13.0 L39.3 13.2 L39.6 13.5 L39.4 14.0 L39.2 14.6 L39.0 15.1 L38.6 15.1 L38.2 15.1 L37.8 15.2 L37.4 15.2 L37.0 15.2 L36.7 15.2 L36.3 15.1 L35.9 15.1 L35.6 15.1 L35.2 15.0 L34.8 14.9 L34.5 14.9 L34.2 14.7 L33.8 14.6 L33.7 14.8 L33.6 15.0 L33.5 15.3 L33.4 15.5 L33.3 15.7 L33.2 15.9 L33.1 16.1 L33.0 16.3 L32.9 16.5 L33.3 16.7 L33.6 16.9 L33.8 17.1 L34.1 17.3 L34.4 17.6 L34.7 17.8 L34.9 18.1 L35.2 18.3 L35.4 18.6 L35.7 18.9 L35.9 19.2 L36.2 19.5 L36.4 19.9 L36.6 20.2 L36.3 20.7 L36.1 21.1 L35.8 21.6 L35.4 21.6 L35.0 21.5 L34.6 21.5 L34.2 21.4 L33.9 21.4 L33.5 21.3 L33.1 21.2 L32.8 21.1 L32.4 21.0 L32.1 20.9 L31.7 20.8 L31.4 20.6 L31.1 20.5 L30.8 20.3 L30.7 20.5 L30.5 20.7 L30.4 20.8 L30.3 21.0 L30.1 21.2 L30.0 21.4 L29.8 21.6 L29.7 21.8 L29.6 22.0 L29.8 22.2 L30.1 22.4 L30.4 22.7 L30.6 23.0 L30.8 23.3 L31.0 23.6 L31.3 23.9 L31.5 24.2 L31.7 24.5 L31.8 24.8 L32.0 25.2 L32.2 25.5 L32.4 25.9 L32.5 26.2 L32.2 26.7 L31.8 27.1 L31.5 27.5 L31.1 27.4 L30.7 27.3 L30.4 27.2 L30.0 27.1 L29.6 26.9 L29.3 26.8 L28.9 26.6 L28.6 26.5 L28.3 26.3 L27.9 26.1 L27.6 26.0 L27.3 25.8 L27.1 25.5 L26.8 25.3 L26.6 25.5 L26.5 25.6 L26.3 25.8 L26.1 26.0 L26.0 26.1 L25.8 26.3 L25.6 26.5 L25.5 26.6 L25.3 26.8 L25.5 27.1 L25.8 27.3 L26.0 27.6 L26.1 27.9 L26.3 28.3 L26.5 28.6 L26.6 28.9 L26.8 29.3 L26.9 29.6 L27.1 30.0 L27.2 30.4 L27.3 30.7 L27.4 31.1 L27.5 31.5 L27.1 31.8 L26.7 32.2 L26.2 32.5 L25.9 32.4 L25.5 32.2 L25.2 32.0 L24.8 31.8 L24.5 31.7 L24.2 31.5 L23.9 31.3 L23.6 31.0 L23.3 30.8 L23.0 30.6 L22.7 30.4 L22.4 30.1 L22.2 29.8 L22.0 29.6 L21.8 29.7 L21.6 29.8 L21.4 30.0 L21.2 30.1 L21.0 30.3 L20.8 30.4 L20.7 30.5 L20.5 30.7 L20.3 30.8 L20.5 31.1 L20.6 31.4 L20.8 31.7 L20.9 32.1 L21.0 32.4 L21.1 32.8 L21.2 33.1 L21.3 33.5 L21.4 33.9 L21.4 34.2 L21.5 34.6 L21.5 35.0 L21.6 35.4 L21.6 35.8 L21.1 36.1 L20.7 36.3 L20.2 36.6 L19.9 36.4 L19.5 36.2 L19.2 35.9 L18.9 35.7 L18.6 35.4 L18.3 35.2 L18.1 34.9 L17.8 34.7 L17.6 34.4 L17.3 34.1 L17.1 33.8 L16.9 33.6 L16.7 33.3 L16.5 32.9 L16.3 33.0 L16.1 33.1 L15.9 33.2 L15.7 33.3 L15.5 33.4 L15.3 33.5 L15.0 33.6 L14.8 33.7 L14.6 33.8 L14.7 34.2 L14.9 34.5 L14.9 34.8 L15.0 35.2 L15.1 35.6 L15.1 35.9 L15.1 36.3 L15.2 36.7 L15.2 37.0 L15.2 37.4 L15.2 37.8 L15.1 38.2 L15.1 38.6 L15.1 39.0 L14.6 39.2 L14.0 39.4 L13.5 39.6 L13.2 39.3 L13.0 39.0 L12.7 38.7 L12.4 38.4 L12.2 38.1 L12.0 37.8 L11.7 37.5 L11.5 37.2 L11.3 36.9 L11.1 36.6 L10.9 36.3 L10.8 36.0 L10.7 35.6 L10.6 35.3 L10.3 35.4 L10.1 35.4 L9.9 35.5 L9.7 35.6 L9.4 35.6 L9.2 35.7 L9.0 35.7 L8.7 35.8 L8.5 35.9 L8.6 36.2 L8.6 36.5 L8.7 36.9 L8.7 37.3 L8.7 37.6 L8.6 38.0 L8.6 38.4 L8.6 38.7 L8.5 39.1 L8.4 39.5 L8.4 39.9 L8.3 40.3 L8.2 40.6 L8.1 41.0 L7.5 41.1 L7.0 41.2 L6.4 41.3 L6.2 41.0 L6.0 40.7 L5.8 40.3 L5.6 40.0 L5.4 39.7 L5.2 39.3 L5.0 39.0 L4.9 38.7 L4.7 38.3 L4.6 38.0 L4.5 37.6 L4.4 37.3 L4.3 37.0 L4.3 36.6 L4.0 36.6 L3.8 36.7 L3.6 36.7 L3.3 36.7 L3.1 36.7 L2.9 36.7 L2.6 36.8 L2.4 36.8 L2.2 36.8 L2.2 37.1 L2.2 37.5 L2.1 37.9 L2.1 38.2 L2.0 38.6 L1.9 38.9 L1.8 39.3 L1.7 39.6 L1.6 40.0 L1.4 40.4 L1.3 40.7 L1.2 41.1 L1.0 41.4 L0.8 41.8 L0.3 41.8 L-0.3 41.8 L-0.8 41.8 L-1.0 41.4 L-1.2 41.1 L-1.3 40.7 L-1.4 40.4 L-1.6 40.0 L-1.7 39.6 L-1.8 39.3 L-1.9 38.9 L-2.0 38.6 L-2.1 38.2 L-2.1 37.9 L-2.2 37.5 L-2.2 37.1 L-2.2 36.8 L-2.4 36.8 L-2.6 36.8 L-2.9 36.7 L-3.1 36.7 L-3.3 36.7 L-3.6 36.7 L-3.8 36.7 L-4.0 36.6 L-4.3 36.6 L-4.3 37.0 L-4.4 37.3 L-4.5 37.6 L-4.6 38.0 L-4.7 38.3 L-4.9 38.7 L-5.0 39.0 L-5.2 39.3 L-5.4 39.7 L-5.6 40.0 L-5.8 40.3 L-6.0 40.7 L-6.2 41.0 L-6.4 41.3 L-7.0 41.2 L-7.5 41.1 L-8.1 41.0 L-8.2 40.6 L-8.3 40.3 L-8.4 39.9 L-8.4 39.5 L-8.5 39.1 L-8.6 38.7 L-8.6 38.4 L-8.6 38.0 L-8.7 37.6 L-8.7 37.3 L-8.7 36.9 L-8.6 36.5 L-8.6 36.2 L-8.5 35.9 L-8.7 35.8 L-9.0 35.7 L-9.2 35.7 L-9.4 35.6 L-9.7 35.6 L-9.9 35.5 L-10.1 35.4 L-10.3 35.4 L-10.6 35.3 L-10.7 35.6 L-10.8 36.0 L-10.9 36.3 L-11.1 36.6 L-11.3 36.9 L-11.5 37.2 L-11.7 37.5 L-12.0 37.8 L-12.2 38.1 L-12.4 38.4 L-12.7 38.7 L-13.0 39.0 L-13.2 39.3 L-13.5 39.6 L-14.0 39.4 L-14.6 39.2 L-15.1 39.0 L-15.1 38.6 L-15.1 38.2 L-15.2 37.8 L-15.2 37.4 L-15.2 37.0 L-15.2 36.7 L-15.1 36.3 L-15.1 35.9 L-15.1 35.6 L-15.0 35.2 L-14.9 34.8 L-14.9 34.5 L-14.7 34.2 L-14.6 33.8 L-14.8 33.7 L-15.0 33.6 L-15.3 33.5 L-15.5 33.4 L-15.7 33.3 L-15.9 33.2 L-16.1 33.1 L-16.3 33.0 L-16.5 32.9 L-16.7 33.3 L-16.9 33.6 L-17.1 33.8 L-17.3 34.1 L-17.6 34.4 L-17.8 34.7 L-18.1 34.9 L-18.3 35.2 L-18.6 35.4 L-18.9 35.7 L-19.2 35.9 L-19.5 36.2 L-19.9 36.4 L-20.2 36.6 L-20.7 36.3 L-21.1 36.1 L-21.6 35.8 L-21.6 35.4 L-21.5 35.0 L-21.5 34.6 L-21.4 34.2 L-21.4 33.9 L-21.3 33.5 L-21.2 33.1 L-21.1 32.8 L-21.0 32.4 L-20.9 32.1 L-20.8 31.7 L-20.6 31.4 L-20.5 31.1 L-20.3 30.8 L-20.5 30.7 L-20.7 30.5 L-20.8 30.4 L-21.0 30.3 L-21.2 30.1 L-21.4 30.0 L-21.6 29.8 L-21.8 29.7 L-22.0 29.6 L-22.2 29.8 L-22.4 30.1 L-22.7 30.4 L-23.0 30.6 L-23.3 30.8 L-23.6 31.0 L-23.9 31.3 L-24.2 31.5 L-24.5 31.7 L-24.8 31.8 L-25.2 32.0 L-25.5 32.2 L-25.9 32.4 L-26.2 32.5 L-26.7 32.2 L-27.1 31.8 L-27.5 31.5 L-27.4 31.1 L-27.3 30.7 L-27.2 30.4 L-27.1 30.0 L-26.9 29.6 L-26.8 29.3 L-26.6 28.9 L-26.5 28.6 L-26.3 28.3 L-26.1 27.9 L-26.0 27.6 L-25.8 27.3 L-25.5 27.1 L-25.3 26.8 L-25.5 26.6 L-25.6 26.5 L-25.8 26.3 L-26.0 26.1 L-26.1 26.0 L-26.3 25.8 L-26.5 25.6 L-26.6 25.5 L-26.8 25.3 L-27.1 25.5 L-27.3 25.8 L-27.6 26.0 L-27.9 26.1 L-28.3 26.3 L-28.6 26.5 L-28.9 26.6 L-29.3 26.8 L-29.6 26.9 L-30.0 27.1 L-30.4 27.2 L-30.7 27.3 L-31.1 27.4 L-31.5 27.5 L-31.8 27.1 L-32.2 26.7 L-32.5 26.2 L-32.4 25.9 L-32.2 25.5 L-32.0 25.2 L-31.8 24.8 L-31.7 24.5 L-31.5 24.2 L-31.3 23.9 L-31.0 23.6 L-30.8 23.3 L-30.6 23.0 L-30.4 22.7 L-30.1 22.4 L-29.8 22.2 L-29.6 22.0 L-29.7 21.8 L-29.8 21.6 L-30.0 21.4 L-30.1 21.2 L-30.3 21.0 L-30.4 20.8 L-30.5 20.7 L-30.7 20.5 L-30.8 20.3 L-31.1 20.5 L-31.4 20.6 L-31.7 20.8 L-32.1 20.9 L-32.4 21.0 L-32.8 21.1 L-33.1 21.2 L-33.5 21.3 L-33.9 21.4 L-34.2 21.4 L-34.6 21.5 L-35.0 21.5 L-35.4 21.6 L-35.8 21.6 L-36.1 21.1 L-36.3 20.7 L-36.6 20.2 L-36.4 19.9 L-36.2 19.5 L-35.9 19.2 L-35.7 18.9 L-35.4 18.6 L-35.2 18.3 L-34.9 18.1 L-34.7 17.8 L-34.4 17.6 L-34.1 17.3 L-33.8 17.1 L-33.6 16.9 L-33.3 16.7 L-32.9 16.5 L-33.0 16.3 L-33.1 16.1 L-33.2 15.9 L-33.3 15.7 L-33.4 15.5 L-33.5 15.3 L-33.6 15.0 L-33.7 14.8 L-33.8 14.6 L-34.2 14.7 L-34.5 14.9 L-34.8 14.9 L-35.2 15.0 L-35.6 15.1 L-35.9 15.1 L-36.3 15.1 L-36.7 15.2 L-37.0 15.2 L-37.4 15.2 L-37.8 15.2 L-38.2 15.1 L-38.6 15.1 L-39.0 15.1 L-39.2 14.6 L-39.4 14.0 L-39.6 13.5 L-39.3 13.2 L-39.0 13.0 L-38.7 12.7 L-38.4 12.4 L-38.1 12.2 L-37.8 12.0 L-37.5 11.7 L-37.2 11.5 L-36.9 11.3 L-36.6 11.1 L-36.3 10.9 L-36.0 10.8 L-35.6 10.7 L-35.3 10.6 L-35.4 10.3 L-35.4 10.1 L-35.5 9.9 L-35.6 9.7 L-35.6 9.4 L-35.7 9.2 L-35.7 9.0 L-35.8 8.7 L-35.9 8.5 L-36.2 8.6 L-36.5 8.6 L-36.9 8.7 L-37.3 8.7 L-37.6 8.7 L-38.0 8.6 L-38.4 8.6 L-38.7 8.6 L-39.1 8.5 L-39.5 8.4 L-39.9 8.4 L-40.3 8.3 L-40.6 8.2 L-41.0 8.1 L-41.1 7.5 L-41.2 7.0 L-41.3 6.4 L-41.0 6.2 L-40.7 6.0 L-40.3 5.8 L-40.0 5.6 L-39.7 5.4 L-39.3 5.2 L-39.0 5.0 L-38.7 4.9 L-38.3 4.7 L-38.0 4.6 L-37.6 4.5 L-37.3 4.4 L-37.0 4.3 L-36.6 4.3 L-36.6 4.0 L-36.7 3.8 L-36.7 3.6 L-36.7 3.3 L-36.7 3.1 L-36.7 2.9 L-36.8 2.6 L-36.8 2.4 L-36.8 2.2 L-37.1 2.2 L-37.5 2.2 L-37.9 2.1 L-38.2 2.1 L-38.6 2.0 L-38.9 1.9 L-39.3 1.8 L-39.6 1.7 L-40.0 1.6 L-40.4 1.4 L-40.7 1.3 L-41.1 1.2 L-41.4 1.0 L-41.8 0.8 L-41.8 0.3 L-41.8 -0.3 L-41.8 -0.8 L-41.4 -1.0 L-41.1 -1.2 L-40.7 -1.3 L-40.4 -1.4 L-40.0 -1.6 L-39.6 -1.7 L-39.3 -1.8 L-38.9 -1.9 L-38.6 -2.0 L-38.2 -2.1 L-37.9 -2.1 L-37.5 -2.2 L-37.1 -2.2 L-36.8 -2.2 L-36.8 -2.4 L-36.8 -2.6 L-36.7 -2.9 L-36.7 -3.1 L-36.7 -3.3 L-36.7 -3.6 L-36.7 -3.8 L-36.6 -4.0 L-36.6 -4.3 L-37.0 -4.3 L-37.3 -4.4 L-37.6 -4.5 L-38.0 -4.6 L-38.3 -4.7 L-38.7 -4.9 L-39.0 -5.0 L-39.3 -5.2 L-39.7 -5.4 L-40.0 -5.6 L-40.3 -5.8 L-40.7 -6.0 L-41.0 -6.2 L-41.3 -6.4 L-41.2 -7.0 L-41.1 -7.5 L-41.0 -8.1 L-40.6 -8.2 L-40.3 -8.3 L-39.9 -8.4 L-39.5 -8.4 L-39.1 -8.5 L-38.7 -8.6 L-38.4 -8.6 L-38.0 -8.6 L-37.6 -8.7 L-37.3 -8.7 L-36.9 -8.7 L-36.5 -8.6 L-36.2 -8.6 L-35.9 -8.5 L-35.8 -8.7 L-35.7 -9.0 L-35.7 -9.2 L-35.6 -9.4 L-35.6 -9.7 L-35.5 -9.9 L-35.4 -10.1 L-35.4 -10.3 L-35.3 -10.6 L-35.6 -10.7 L-36.0 -10.8 L-36.3 -10.9 L-36.6 -11.1 L-36.9 -11.3 L-37.2 -11.5 L-37.5 -11.7 L-37.8 -12.0 L-38.1 -12.2 L-38.4 -12.4 L-38.7 -12.7 L-39.0 -13.0 L-39.3 -13.2 L-39.6 -13.5 L-39.4 -14.0 L-39.2 -14.6 L-39.0 -15.1 L-38.6 -15.1 L-38.2 -15.1 L-37.8 -15.2 L-37.4 -15.2 L-37.0 -15.2 L-36.7 -15.2 L-36.3 -15.1 L-35.9 -15.1 L-35.6 -15.1 L-35.2 -15.0 L-34.8 -14.9 L-34.5 -14.9 L-34.2 -14.7 L-33.8 -14.6 L-33.7 -14.8 L-33.6 -15.0 L-33.5 -15.3 L-33.4 -15.5 L-33.3 -15.7 L-33.2 -15.9 L-33.1 -16.1 L-33.0 -16.3 L-32.9 -16.5 L-33.3 -16.7 L-33.6 -16.9 L-33.8 -17.1 L-34.1 -17.3 L-34.4 -17.6 L-34.7 -17.8 L-34.9 -18.1 L-35.2 -18.3 L-35.4 -18.6 L-35.7 -18.9 L-35.9 -19.2 L-36.2 -19.5 L-36.4 -19.9 L-36.6 -20.2 L-36.3 -20.7 L-36.1 -21.1 L-35.8 -21.6 L-35.4 -21.6 L-35.0 -21.5 L-34.6 -21.5 L-34.2 -21.4 L-33.9 -21.4 L-33.5 -21.3 L-33.1 -21.2 L-32.8 -21.1 L-32.4 -21.0 L-32.1 -20.9 L-31.7 -20.8 L-31.4 -20.6 L-31.1 -20.5 L-30.8 -20.3 L-30.7 -20.5 L-30.5 -20.7 L-30.4 -20.8 L-30.3 -21.0 L-30.1 -21.2 L-30.0 -21.4 L-29.8 -21.6 L-29.7 -21.8 L-29.6 -22.0 L-29.8 -22.2 L-30.1 -22.4 L-30.4 -22.7 L-30.6 -23.0 L-30.8 -23.3 L-31.0 -23.6 L-31.3 -23.9 L-31.5 -24.2 L-31.7 -24.5 L-31.8 -24.8 L-32.0 -25.2 L-32.2 -25.5 L-32.4 -25.9 L-32.5 -26.2 L-32.2 -26.7 L-31.8 -27.1 L-31.5 -27.5 L-31.1 -27.4 L-30.7 -27.3 L-30.4 -27.2 L-30.0 -27.1 L-29.6 -26.9 L-29.3 -26.8 L-28.9 -26.6 L-28.6 -26.5 L-28.3 -26.3 L-27.9 -26.1 L-27.6 -26.0 L-27.3 -25.8 L-27.1 -25.5 L-26.8 -25.3 L-26.6 -25.5 L-26.5 -25.6 L-26.3 -25.8 L-26.1 -26.0 L-26.0 -26.1 L-25.8 -26.3 L-25.6 -26.5 L-25.5 -26.6 L-25.3 -26.8 L-25.5 -27.1 L-25.8 -27.3 L-26.0 -27.6 L-26.1 -27.9 L-26.3 -28.3 L-26.5 -28.6 L-26.6 -28.9 L-26.8 -29.3 L-26.9 -29.6 L-27.1 -30.0 L-27.2 -30.4 L-27.3 -30.7 L-27.4 -31.1 L-27.5 -31.5 L-27.1 -31.8 L-26.7 -32.2 L-26.2 -32.5 L-25.9 -32.4 L-25.5 -32.2 L-25.2 -32.0 L-24.8 -31.8 L-24.5 -31.7 L-24.2 -31.5 L-23.9 -31.3 L-23.6 -31.0 L-23.3 -30.8 L-23.0 -30.6 L-22.7 -30.4 L-22.4 -30.1 L-22.2 -29.8 L-22.0 -29.6 L-21.8 -29.7 L-21.6 -29.8 L-21.4 -30.0 L-21.2 -30.1 L-21.0 -30.3 L-20.8 -30.4 L-20.7 -30.5 L-20.5 -30.7 L-20.3 -30.8 L-20.5 -31.1 L-20.6 -31.4 L-20.8 -31.7 L-20.9 -32.1 L-21.0 -32.4 L-21.1 -32.8 L-21.2 -33.1 L-21.3 -33.5 L-21.4 -33.9 L-21.4 -34.2 L-21.5 -34.6 L-21.5 -35.0 L-21.6 -35.4 L-21.6 -35.8 L-21.1 -36.1 L-20.7 -36.3 L-20.2 -36.6 L-19.9 -36.4 L-19.5 -36.2 L-19.2 -35.9 L-18.9 -35.7 L-18.6 -35.4 L-18.3 -35.2 L-18.1 -34.9 L-17.8 -34.7 L-17.6 -34.4 L-17.3 -34.1 L-17.1 -33.8 L-16.9 -33.6 L-16.7 -33.3 L-16.5 -32.9 L-16.3 -33.0 L-16.1 -33.1 L-15.9 -33.2 L-15.7 -33.3 L-15.5 -33.4 L-15.3 -33.5 L-15.0 -33.6 L-14.8 -33.7 L-14.6 -33.8 L-14.7 -34.2 L-14.9 -34.5 L-14.9 -34.8 L-15.0 -35.2 L-15.1 -35.6 L-15.1 -35.9 L-15.1 -36.3 L-15.2 -36.7 L-15.2 -37.0 L-15.2 -37.4 L-15.2 -37.8 L-15.1 -38.2 L-15.1 -38.6 L-15.1 -39.0 L-14.6 -39.2 L-14.0 -39.4 L-13.5 -39.6 L-13.2 -39.3 L-13.0 -39.0 L-12.7 -38.7 L-12.4 -38.4 L-12.2 -38.1 L-12.0 -37.8 L-11.7 -37.5 L-11.5 -37.2 L-11.3 -36.9 L-11.1 -36.6 L-10.9 -36.3 L-10.8 -36.0 L-10.7 -35.6 L-10.6 -35.3 L-10.3 -35.4 L-10.1 -35.4 L-9.9 -35.5 L-9.7 -35.6 L-9.4 -35.6 L-9.2 -35.7 L-9.0 -35.7 L-8.7 -35.8 L-8.5 -35.9 L-8.6 -36.2 L-8.6 -36.5 L-8.7 -36.9 L-8.7 -37.3 L-8.7 -37.6 L-8.6 -38.0 L-8.6 -38.4 L-8.6 -38.7 L-8.5 -39.1 L-8.4 -39.5 L-8.4 -39.9 L-8.3 -40.3 L-8.2 -40.6 L-8.1 -41.0 L-7.5 -41.1 L-7.0 -41.2 L-6.4 -41.3 L-6.2 -41.0 L-6.0 -40.7 L-5.8 -40.3 L-5.6 -40.0 L-5.4 -39.7 L-5.2 -39.3 L-5.0 -39.0 L-4.9 -38.7 L-4.7 -38.3 L-4.6 -38.0 L-4.5 -37.6 L-4.4 -37.3 L-4.3 -37.0 L-4.3 -36.6 L-4.0 -36.6 L-3.8 -36.7 L-3.6 -36.7 L-3.3 -36.7 L-3.1 -36.7 L-2.9 -36.7 L-2.6 -36.8 L-2.4 -36.8 L-2.2 -36.8 L-2.2 -37.1 L-2.2 -37.5 L-2.1 -37.9 L-2.1 -38.2 L-2.0 -38.6 L-1.9 -38.9 L-1.8 -39.3 L-1.7 -39.6 L-1.6 -40.0 L-1.4 -40.4 L-1.3 -40.7 L-1.2 -41.1 L-1.0 -41.4 L-0.8 -41.8 L-0.3 -41.8 L0.3 -41.8 L0.8 -41.8 L1.0 -41.4 L1.2 -41.1 L1.3 -40.7 L1.4 -40.4 L1.6 -40.0 L1.7 -39.6 L1.8 -39.3 L1.9 -38.9 L2.0 -38.6 L2.1 -38.2 L2.1 -37.9 L2.2 -37.5 L2.2 -37.1 L2.2 -36.8 L2.4 -36.8 L2.6 -36.8 L2.9 -36.7 L3.1 -36.7 L3.3 -36.7 L3.6 -36.7 L3.8 -36.7 L4.0 -36.6 L4.3 -36.6 L4.3 -37.0 L4.4 -37.3 L4.5 -37.6 L4.6 -38.0 L4.7 -38.3 L4.9 -38.7 L5.0 -39.0 L5.2 -39.3 L5.4 -39.7 L5.6 -40.0 L5.8 -40.3 L6.0 -40.7 L6.2 -41.0 L6.4 -41.3 L7.0 -41.2 L7.5 -41.1 L8.1 -41.0 L8.2 -40.6 L8.3 -40.3 L8.4 -39.9 L8.4 -39.5 L8.5 -39.1 L8.6 -38.7 L8.6 -38.4 L8.6 -38.0 L8.7 -37.6 L8.7 -37.3 L8.7 -36.9 L8.6 -36.5 L8.6 -36.2 L8.5 -35.9 L8.7 -35.8 L9.0 -35.7 L9.2 -35.7 L9.4 -35.6 L9.7 -35.6 L9.9 -35.5 L10.1 -35.4 L10.3 -35.4 L10.6 -35.3 L10.7 -35.6 L10.8 -36.0 L10.9 -36.3 L11.1 -36.6 L11.3 -36.9 L11.5 -37.2 L11.7 -37.5 L12.0 -37.8 L12.2 -38.1 L12.4 -38.4 L12.7 -38.7 L13.0 -39.0 L13.2 -39.3 L13.5 -39.6 L14.0 -39.4 L14.6 -39.2 L15.1 -39.0 L15.1 -38.6 L15.1 -38.2 L15.2 -37.8 L15.2 -37.4 L15.2 -37.0 L15.2 -36.7 L15.1 -36.3 L15.1 -35.9 L15.1 -35.6 L15.0 -35.2 L14.9 -34.8 L14.9 -34.5 L14.7 -34.2 L14.6 -33.8 L14.8 -33.7 L15.0 -33.6 L15.3 -33.5 L15.5 -33.4 L15.7 -33.3 L15.9 -33.2 L16.1 -33.1 L16.3 -33.0 L16.5 -32.9 L16.7 -33.3 L16.9 -33.6 L17.1 -33.8 L17.3 -34.1 L17.6 -34.4 L17.8 -34.7 L18.1 -34.9 L18.3 -35.2 L18.6 -35.4 L18.9 -35.7 L19.2 -35.9 L19.5 -36.2 L19.9 -36.4 L20.2 -36.6 L20.7 -36.3 L21.1 -36.1 L21.6 -35.8 L21.6 -35.4 L21.5 -35.0 L21.5 -34.6 L21.4 -34.2 L21.4 -33.9 L21.3 -33.5 L21.2 -33.1 L21.1 -32.8 L21.0 -32.4 L20.9 -32.1 L20.8 -31.7 L20.6 -31.4 L20.5 -31.1 L20.3 -30.8 L20.5 -30.7 L20.7 -30.5 L20.8 -30.4 L21.0 -30.3 L21.2 -30.1 L21.4 -30.0 L21.6 -29.8 L21.8 -29.7 L22.0 -29.6 L22.2 -29.8 L22.4 -30.1 L22.7 -30.4 L23.0 -30.6 L23.3 -30.8 L23.6 -31.0 L23.9 -31.3 L24.2 -31.5 L24.5 -31.7 L24.8 -31.8 L25.2 -32.0 L25.5 -32.2 L25.9 -32.4 L26.2 -32.5 L26.7 -32.2 L27.1 -31.8 L27.5 -31.5 L27.4 -31.1 L27.3 -30.7 L27.2 -30.4 L27.1 -30.0 L26.9 -29.6 L26.8 -29.3 L26.6 -28.9 L26.5 -28.6 L26.3 -28.3 L26.1 -27.9 L26.0 -27.6 L25.8 -27.3 L25.5 -27.1 L25.3 -26.8 L25.5 -26.6 L25.6 -26.5 L25.8 -26.3 L26.0 -26.1 L26.1 -26.0 L26.3 -25.8 L26.5 -25.6 L26.6 -25.5 L26.8 -25.3 L27.1 -25.5 L27.3 -25.8 L27.6 -26.0 L27.9 -26.1 L28.3 -26.3 L28.6 -26.5 L28.9 -26.6 L29.3 -26.8 L29.6 -26.9 L30.0 -27.1 L30.4 -27.2 L30.7 -27.3 L31.1 -27.4 L31.5 -27.5 L31.8 -27.1 L32.2 -26.7 L32.5 -26.2 L32.4 -25.9 L32.2 -25.5 L32.0 -25.2 L31.8 -24.8 L31.7 -24.5 L31.5 -24.2 L31.3 -23.9 L31.0 -23.6 L30.8 -23.3 L30.6 -23.0 L30.4 -22.7 L30.1 -22.4 L29.8 -22.2 L29.6 -22.0 L29.7 -21.8 L29.8 -21.6 L30.0 -21.4 L30.1 -21.2 L30.3 -21.0 L30.4 -20.8 L30.5 -20.7 L30.7 -20.5 L30.8 -20.3 L31.1 -20.5 L31.4 -20.6 L31.7 -20.8 L32.1 -20.9 L32.4 -21.0 L32.8 -21.1 L33.1 -21.2 L33.5 -21.3 L33.9 -21.4 L34.2 -21.4 L34.6 -21.5 L35.0 -21.5 L35.4 -21.6 L35.8 -21.6 L36.1 -21.1 L36.3 -20.7 L36.6 -20.2 L36.4 -19.9 L36.2 -19.5 L35.9 -19.2 L35.7 -18.9 L35.4 -18.6 L35.2 -18.3 L34.9 -18.1 L34.7 -17.8 L34.4 -17.6 L34.1 -17.3 L33.8 -17.1 L33.6 -16.9 L33.3 -16.7 L32.9 -16.5 L33.0 -16.3 L33.1 -16.1 L33.2 -15.9 L33.3 -15.7 L33.4 -15.5 L33.5 -15.3 L33.6 -15.0 L33.7 -14.8 L33.8 -14.6 L34.2 -14.7 L34.5 -14.9 L34.8 -14.9 L35.2 -15.0 L35.6 -15.1 L35.9 -15.1 L36.3 -15.1 L36.7 -15.2 L37.0 -15.2 L37.4 -15.2 L37.8 -15.2 L38.2 -15.1 L38.6 -15.1 L39.0 -15.1 L39.2 -14.6 L39.4 -14.0 L39.6 -13.5 L39.3 -13.2 L39.0 -13.0 L38.7 -12.7 L38.4 -12.4 L38.1 -12.2 L37.8 -12.0 L37.5 -11.7 L37.2 -11.5 L36.9 -11.3 L36.6 -11.1 L36.3 -10.9 L36.0 -10.8 L35.6 -10.7 L35.3 -10.6 L35.4 -10.3 L35.4 -10.1 L35.5 -9.9 L35.6 -9.7 L35.6 -9.4 L35.7 -9.2 L35.7 -9.0 L35.8 -8.7 L35.9 -8.5 L36.2 -8.6 L36.5 -8.6 L36.9 -8.7 L37.3 -8.7 L37.6 -8.7 L38.0 -8.6 L38.4 -8.6 L38.7 -8.6 L39.1 -8.5 L39.5 -8.4 L39.9 -8.4 L40.3 -8.3 L40.6 -8.2 L41.0 -8.1 L41.1 -7.5 L41.2 -7.0 L41.3 -6.4 L41.0 -6.2 L40.7 -6.0 L40.3 -5.8 L40.0 -5.6 L39.7 -5.4 L39.3 -5.2 L39.0 -5.0 L38.7 -4.9 L38.3 -4.7 L38.0 -4.6 L37.6 -4.5 L37.3 -4.4 L37.0 -4.3 L36.6 -4.3 L36.6 -4.0 L36.7 -3.8 L36.7 -3.6 L36.7 -3.3 L36.7 -3.1 L36.7 -2.9 L36.8 -2.6 L36.8 -2.4 Z" fill="url(#gcFaceC)" stroke="url(#gcBevelC)" stroke-width="0.9"/>
+                                                    <circle cx="100" cy="100" r="34.4" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1.7"/>
+                                                    <circle cx="100" cy="100" r="33.2" fill="none" stroke="rgba(255,255,255,0.055)" stroke-width="0.8"/>
+                                                    <circle cx="100" cy="100" r="28.2" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.1"/>
+                                                    <circle cx="136.90" cy="100.00" r="1.50"/>
+<circle cx="118.45" cy="131.96" r="1.50"/>
+<circle cx="81.55" cy="131.96" r="1.50"/>
+<circle cx="63.10" cy="100.00" r="1.50"/>
+<circle cx="81.55" cy="68.04" r="1.50"/>
+<circle cx="118.45" cy="68.04" r="1.50"/>
+                                                    <circle cx="100" cy="100" r="24" fill="none" stroke="rgba(0,0,0,0.62)" stroke-width="1.1"/>
+                                                </g>
+                                                    </g>
+                                                    <g class="gearcore__sheen" style="mix-blend-mode:screen">
+                                                        <ellipse cx="100" cy="100" rx="63" ry="63" fill="url(#gcSheen)"/>
+                                                        <ellipse cx="100" cy="70" rx="60" ry="34" fill="url(#gcTopLight)"/>
+                                                    </g>
+                                                    <g class="gearcore__hub" filter="url(#gcGrain)">
+                                                        <circle cx="100" cy="100" r="19" fill="url(#gcHub)" stroke="rgba(0,0,0,0.6)" stroke-width="1.2"/>
+                                                        <circle cx="100" cy="100" r="15.9" fill="none" stroke="rgba(0,0,0,0.45)" stroke-width="1"/>
+                                                        <circle cx="100" cy="100" r="14.9" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="0.7"/>
+                                                        <circle cx="108.20" cy="108.20" r="1.15" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+<circle cx="91.80" cy="108.20" r="1.15" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+<circle cx="91.80" cy="91.80" r="1.15" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+<circle cx="108.20" cy="91.80" r="1.15" fill="#17191e" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+                                                    </g>
+                                                    <g class="gearcore__bird">
+                                                        <g transform="translate(65 65) scale(0.7)"><g transform="translate(15.98 3) scale(0.066)" fill="currentColor"><path d="M919.5 1c-.3.5-.8 5.2-1 10.4-.8 17.8-5.7 44.7-12.1 66.6-15 51-24.3 75.1-45 116-31.9 63.4-82.7 131-133 177.1C686 410 650.9 436.7 565.5 495c-13.2 9.1-29.8 20.9-37 26.5-17.5 13.5-35.7 31.6-42.9 42.7-8.7 13.4-18.9 36.5-29.6 67.3-10.2 29-21.1 48.4-36.2 64.1-13.3 13.8-31.1 24.3-44.1 25.9-7.7 1-9.9.1-9.5-3.8.3-2.8 1.2-3.6 7.6-7.2 10-5.5 16-10.6 23.8-20 9.5-11.7 15.9-25.4 24.4-53 3.9-12.7 9.4-30 12.2-38.5C456.6 530.8 484 491.8 550 434.4c13.2-11.5 53.1-45.3 63-53.4 37.7-30.8 78.3-71.3 105.6-105.5 34.6-43.2 55.7-83.5 62-118 2.5-13.7 2.5-38.4.1-47.5-2.8-10.3-8.1-20.5-13.9-26.6-5.7-6-18.6-15.5-25.2-18.5-5.1-2.3-12.4-2.5-13.2-.4-.3.8 1.4 5.6 3.9 10.7 7 14.2 8.2 19.6 8.1 37.8 0 15.1-.1 15.8-3.8 27.5-15.4 49-40 91.2-84.4 144.6-30.9 37.1-50 55.7-113.2 109.8-61.9 53-78.5 69.2-98 95.4-14.5 19.5-29 49.5-37.5 77.2-2 6.6-8.3 30.4-14 53-11.7 46.3-14.9 55-23.6 63.7-4.1 4.1-5.4 4.8-8.6 4.8-8.1 0-14.7-8.9-18-24.1-2.8-12.9-2.5-45.8.5-59.1 3.2-14.7 8.7-30.3 15.6-44.5 14.2-29.1 28-47.9 70.3-95.3 49.9-56.1 62.2-77.5 62.3-107.9 0-12.1-2-20.3-7.9-31.5-5.2-10.2-11.4-16.9-19.9-21.9-7.9-4.6-7.6-6.2 1.3-6.2 3.9 0 10.5.6 14.8 1.3 35.3 5.5 75-7.6 85.4-28.2 3-5.9 4.3-16.7 2.3-19.1-1.6-1.9-5-2-5-.1 0 2.3-4.8 7.4-9.6 10.2-19.3 11.3-41.8 8.7-108.4-12.6-42.1-13.4-47.2-15-59.3-17.9-16-3.9-31.4-5.4-47.9-4.9-15.3.6-21.6 2.4-29.6 8.8-7.7 6-9.6 12.1-6.7 21.6.7 2.1.4 2.1-18.7 2.9-10.6.4-19.5.8-19.7.9-.2 0-1.7-3.7-3.3-8.4-4.3-12.9-6.9-19-8.2-19-.6.1-4 .7-7.6 1.5s-8.2 1.4-10.2 1.5c-2.1 0-3.8.3-3.8.6s1.1 2 2.4 3.7c3.3 4.3 8.6 15.6 9.2 19.9l.6 3.3-8.9 2.9c-23.4 7.4-36.6 16.9-43.5 31-3.7 7.7-4.7 11.6-3 11.6.5 0 5.6-1.8 11.5-4 13.1-4.9 28.7-8.8 39.1-9.7l7.9-.6-.6 7.4c-.5 6.4-4.1 22.6-5.2 23.8-1 1-9.8 2-17.2 2.1-7.4 0-8.2.2-8.8 2.1-1.6 5.1 2.9 9.7 12.7 12.8 2.1.7 4 1.6 4.3 2.1 1.1 1.8-7.3 15.9-15.2 25.8l-3.4 4.2-4.3-3.5c-7.3-6-14.9-8.8-24.8-9.3-11.1-.6-19.1 1.7-34.3 9.8-6 3.2-13.8 6.7-17.2 7.9-5.6 1.9-6.5 1.9-10.9.6-5.6-1.7-6.7-.9-5.3 3.8 2.7 9.3 17.2 15.6 33.2 14.4 8.5-.6 12.8-2.2 25.9-9.4 13.9-7.7 30.8-11.6 30.8-7.2 0 2.7-11.4 10.8-32.1 22.9-12.8 7.4-23.3 16.6-27.2 23.7-3.3 6.2-4.3 14.1-2.7 21.7 2.2 10.7 13.6 19.6 25.1 19.6 3.6 0 4-.2 3.3-1.8-1.7-3.8-1.6-11 .2-14.9 1-2.1 6.8-8.8 13-14.8 9-8.9 11.4-11.9 12.7-15.9 1.9-5.6 2.2-11.2.7-15-.9-2.4-.4-3 7.3-8.9 4.5-3.5 8.7-6.7 9.4-7.1.8-.4 2.6 2 5.4 7.6 12.9 25.7 36.9 33.9 57.5 19.7 10.8-7.4 18.7-18.9 20.1-29.4l.6-5-3.6 3.2c-4.9 4.3-11.1 7.8-17.5 9.8l-5.3 1.8-6.2-6c-3.4-3.2-7.7-6.9-9.5-8.2-5-3.5-14.5-6.1-22.2-6.1h-6.9l5.2-7c2.9-3.8 8.1-11.7 11.6-17.5 4.3-7.1 7.1-10.7 8.5-10.9 1.2-.2 8.2-1.4 15.6-2.5 7.4-1.2 18.5-3.2 24.5-4.6 32.8-7.5 53-4.3 67 10.6 2.5 2.7 6.1 8 7.8 11.7 3 6.3 3.2 7.3 3.2 18.2 0 13.1-1.5 18.4-8.6 30.2-11.9 20.1-31.9 38.9-96.9 90.9-40.8 32.6-55.6 45.4-73.5 63.3-20.3 20.3-38.8 43.4-51.6 64.3-5.1 8.2-16.6 32.1-21.9 45.3-19.1 47.9-20.9 106.1-4.8 155 4.7 14.1 16.5 38.1 25.3 51.5 11 16.7 29.8 36.7 48.7 52s49 33.6 73.1 44.6c55.3 25.3 115.8 43 178.7 52.2l15.5 2.3 3.7 11.2c12.2 36.5 13.4 75.6 3.3 105.9-1.4 4.2-2.4 7.8-2.1 8 .2.2 3.1-.9 6.4-2.6 8.1-4.1 20.6-14.3 26.1-21.3 3.5-4.6 4.7-5.6 5.6-4.6.7.7 2.2 8 3.4 16.3 3.9 25.8 10.3 56.2 17.8 84 9.6 35.9 29.7 88.9 42.4 112.1 5.4 9.8 5.6 14.5 1 18.6-3.1 2.8-3.7 3-9 2.3-7.1-.8-13.8-2.7-27.1-7.7-15.1-5.6-37.3-10.1-47.5-9.6-8.5.5-14.2 2.6-18 6.8-1.6 1.7-2 3.6-2 8.6v6.4h-10c-5.5 0-11.7.5-13.7 1-4.5 1.3-11 6.1-15.1 11.3-5.8 7.2-4.5 20.7 2.4 24.2 4.2 2.2 5.4 1.9 7.3-2.5 3.7-8.4 14.3-13.9 28.7-14.7 6.3-.4 8.8-.2 9.4.7.5.8.1 1.6-.8 2.2-15 8.3-19.9 21.8-11.5 31.4 3.8 4.3 6.9 6 12.6 6.7 4.2.5 4.2.5 4.2-2.7 0-3.3 3.6-9.3 7.6-12.8 4-3.4 15.2-8.8 23.4-11.1 19.9-5.8 46.3-8.2 90-8.2 57.7 0 85 5.1 96.9 18 2.1 2.3 4 4.7 4.2 5.4 1.6 4.8 16.8-6.9 21.5-16.5 6.7-13.6-.8-24.5-20.2-29.4-7-1.8-10.7-2-31.9-1.9-25.4.2-29.9-.3-38.5-4.7-2.5-1.2-6.5-4.3-8.8-6.8-18.7-20.3-43.9-120.8-51.3-204.9-.6-7.5-.9-14-.6-14.3.3-.4 3 .9 5.9 2.8 13.2 8.8 27.9 13.8 42.3 14.5 8.4.4 10.6.1 13.4-1.4 1.9-1 3.6-2.3 3.8-2.9s-4.7-5.1-10.8-10c-29.7-23.5-48.9-59.4-55.3-103.5-2.4-16.4-1.9-49.3 1-59 .3-1.1-3.5-5-12.3-12.5-34.5-29.4-64.5-59.3-85.2-85.1-28.1-35.1-43.8-68.5-47.1-100.6-.8-8-.7-10.4.5-13.2 2.6-6.3 3.6-5.2 10 11.5 5.8 15.3 17.3 39.1 25.3 52.5 15.6 26.2 34.7 47.4 82.2 91.5 40.9 37.9 63.5 62.4 75.1 81.6 19 31.1 27.4 62.9 26.8 100.8-.3 14.9-.1 17.1 1.3 18 3.9 2.4 7.8-5.5 11.8-24.4 5.6-26.1 4-60.4-4.1-88.5-8.1-27.9-22.5-55.7-39-75-10-11.8-33.4-34.5-50-48.6-8-6.8-21.9-18.7-31-26.4-19-16.1-46.8-43.5-55.9-55-8.8-11.1-21.3-30.4-23-35.4-1.5-4.5-.3-9.1 2.4-9.1.7 0 5 3.8 9.4 8.5 36.7 38.8 81.8 65.7 124.9 74.4 13.3 2.7 35 4.3 43.4 3.1 25.7-3.7 52.7-17 74.9-36.9 7-6.2 8.9-10.2 5.6-11.4-.8-.3-9.1-.6-18.6-.6-18.2-.1-33.6-1.2-48.8-3.6-17-2.7-45.2-9.3-60.2-14-16.7-5.2-45.8-18-52.3-22.9-2.8-2.1-1.8-5 1.8-5.4 20.5-1.9 37.3-6.3 50.9-13.5 13.5-7.1 31.3-25.8 29.4-30.9-.5-1.3-3.6-1.4-22.6-1-28.2.6-55.6-2-56.9-5.5-1.1-2.8 1.7-4 10.4-4.7 4.9-.3 14.2-1.8 20.9-3.1 34.9-7.1 61-22.9 71.9-43.7 2.5-4.7 3.4-11.8 1.5-11.8-.5 0-10.3 1.8-21.7 4.1-31.1 6-45.1 7.9-62.8 8.5-16.9.6-20 0-17.9-3.3.7-1.2 6.8-3.2 19.5-6.4 17.9-4.6 35.9-10.8 50.5-17.4 17.8-8.1 32.7-20.9 39.2-33.4 4.5-8.9 4.3-17.1-.6-17.1-.8 0-6.4 2-12.5 4.4-22.8 9-48.6 16.6-72.7 21.5-14.5 2.9-21.4 3.5-22.7 1.9-2-2.4.8-4.4 11.2-7.8 51-16.8 85.4-37.4 96.8-58 6-11 8.2-21.6 5.5-27.4-.6-1.4-1.8-2.8-2.7-3.1s-9.5 3.1-19 7.6c-29.6 13.7-62.1 25.9-65.7 24.5-5.1-2 2-7.1 77.1-56.1 23.7-15.5 37.3-25.1 58.5-41.4 43.1-33.2 58.3-46.3 87.5-75.6 51-50.9 96.5-110.4 125.5-164 24.5-45.1 36.8-74.1 44.2-104 3.2-13.1 3-31.4-.5-44.6-4.4-16.8-13.8-34.1-23.2-42.8-4.4-4-6.8-5-8-3.1M346 268.6c21.6 3.8 36 7.4 36 8.8 0 .8-3 2-7.7 3-4.3.9-13 2.7-19.3 4.1s-12.5 2.5-13.7 2.5c-4.2 0-10.3-3.2-11.8-6.1-2.6-5-1.6-14.9 1.5-14.9.3 0 7.1 1.2 15 2.6m-55.1 27.5c7.6 1.2 11.7 3.1 12.6 6 2.7 8.5-9.7 16.4-33.4 21.1-6.1 1.2-11.3 1.9-11.6 1.7-.2-.3.6-5 1.9-10.5 1.4-5.4 2.7-12 3.1-14.7l.6-4.7h10.2c5.6 0 13.1.5 16.6 1.1M301 554.9c0 1.1-2.2 5.5-4.8 9.8-20.8 33.7-35.2 74.3-39.1 110.5-4.6 41.7 5.5 89.7 28 133.8 17.9 35.2 47.9 67.2 90.3 96.5 6.9 4.7 12.6 9.3 12.6 10.1 0 2.3-5.3 1.7-15.8-2-39.9-14-68.3-31.1-96.1-58.1-16.9-16.5-27.7-30.2-37.8-48.5-10.9-19.8-19.5-47.8-22.4-73-1.5-13.2-.7-41.6 1.6-53 5.2-26.9 15.9-51.7 34.2-79.2 17-25.6 49.3-56.3 49.3-46.9 M 969.3,106.8 C 968.8,107.2 965.5,114.89999999999999 962.0999999999999,124.0 C 946.8999999999999,163.8 911.8,227.1 885.1999999999999,262.2 C 857.4999999999999,298.9 855.3,301.5 820.0999999999999,338.79999999999995 C 805.4999999999999,354.4 792.8999999999999,368.19999999999993 792.0999999999999,369.4 C 790.3,372.4 791.3,375.0 794.3999999999999,375.0 C 797.0999999999999,375.0 804.5999999999999,369.2 825.9999999999999,350.5 C 873.2999999999998,309.3 913.3999999999999,268.3 940.7999999999998,233.1 C 970.2999999999998,195.2 977.5999999999998,179.3 978.6999999999998,150.0 C 979.5999999999998,126.0 974.6999999999998,103.3 969.2999999999998,106.8 M 804.2999999999998,124.19999999999999 C 803.8999999999999,124.89999999999999 803.4999999999999,131.29999999999998 803.4999999999999,138.5 C 803.3999999999999,149.0 802.8999999999999,153.7 800.6999999999999,163.1 C 790.9,204.5 773.5999999999999,238.7 738.0999999999999,286.4 C 727.3999999999999,300.79999999999995 712.0999999999999,318.0 692.9999999999999,337.0 C 669.4999999999999,360.6 654.5999999999999,373.8 604.9999999999999,415.1 C 564.7999999999998,448.6 548.5999999999999,462.70000000000005 531.9999999999999,478.5 C 509.89999999999986,499.6 504.9999999999999,505.9 507.9999999999999,509.5 C 510.7999999999999,512.9 514.6999999999999,511.3 525.7999999999998,502.1 C 547.7999999999998,484.0 574.4999999999999,464.40000000000003 625.4999999999999,429.0 C 675.4999999999999,394.3 722.5999999999999,352.0 756.4999999999999,311.5 C 775.1999999999999,289.1 787.4999999999999,271.5 802.2999999999998,246.0 C 818.8999999999999,217.2 824.6999999999998,200.2 825.6999999999998,178.0 C 826.3999999999999,161.9 824.5999999999998,152.0 818.5999999999998,139.4 C 812.4999999999998,126.60000000000001 806.6999999999998,120.5 804.2999999999998,124.2 M 954.2,239.7 C 953.1,240.7 947.3000000000001,247.6 941.4000000000001,255.0 C 893.7,315.0 831.6000000000001,372.9 758.0000000000001,426.2 C 733.4000000000001,444.0 682.8000000000001,477.09999999999997 665.2000000000002,487.0 C 660.3000000000002,489.8 660.2000000000002,490.2 663.9000000000002,500.0 C 667.9000000000002,510.7 666.3000000000002,525.3 659.9000000000002,536.7 C 656.7000000000002,542.5 656.6000000000003,543.0 657.9000000000002,543.0 C 660.7000000000002,543.0 711.5000000000002,512.2 739.4000000000002,493.7 C 793.4000000000002,457.7 832.9000000000002,425.29999999999995 874.0000000000002,383.4 C 895.2000000000003,361.79999999999995 906.4000000000002,348.7 919.7000000000003,329.7 C 946.9000000000003,290.8 967.5000000000002,243.5 959.1000000000003,239.0 C 956.6000000000003,237.7 956.6000000000003,237.7 954.2000000000003,239.7 M 873.8000000000003,410.2 C 816.3000000000003,467.59999999999997 748.1000000000003,516.3 672.1000000000004,554.5 C 666.0000000000003,557.5 661.0000000000003,560.4 661.0000000000003,560.8 C 661.0000000000003,561.1999999999999 661.5000000000003,564.4 662.1000000000004,568.0 C 664.1000000000004,580.4 659.7000000000004,597.5 652.0000000000003,607.2 C 648.3000000000003,611.7 648.0000000000003,614.4000000000001 651.3000000000003,613.4000000000001 C 656.1000000000003,612.0000000000001 679.4000000000003,601.1000000000001 697.5000000000003,592.0000000000001 C 754.7000000000004,563.0000000000001 797.6000000000004,532.7000000000002 835.5000000000003,494.60000000000014 C 871.3000000000003,458.70000000000016 891.8000000000003,427.20000000000016 896.1000000000004,401.70000000000016 C 897.2000000000004,394.90000000000015 897.2000000000004,393.70000000000016 896.0000000000003,393.00000000000017 C 895.2000000000004,392.40000000000015 894.0000000000003,392.00000000000017 893.3000000000003,392.00000000000017 C 892.6000000000003,392.00000000000017 883.9000000000003,400.20000000000016 873.8000000000003,410.20000000000016 M 844.0,516.7 C 842.1,518.2 836.5,523.0 831.5,527.5 C 826.6,531.9 820.9,536.7 819.0,538.1 C 817.1,539.5 811.2,543.8000000000001 806.0,547.7 C 776.6,569.3000000000001 745.2,587.7 709.0,604.6 C 692.1,612.4 667.5,622.5 657.9,625.5 L 652.3,627.3 L 651.5999999999999,635.4 C 650.1999999999999,652.4 645.0999999999999,664.4 634.1999999999999,676.1 C 630.6999999999999,679.9 627.9999999999999,683.4 628.4,683.7 C 630.1,685.4000000000001 660.9,676.6 680.5,668.8000000000001 C 695.6,662.8000000000001 719.4,651.5000000000001 729.0,645.7 C 760.5,626.8000000000001 784.4,608.7 806.1,587.0 C 823.2,569.9 833.3000000000001,557.5 841.9,543.1 C 847.8,533.1 852.9,518.6 851.3,516.1 C 849.6999999999999,513.6 847.8,513.7 844.0,516.7 M 797.9,626.8000000000001 C 794.9,628.9000000000001 790.4,632.2 787.8,634.2 C 775.6999999999999,643.5 747.5,659.2 724.0,669.8000000000001 C 694.9,682.9000000000001 667.1,692.1 639.4,697.8000000000001 L 626.3,700.4000000000001 L 625.6999999999999,708.7 C 625.0999999999999,718.2 621.9,726.2 615.1999999999999,734.7 C 610.4999999999999,740.6 600.1999999999999,749.1 591.8,754.0 C 588.6999999999999,755.9 586.4,757.8 586.6999999999999,758.3 C 588.3,760.9 625.8,754.0 644.4999999999999,747.6999999999999 C 670.1999999999999,738.9999999999999 696.9999999999999,726.9 717.0999999999999,714.9999999999999 C 751.5999999999999,694.5999999999999 792.0999999999999,657.5999999999999 804.8,634.8999999999999 C 808.1999999999999,628.8999999999999 808.6999999999999,626.0999999999999 806.8,624.1999999999998 C 805.0,622.3999999999999 803.8,622.6999999999998 797.9,626.7999999999998 M 727.5,732.0999999999998 C 691.2,751.1999999999998 658.9,762.3999999999997 624.3,767.9999999999998 C 614.0,769.6999999999998 614.8,771.2999999999997 626.8,773.3999999999997 C 646.8,776.9999999999998 684.8,777.7999999999997 703.9,774.9999999999998 C 709.5,774.1999999999998 710.9,773.5999999999998 714.6999999999999,769.7999999999997 C 720.3,764.3999999999997 735.8,744.3999999999997 741.0999999999999,735.8999999999997 C 744.8999999999999,729.7999999999997 745.8999999999999,724.9999999999998 743.4999999999999,724.3999999999997 C 742.9999999999999,724.2999999999997 735.7999999999998,727.6999999999997 727.4999999999999,732.0999999999998 M 523.6,832.8 C 523.3000000000001,833.0999999999999 523.0,833.9 523.0,834.5999999999999 C 523.0,836.3 547.7,856.8 572.0,875.4999999999999 C 615.0,908.2999999999998 629.6,920.6999999999999 648.6,940.1999999999999 C 664.0,956.0999999999999 674.3000000000001,968.9999999999999 688.9,990.9999999999999 C 714.3,1029.0 723.6999999999999,1048.1999999999998 733.9,1083.1999999999998 C 748.8,1134.2999999999997 749.6,1178.3999999999999 736.4,1225.1999999999998 C 733.8,1234.6999999999998 733.5,1237.6 735.0,1238.4999999999998 C 738.3,1240.4999999999998 744.0,1232.7999999999997 758.0,1207.5999999999997 C 795.3,1140.4999999999998 803.3,1075.6999999999996 782.1,1011.9999999999997 C 766.0,963.7999999999996 731.8000000000001,923.8999999999996 683.0,896.4999999999997 C 666.1,886.9999999999997 640.2,876.1999999999997 595.3,859.8999999999996 C 558.5,846.5999999999997 553.4,844.5999999999997 540.0,838.4999999999997 C 528.0,833.0999999999997 524.5,831.7999999999996 523.6,832.7999999999996 M 295.5,1013.6999999999996 C 292.4,1051.3999999999996 283.0,1091.6999999999996 270.0,1123.5999999999997 L 266.2,1132.9999999999998 L 268.9,1132.9999999999998 C 274.59999999999997,1132.9999999999998 287.5,1128.8999999999999 296.09999999999997,1124.2999999999997 C 300.99999999999994,1121.7999999999997 309.49999999999994,1116.0999999999997 314.99999999999994,1111.7999999999997 C 320.59999999999997,1107.4999999999998 325.29999999999995,1103.9999999999998 325.49999999999994,1103.9999999999998 C 325.69999999999993,1103.9999999999998 324.79999999999995,1107.8999999999999 323.49999999999994,1112.6999999999998 C 314.3999999999999,1146.3999999999999 283.8999999999999,1214.9999999999998 258.29999999999995,1259.4999999999998 C 242.79999999999995,1286.4999999999998 212.59999999999997,1335.5999999999997 208.39999999999995,1340.6999999999998 C 206.49999999999994,1343.1 202.79999999999995,1346.1999999999998 200.19999999999996,1347.6999999999998 C 195.89999999999995,1350.2999999999997 194.69999999999996,1350.4999999999998 184.99999999999997,1350.4999999999998 C 175.19999999999996,1350.3999999999999 173.69999999999996,1350.1999999999998 162.49999999999997,1346.0999999999997 C 136.79999999999998,1336.8999999999996 127.89999999999998,1335.4999999999998 115.69999999999997,1338.8999999999996 C 103.89999999999998,1342.0999999999997 99.19999999999997,1346.9999999999995 100.19999999999997,1354.7999999999997 L 100.69999999999997,1358.4999999999998 L 88.6,1358.4999999999998 C 76.3,1358.4999999999998 69.8,1359.6999999999998 62.89999999999999,1363.0999999999997 C 49.99999999999999,1369.4999999999998 48.099999999999994,1385.9999999999998 59.39999999999999,1394.3999999999996 C 62.099999999999994,1396.4999999999995 62.099999999999994,1396.4999999999995 63.19999999999999,1394.4999999999995 C 65.39999999999999,1390.3999999999996 73.89999999999999,1383.1999999999996 80.1,1380.1999999999996 C 91.8,1374.4999999999995 107.1,1372.0999999999997 111.5,1375.3999999999996 C 113.4,1376.7999999999997 113.3,1376.8999999999996 110.1,1378.6999999999996 C 101.6,1383.3999999999996 96.3,1387.7999999999995 93.3,1392.8999999999996 C 86.5,1404.1999999999996 88.5,1412.9999999999995 98.89999999999999,1418.1999999999996 C 102.3,1419.9999999999995 105.99999999999999,1420.9999999999995 108.6,1420.9999999999995 L 112.89999999999999,1420.9999999999995 L 112.3,1417.5999999999995 C 111.3,1411.0999999999995 116.5,1404.2999999999995 126.6,1399.1999999999994 C 141.6,1391.5999999999995 173.89999999999998,1387.9999999999993 227.5,1387.9999999999993 C 273.0,1387.8999999999994 298.1,1390.5999999999992 311.5,1396.8999999999994 C 320.0,1400.7999999999995 323.0,1403.8999999999994 323.0,1408.4999999999993 C 323.0,1411.4999999999993 323.3,1411.9999999999993 325.3,1411.9999999999993 C 328.3,1411.9999999999993 334.90000000000003,1407.5999999999992 338.5,1403.1999999999994 C 341.6,1399.4999999999993 345.0,1389.5999999999995 345.0,1384.3999999999994 C 345.0,1373.1999999999994 334.2,1364.7999999999995 315.5,1361.4999999999993 C 308.9,1360.3999999999994 300.4,1359.9999999999993 283.5,1360.0999999999992 C 267.2,1360.1999999999991 259.7,1359.7999999999993 257.8,1358.9999999999993 C 254.10000000000002,1357.2999999999993 252.5,1353.0999999999992 253.9,1348.7999999999993 C 255.20000000000002,1345.0999999999992 266.2,1329.2999999999993 287.4,1300.4999999999993 C 327.09999999999997,1246.5999999999992 353.9,1208.3999999999994 361.9,1194.4999999999993 C 371.2,1178.1999999999994 379.2,1154.2999999999993 380.7,1138.5999999999992 C 381.7,1127.0999999999992 381.8,1126.9999999999993 387.8,1132.2999999999993 C 399.8,1142.8999999999992 418.2,1152.9999999999993 425.7,1152.9999999999993 C 428.09999999999997,1152.9999999999993 430.0,1152.7999999999993 430.0,1152.5999999999992 C 430.0,1152.3999999999992 428.1,1149.0999999999992 425.8,1145.3999999999992 C 411.1,1121.1999999999991 401.3,1086.2999999999993 398.40000000000003,1048.2999999999993 L 397.70000000000005,1039.0999999999992 L 388.1,1037.4999999999993 C 363.70000000000005,1033.2999999999993 336.0,1024.0999999999992 305.70000000000005,1010.0999999999993 C 300.80000000000007,1007.7999999999994 296.70000000000005,1005.9999999999993 296.50000000000006,1005.9999999999993 C 296.30000000000007,1005.9999999999993 295.90000000000003,1009.4999999999993 295.50000000000006,1013.6999999999994"/></g></g>
+                                                    </g>
+                                                </svg>
+                                            </span>
+                                            <span class="btn__text">Connect</span>
+                                        </button>
+                                    </div>
+                                    <div class="mode-switch" id="mode-switch" role="group" aria-label="Connection mode">
+                                        <button class="btn btn--ghost btn--sm btn--mode" id="mode-proxy-only" type="button" aria-pressed="false">Proxy</button>
+                                        <button class="btn btn--ghost btn--sm btn--mode" id="mode-tun" type="button" aria-pressed="false">TUN Mode</button>
+                                    </div>
+                                    <p class="connection-subtext" id="connection-subtext">Click to establish a secure VPN connection</p>
+                                    <p class="traffic-empty">Traffic history is unavailable; current counters are shown below.</p>
+                                </div>
+                            </article>
+
+                            <article class="card card--radar" aria-labelledby="radar-heading">
+                                <header class="card__header">
+                                    <h3 id="radar-heading" class="card__title">Sonar — local telemetry</h3>
+                                    <span class="radar-mode-label" id="radar-state-label" aria-live="polite">SELF-TEST · no active contacts</span>
+                                </header>
+                                <div class="card__body card__body--radar">
+                                    <div class="radar-scope" id="radar-scope" role="img" aria-label="Tactical sonar scope of live PerchVPN components">
+                                        <canvas id="radar-canvas" width="360" height="360" aria-hidden="true"></canvas>
+                                        <div class="radar-hud" id="radar-hud" aria-hidden="true">
+                                            <span class="radar-hud__cell"><span class="radar-hud__key">RNG</span><span class="radar-hud__val" id="radar-hud-range">—</span></span>
+                                            <span class="radar-hud__cell"><span class="radar-hud__key">CONTACTS</span><span class="radar-hud__val" id="radar-hud-contacts">0/6</span></span>
+                                            <span class="radar-hud__cell"><span class="radar-hud__key">EXIT</span><span class="radar-hud__val" id="radar-hud-exit">—</span></span>
+                                            <span class="radar-hud__cell"><span class="radar-hud__key">BRG</span><span class="radar-hud__val" id="radar-hud-bearing">000°</span></span>
+                                        </div>
+                                        <div class="radar-tooltip" id="radar-tooltip" role="tooltip" hidden>
+                                            <span class="radar-tooltip__name" id="radar-tooltip-name"></span>
+                                            <span class="radar-tooltip__state" id="radar-tooltip-state"></span>
+                                            <span class="radar-tooltip__seen" id="radar-tooltip-seen"></span>
+                                        </div>
+                                    </div>
+                                    <div class="radar-legend" id="radar-legend">
+                                        <span class="radar-legend__item"><span class="radar-dot radar-dot--ok"></span>verified</span>
+                                        <span class="radar-legend__item"><span class="radar-dot radar-dot--degraded"></span>degraded / unverified</span>
+                                        <span class="radar-legend__item"><span class="radar-dot radar-dot--failed"></span>failed</span>
+                                        <span class="radar-legend__item"><span class="radar-dot radar-dot--inactive"></span>inactive</span>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="card card--diagnostics" aria-label="Latest diagnostic event">
+                                <div class="diag-strip" id="diag-strip" hidden>
+                                    <span class="log-sev log-sev--INFO" id="diag-strip-sev">INFO</span>
+                                    <span class="diag-strip__msg" id="diag-strip-msg">—</span>
+                                </div>
+                            </article>
+
+                            <article class="card card--traffic traffic-panel" aria-labelledby="traffic-heading">
+                                <header class="card__header">
+                                    <h3 id="traffic-heading" class="card__title">Traffic</h3>
+                                </header>
+                                <div class="card__body">
+                                    <div class="traffic-grid">
+                                        <div class="traffic-item">
+                                            <span class="traffic-label">Download</span>
+                                            <span class="traffic-value traffic-value--download" id="download-total">0 B</span>
+                                        </div>
+                                        <div class="traffic-item">
+                                            <span class="traffic-label">Upload</span>
+                                            <span class="traffic-value traffic-value--upload" id="upload-total">0 B</span>
+                                        </div>
+                                        <div class="traffic-item">
+                                            <span class="traffic-label">Down Speed</span>
+                                            <span class="traffic-value traffic-value--download" id="download-speed">0 B/s</span>
+                                        </div>
+                                        <div class="traffic-item">
+                                            <span class="traffic-label">Up Speed</span>
+                                            <span class="traffic-value traffic-value--upload" id="upload-speed">0 B/s</span>
+                                        </div>
+                                    </div>
+                                    <div class="traffic-summary">
+                                        <div class="traffic-summary-item">
+                                            <span class="traffic-summary-label">Total</span>
+                                            <span class="traffic-summary-value" id="total-traffic">0 B</span>
+                                        </div>
+                                        <div class="traffic-summary-item">
+                                            <span class="traffic-summary-label">Active Connections</span>
+                                            <span class="traffic-summary-value" id="connections">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        </section>
+
+                        <!-- Right column: country selection and server details -->
+                        <aside class="dashboard-sidebar right-sidebar" aria-labelledby="countries-heading">
+                            <article class="card card--countries select-country-panel" aria-labelledby="countries-heading">
+                                <header class="card__header">
+                                    <h2 id="countries-heading" class="card__title">Select Country / Server</h2>
+                                </header>
+                                <div class="card__body">
+                                    <div class="panel-header panel-header--compact">
+                                        <div class="search-box">
+                                            <label for="dashboard-country-search" class="visually-hidden">Search countries</label>
+                                            <span class="search-box__icon" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24" width="18" height="18"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>
+                                            </span>
+                                            <input type="search" id="dashboard-country-search" class="search-box__input" placeholder="Search countries…" autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <div class="countries-list" id="dashboard-countries-list" role="list">
+                                        <div class="loading"><span class="spinner" aria-hidden="true"></span>Loading countries…</div>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="card card--server-details" aria-labelledby="server-details-heading">
+                                <header class="card__header">
+                                    <h3 id="server-details-heading" class="card__title">Server Details</h3>
+                                </header>
+                                <div class="card__body">
+                                    <dl class="info-list">
+                                        <div class="info-item">
+                                            <dt class="info-label">Country</dt>
+                                            <dd class="info-value" id="server-country">Unavailable</dd>
+                                        </div>
+                                        <div class="info-item">
+                                            <dt class="info-label">City</dt>
+                                            <dd class="info-value" id="server-city">Unavailable</dd>
+                                        </div>
+                                        <div class="info-item">
+                                            <dt class="info-label">Protocol</dt>
+                                            <dd class="info-value" id="server-protocol">Unavailable</dd>
+                                        </div>
+                                        <div class="info-item">
+                                            <dt class="info-label">Transport</dt>
+                                            <dd class="info-value" id="server-transport">Unavailable</dd>
+                                        </div>
+                                        <div class="info-item">
+                                            <dt class="info-label">Latency</dt>
+                                            <dd class="info-value info-value--unavailable" id="server-latency">Unavailable</dd>
+                                        </div>
+                                        <div class="info-item">
+                                            <dt class="info-label">Server Load</dt>
+                                            <dd class="info-value info-value--unavailable" id="server-load">Unavailable</dd>
+                                        </div>
+                                        <div class="info-item">
+                                            <dt class="info-label">Server Uptime</dt>
+                                            <dd class="info-value info-value--unavailable" id="server-uptime">Unavailable</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </article>
+                        </aside>
+
+                        <!-- Wide row: activity log -->
+                        <section class="dashboard-log-row" aria-labelledby="log-heading">
+                            <article class="card card--log">
+                                <header class="card__header">
+                                    <h3 id="log-heading" class="card__title">Live Logs</h3>
+                                    <div class="log-controls">
+                                        <select id="log-severity-filter" class="log-filter" aria-label="Filter by severity">
+                                            <option value="all">All levels</option>
+                                            <option value="DEBUG">DEBUG</option>
+                                            <option value="INFO">INFO</option>
+                                            <option value="WARN">WARN</option>
+                                            <option value="ERROR">ERROR</option>
+                                        </select>
+                                        <input id="log-component-filter" class="log-filter log-filter--text" type="text" placeholder="filter component…" list="log-component-list" aria-label="Filter by component">
+                                        <datalist id="log-component-list"></datalist>
+                                        <button class="btn btn--ghost btn--sm" id="log-pause" type="button" aria-pressed="false" aria-label="Pause display">Pause</button>
+                                        <button class="btn btn--ghost btn--sm" id="log-copy" type="button" aria-label="Copy activity log">Copy</button>
+                                        <button class="btn btn--ghost btn--sm" id="log-clear" type="button" aria-label="Clear displayed history">Clear</button>
+                                    </div>
+                                </header>
+                                <div class="card__body card__body--log">
+                                    <div class="log-container log-container--structured" id="log-container" role="log" aria-live="polite" aria-label="Live log stream">
+                                        <div class="log-entry log-entry--system log-entry--newest-first">Waiting for events…</div>
+                                    </div>
+                                    <!-- Debug / Diagnostics subsection: the former
+                                         standalone Debug view lives here as a
+                                         collapsed section of the log stream. It
+                                         surfaces only real local state: the
+                                         webui_debug streaming flag and the DEBUG
+                                         severity events already in the log buffer. -->
+                                    <details class="logs-debug" id="logs-debug">
+                                        <summary class="logs-debug__summary">Debug / Diagnostics</summary>
+                                        <div class="logs-debug__body">
+                                            <div class="logs-debug__state" id="logs-debug-state">Diagnostics: pending status poll…</div>
+                                            <div class="log-container log-container--structured log-container--mini" id="logs-debug-events" role="log" aria-label="Diagnostic DEBUG events"></div>
+                                        </div>
+                                    </details>
+                                </div>
+                            </article>
+                        </section>
+                    </div>
+                </section>
+                <!-- Network Panel -->
+                <section class="tab-panel" id="network-panel" role="tabpanel" aria-labelledby="tab-network" hidden>
+                    <div class="settings-container">
+                        <section class="settings-section" aria-labelledby="dns-heading">
+                            <header class="settings-section__header">
+                                <h3 id="dns-heading" class="settings-section__title">Encrypted DNS</h3>
+                            </header>
+                            <div class="setting-group">
+                                <label for="dns-mode" class="setting-label">DNS Mode</label>
+                                <select id="dns-mode" class="setting-select" aria-describedby="dns-mode-hint">
+                                    <option value="auto">Automatic (System Default)</option>
+                                    <option value="cloudflare">Cloudflare (1.1.1.1)</option>
+                                    <option value="google">Google (8.8.8.8)</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                                <p id="dns-mode-hint" class="setting-hint">Encrypted DNS transport: pending (Phase 2b). Selection is saved but not yet applied to the HTTP path.</p>
+                            </div>
+                            <div class="setting-group" id="custom-dns-group" hidden>
+                                <label for="dns-custom" class="setting-label">Custom DNS Servers (comma-separated)</label>
+                                <input type="text" id="dns-custom" class="setting-input" placeholder="e.g., 1.1.1.1, 8.8.8.8" autocomplete="off" aria-describedby="dns-custom-hint">
+                                <p id="dns-custom-hint" class="setting-hint">Enter IPv4 or IPv6 addresses separated by commas</p>
+                                <p class="setting-error" id="dns-custom-error" role="alert"></p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <header class="settings-section__header">
+                                <h3 class="settings-section__title">Edge Configuration</h3>
+                            </header>
+                            <div class="setting-group">
+                                <label for="edge-address" class="setting-label">Custom Edge Address</label>
+                                <input type="text" id="edge-address" class="setting-input" placeholder="host:port (optional)" autocomplete="off" aria-describedby="edge-address-hint">
+                                <p id="edge-address-hint" class="setting-hint">Custom edge server address (optional). Saved as a persisted preference only.</p>
+                                <p class="setting-error" id="edge-address-error" role="alert"></p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <header class="settings-section__header">
+                                <h3 class="settings-section__title">Local Proxy</h3>
+                            </header>
+                            <div class="setting-group">
+                                <label for="listen-host" class="setting-label">Listen Address</label>
+                                <input type="text" id="listen-host" class="setting-input setting-input--readonly" value="127.0.0.1" readonly aria-describedby="listen-host-hint">
+                                <p id="listen-host-hint" class="setting-hint">Local SOCKS5 bind address</p>
+                            </div>
+                            <div class="setting-group">
+                                <label for="listen-port" class="setting-label">Listen Port</label>
+                                <input type="number" id="listen-port" class="setting-input" value="1080" min="1" max="65535" aria-describedby="listen-port-hint">
+                                <p id="listen-port-hint" class="setting-hint">Local SOCKS5 port</p>
+                                <p class="setting-error" id="listen-port-error" role="alert"></p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <header class="settings-section__header">
+                                <h3 class="settings-section__title">Local Proxy</h3>
+                            </header>
+                            <div class="setting-group">
+                                <label for="socks-bind-address" class="setting-label">SOCKS5 Bind Address</label>
+                                <input type="text" id="socks-bind-address" class="setting-input" value="127.0.0.1" autocomplete="off" aria-describedby="socks-bind-address-hint">
+                                <p id="socks-bind-address-hint" class="setting-hint">Loopback is recommended; 0.0.0.0 (all interfaces) requires local proxy authentication.</p>
+                                <p class="setting-error" id="socks-bind-address-error" role="alert"></p>
+                            </div>
+                            <div class="setting-group">
+                                <label for="socks-port" class="setting-label">SOCKS5 Port</label>
+                                <input type="number" id="socks-port" class="setting-input" value="1080" min="1" max="65535" aria-describedby="socks-port-hint">
+                                <p id="socks-port-hint" class="setting-hint">Local SOCKS5 listening port.</p>
+                                <p class="setting-error" id="socks-port-error" role="alert"></p>
+                            </div>
+                            <div class="setting-group">
+                                <label class="setting-label"><input type="checkbox" id="http-proxy-enabled"> Enable HTTP proxy</label>
+                                <p class="setting-hint">Optional local HTTP proxy. Uses the same upstream VPN transport as SOCKS5.</p>
+                            </div>
+                            <div class="setting-group">
+                                <label for="http-proxy-port" class="setting-label">HTTP Proxy Port</label>
+                                <input type="number" id="http-proxy-port" class="setting-input" value="8080" min="1" max="65535" aria-describedby="http-proxy-port-hint">
+                                <p id="http-proxy-port-hint" class="setting-hint">Local HTTP proxy listening port.</p>
+                                <p class="setting-error" id="http-proxy-port-error" role="alert"></p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <header class="settings-section__header">
+                                <h3 class="settings-section__title">Connection</h3>
+                            </header>
+                            <div class="setting-group">
+                                <label for="mtu" class="setting-label">Tunnel MTU</label>
+                                <input type="number" id="mtu" class="setting-input" value="1400" min="576" max="9000" aria-describedby="mtu-hint">
+                                <p id="mtu-hint" class="setting-hint">Stored for a future TUN interface. SOCKS-only mode does not apply MTU to ordinary sockets.</p>
+                                <p class="setting-error" id="mtu-error" role="alert"></p>
+                            </div>
+                            <div class="setting-group">
+                                <label class="setting-label"><input type="checkbox" id="upstream-proxy-enabled"> Enable upstream proxy chaining</label>
+                                <p class="setting-hint">When enabled, the VPN edge connection is chained through the configured upstream proxy.</p>
+                            </div>
+                            <div class="setting-group">
+                                <label for="upstream-proxy-type" class="setting-label">Upstream Proxy Type</label>
+                                <select id="upstream-proxy-type" class="setting-select">
+                                    <option value="socks5">SOCKS5</option>
+                                    <option value="http">HTTP</option>
+                                </select>
+                            </div>
+                            <div class="setting-group">
+                                <label for="upstream-proxy-host" class="setting-label">Upstream Proxy Host</label>
+                                <input type="text" id="upstream-proxy-host" class="setting-input" placeholder="host or IP" autocomplete="off">
+                                <p class="setting-error" id="upstream-proxy-host-error" role="alert"></p>
+                            </div>
+                            <div class="setting-group">
+                                <label for="upstream-proxy-port" class="setting-label">Upstream Proxy Port</label>
+                                <input type="number" id="upstream-proxy-port" class="setting-input" value="1080" min="1" max="65535">
+                                <p class="setting-error" id="upstream-proxy-port-error" role="alert"></p>
+                            </div>
+                            <div class="setting-group">
+                                <label for="upstream-proxy-username" class="setting-label">Upstream Proxy Username</label>
+                                <input type="text" id="upstream-proxy-username" class="setting-input" autocomplete="off">
+                            </div>
+                            <div class="setting-group">
+                                <label for="upstream-proxy-password" class="setting-label">Upstream Proxy Password</label>
+                                <input type="password" id="upstream-proxy-password" class="setting-input" autocomplete="off">
+                                <p class="setting-hint">Leave blank to keep the saved password.</p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <header class="settings-section__header">
+                                <h3 class="settings-section__title">DNS</h3>
+                            </header>
+                            <div class="setting-group">
+                                <label for="tunnel-dns-provider" class="setting-label">Tunnel DNS</label>
+                                <select id="tunnel-dns-provider" class="setting-select">
+                                    <option value="default">Default (edge resolution)</option>
+                                    <option value="cloudflare">Cloudflare DoH</option>
+                                    <option value="google">Google DoH</option>
+                                    <option value="quad9">Quad9 DoH</option>
+                                    <option value="adguard">AdGuard DoH</option>
+                                    <option value="custom">Custom DoH</option>
+                                </select>
+                                <p class="setting-hint">Stored for a future TUN interface; SOCKS5 remote forwarding is not system-wide DNS protection.</p>
+                            </div>
+                            <div class="setting-group" id="custom-tunnel-doh-group" hidden>
+                                <label for="custom-tunnel-doh-url" class="setting-label">Custom Tunnel DoH URL</label>
+                                <input type="text" id="custom-tunnel-doh-url" class="setting-input" placeholder="https://example/dns-query" autocomplete="off">
+                                <p class="setting-error" id="custom-tunnel-doh-url-error" role="alert"></p>
+                            </div>
+                            <div class="setting-group">
+                                <label for="resolver-dns-provider" class="setting-label">Resolver DNS</label>
+                                <select id="resolver-dns-provider" class="setting-select">
+                                    <option value="automatic">Automatic (race defaults)</option>
+                                    <option value="quad9">Quad9</option>
+                                    <option value="cloudflare">Cloudflare</option>
+                                    <option value="google">Google</option>
+                                    <option value="system">System DNS</option>
+                                    <option value="custom">Custom IP</option>
+                                </select>
+                                <p class="setting-hint">Controls resolver policy where the backend transport supports it.</p>
+                            </div>
+                            <div class="setting-group" id="custom-resolver-ip-group" hidden>
+                                <label for="custom-resolver-ip" class="setting-label">Custom Resolver IP</label>
+                                <input type="text" id="custom-resolver-ip" class="setting-input" placeholder="1.1.1.1" autocomplete="off">
+                                <p class="setting-error" id="custom-resolver-ip-error" role="alert"></p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <header class="settings-section__header">
+                                <h3 class="settings-section__title">Advanced</h3>
+                            </header>
+                            <div class="setting-group">
+                                <label for="tls-split-mode" class="setting-label">TLS Fragmentation</label>
+                                <select id="tls-split-mode" class="setting-select">
+                                    <option value="off">Disabled</option>
+                                    <option value="first_byte">First byte</option>
+                                    <option value="sni">SNI hostname</option>
+                                </select>
+                                <p class="setting-hint">Stored as a preference. The current Python TLS transport does not implement packet-level fragmentation.</p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label for="ip-mode" class="setting-label">IP Protocol Mode</label>
+                                <select id="ip-mode" class="setting-select">
+                                    <option value="dual_stack">Dual stack</option>
+                                    <option value="prefer_ipv4">Prefer IPv4</option>
+                                    <option value="prefer_ipv6">Prefer IPv6</option>
+                                    <option value="ipv4_only">IPv4 only</option>
+                                    <option value="ipv6_only">IPv6 only</option>
+                                </select>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label for="transport-version" class="setting-label">Transport Protocol</label>
+                                <select id="transport-version" class="setting-select">
+                                    <option value="h1">HTTP/1.1</option>
+                                    <option value="h2">HTTP/2</option>
+                                    <option value="h3">HTTP/3</option>
+                                </select>
+                                <p class="setting-hint">HTTP/1.1 is stored but the core transport currently speaks HTTP/2 and HTTP/3 only.</p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label for="multiplex-streams" class="setting-label">Multiplex Concurrency</label>
+                                <select id="multiplex-streams" class="setting-select">
+                                    <option value="8">8 streams</option>
+                                    <option value="16">16 streams</option>
+                                    <option value="32">32 streams</option>
+                                    <option value="64">64 streams</option>
+                                </select>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label for="utls-fingerprint" class="setting-label">Browser TLS Fingerprint</label>
+                                <select id="utls-fingerprint" class="setting-select">
+                                    <option value="disabled">Disabled</option>
+                                    <option value="chrome">Chrome</option>
+                                    <option value="firefox">Firefox</option>
+                                    <option value="edge">Edge</option>
+                                    <option value="safari">Safari</option>
+                                    <option value="ios">iOS</option>
+                                    <option value="randomized">Randomized</option>
+                                    <option value="random">Random</option>
+                                </select>
+                                <p class="setting-hint">Cipher/curve preference is applied to outbound TLS handshakes; the DoH resolver also gets a matching sing-box uTLS block.</p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label for="tls-fragment-mode" class="setting-label">TLS Fragmentation</label>
+                                <select id="tls-fragment-mode" class="setting-select">
+                                    <option value="disabled">Disabled</option>
+                                    <option value="record">Record splitting</option>
+                                    <option value="packet">Packet segmentation</option>
+                                    <option value="combined">Combined</option>
+                                </select>
+                                <label for="tls-fragment-delay" class="setting-label">Fragment fallback delay (ms)</label>
+                                <input type="number" id="tls-fragment-delay" class="setting-input" value="300" min="0" max="10000">
+                                <p class="setting-hint">Applied to the HTTP/1.1 transport's outbound TLS records; fragmentation stops after the fallback delay.</p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label for="latency-probe-url" class="setting-label">Latency Test URL</label>
+                                <input type="url" id="latency-probe-url" class="setting-input" placeholder="https://www.gstatic.com/generate_204" autocomplete="off">
+                                <button type="button" class="btn btn--secondary btn--small" id="reset-latency-url">Reset default</button>
+                                <p class="setting-hint">Stored as a preference. Server latency is measured with direct TCP probes.</p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label for="bootstrap-dns-provider" class="setting-label">Bootstrap DNS</label>
+                                <select id="bootstrap-dns-provider" class="setting-select">
+                                    <option value="automatic">Automatic</option>
+                                    <option value="cloudflare">Cloudflare</option>
+                                    <option value="google">Google</option>
+                                    <option value="quad9">Quad9</option>
+                                    <option value="adguard">AdGuard</option>
+                                    <option value="system">System</option>
+                                    <option value="custom">Custom DoH URL</option>
+                                </select>
+                                <input type="url" id="custom-bootstrap-doh-url" class="setting-input" placeholder="https://dns.example.com/dns-query" autocomplete="off" hidden>
+                                <p class="setting-hint">Stored as a preference. Bootstrap resolution still uses the resolver setting above.</p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label for="relayer-provider" class="setting-label">Relayer Provider</label>
+                                <select id="relayer-provider" class="setting-select">
+                                    <option value="automatic">Automatic</option>
+                                    <option value="direct">Direct</option>
+                                    <option value="cloudflare">Cloudflare worker</option>
+                                    <option value="vercel">Vercel worker</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                                <input type="url" id="custom-relayer-url" class="setting-input" placeholder="https://relayer.example.com" autocomplete="off" hidden>
+                                <button type="button" class="btn btn--secondary btn--small" id="btn-relayer-test">Test latency</button>
+                                <span id="relayer-test-result" class="setting-hint" aria-live="polite"></span>
+                                <p class="setting-hint">Stored as a preference. The relayer endpoint is chosen automatically by the session.</p>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label class="setting-label"><input type="checkbox" id="bypass-local-network" checked> Bypass local network</label>
+                                <label class="setting-label"><input type="checkbox" id="kill-switch"> Kill switch (strict routing)</label>
+                                <label class="setting-label"><input type="checkbox" id="automatic-recovery" checked> Automatic connection recovery</label>
+                                <label class="setting-label"><input type="checkbox" id="always-on"> Always-on VPN (connect at launch)</label>
+                                <label class="setting-label"><input type="checkbox" id="update-checks" checked> Check for updates automatically</label>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="setting-group">
+                                <label class="setting-label"><input type="checkbox" id="local-proxy-auth-enabled"> Require local proxy authentication</label>
+                                <input type="text" id="local-proxy-username" class="setting-input" placeholder="Username" autocomplete="off" hidden>
+                                <input type="password" id="local-proxy-password" class="setting-input" placeholder="Password" autocomplete="new-password" hidden>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="button-group">
+                                <button type="button" class="btn btn--primary" id="save-network">Save Changes</button>
+                                <button type="button" class="btn btn--secondary" id="reset-network">Reset to Defaults</button>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+
+                <!-- Account Panel: the complete Account & Allowance section
+                     (credential sign-in, six-digit verification, signed-in
+                     state, quota gauge and sign-out) lives here now. -->
+                <section class="tab-panel" id="account-panel" role="tabpanel" aria-labelledby="tab-account" hidden>
+                    <div class="settings-container">
+                        <section class="settings-section settings-section--account" aria-labelledby="account-signin-heading">
+                            <header class="settings-section__header">
+                                <h3 id="account-signin-heading" class="settings-section__title">Account &amp; Allowance</h3>
+                                <span class="account-status-pill is-signed-out" id="account-status-pill" aria-live="polite">Signed out</span>
+                            </header>
+
+                            <div class="account-card" id="account-card">
+                                <div class="account-card__identity">
+                                    <div class="info-item">
+                                        <dt class="info-label">Account</dt>
+                                        <dd class="info-value" id="account-identifier">Not signed in</dd>
+                                    </div>
+                                    <div class="info-item">
+                                        <dt class="info-label">Guardian status</dt>
+                                        <dd class="info-value" id="account-guardian-status">—</dd>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sign-in form: only the localhost API is used,
+                                 no terminal/console interaction anywhere. -->
+                            <form class="signin-form" id="signin-form" autocomplete="off" novalidate hidden>
+                                <div class="setting-group">
+                                    <label for="signin-email" class="setting-label">Firefox account email</label>
+                                    <input type="email" id="signin-email" class="setting-input" name="email"
+                                           autocomplete="username" spellcheck="false" placeholder="you@example.com"
+                                           aria-describedby="signin-feedback">
+                                </div>
+                                <div class="setting-group setting-group--password">
+                                    <label for="signin-password" class="setting-label">Password</label>
+                                    <div class="password-field">
+                                        <input type="password" id="signin-password" class="setting-input" name="password"
+                                               autocomplete="current-password" placeholder="••••••••"
+                                               aria-describedby="signin-feedback">
+                                        <button type="button" id="signin-password-toggle" class="btn btn--ghost btn--sm password-toggle"
+                                                aria-pressed="false" aria-label="Show password">Show</button>
+                                    </div>
+                                </div>
+                                <p class="setting-error" id="signin-error" role="alert" hidden></p>
+                                <div class="signin-form__actions">
+                                    <button type="submit" class="btn btn--primary" id="signin-submit">Sign in</button>
+                                    <span class="signin-progress" id="signin-progress" hidden>
+                                        <span class="spinner" aria-hidden="true"></span>
+                                        <span id="signin-progress-text">Signing in…</span>
+                                    </span>
+                                </div>
+                            </form>
+
+                            <!-- Emailed-code / TOTP / link confirmation step -->
+                            <div class="signin-verify" id="signin-verify" hidden>
+                                <p class="signin-verify__text" id="signin-verify-text">Enter the confirmation code emailed to you.</p>
+                                <div class="setting-group" id="signin-code-group">
+                                    <label for="signin-code" class="setting-label">Confirmation code</label>
+                                    <input type="text" id="signin-code" class="setting-input" inputmode="numeric"
+                                           autocomplete="one-time-code" placeholder="123456" aria-describedby="signin-feedback">
+                                </div>
+                                <p class="setting-feedback" id="verify-feedback" role="status" aria-live="polite" hidden></p>
+                                <p class="setting-error" id="verify-error" role="alert" hidden></p>
+                                <div class="signin-form__actions">
+                                    <button type="button" class="btn btn--primary" id="verify-submit">Confirm</button>
+                                    <button type="button" class="btn btn--secondary" id="verify-resend">Resend code</button>
+                                    <button type="button" class="btn btn--secondary" id="verify-cancel">Start over</button>
+                                </div>
+                            </div>
+
+                            <!-- FxA anti-bot (errno 125) unblock step: FxA emails
+                                 an authorization code; retry login with it. -->
+                            <div class="signin-verify" id="signin-unblock" hidden>
+                                <p class="signin-verify__text" id="signin-unblock-text">Firefox Accounts emailed an authorization code to your account. Enter it to finish signing in.</p>
+                                <div class="setting-group">
+                                    <label for="signin-unblock-code" class="setting-label">Authorization code</label>
+                                    <input type="text" id="signin-unblock-code" class="setting-input" inputmode="numeric"
+                                           autocomplete="one-time-code" placeholder="Enter emailed code" aria-describedby="signin-feedback">
+                                </div>
+                                <p class="setting-error" id="unblock-error" role="alert" hidden></p>
+                                <div class="signin-form__actions">
+                                    <button type="button" class="btn btn--primary" id="unblock-submit">Continue</button>
+                                    <button type="button" class="btn btn--secondary" id="unblock-resend">Resend code</button>
+                                    <button type="button" class="btn btn--secondary" id="unblock-cancel">Start over</button>
+                                </div>
+                            </div>
+
+                            <div class="account-actions">
+                                <button type="button" class="btn btn--secondary" id="btn-logout" hidden>Sign Out</button>
+                            </div>
+
+                            <!-- Monthly allowance radial gauge (Guardian-sourced) -->
+                            <div class="allowance-gauge" id="allowance-gauge" hidden>
+                                <div class="allowance-gauge__scope">
+                                    <svg id="gauge-svg" viewBox="0 0 180 180" focusable="false" aria-hidden="false"
+                                         role="img" aria-label="Monthly data allowance gauge">
+                                        <defs>
+                                            <linearGradient id="gaugeArcGrad" x1="0" y1="0" x2="1" y2="1">
+                                                <stop offset="0%" stop-color="#3ddc84"/>
+                                                <stop offset="100%" stop-color="#2bb774"/>
+                                            </linearGradient>
+                                            <linearGradient id="gaugeArcGradWarn" x1="0" y1="0" x2="1" y2="1">
+                                                <stop offset="0%" stop-color="#f5b942"/>
+                                                <stop offset="100%" stop-color="#d9962a"/>
+                                            </linearGradient>
+                                            <linearGradient id="gaugeArcGradCrit" x1="0" y1="0" x2="1" y2="1">
+                                                <stop offset="0%" stop-color="#e02842"/>
+                                                <stop offset="100%" stop-color="#a01226"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <circle class="gauge-track" cx="90" cy="90" r="70" fill="none"/>
+                                        <circle class="gauge-arc" id="gauge-arc" cx="90" cy="90" r="70" fill="none"
+                                                stroke="url(#gaugeArcGrad)" transform="rotate(-90 90 90)"/>
+                                        <text class="gauge-center-used" id="gauge-used" x="90" y="82" text-anchor="middle">—</text>
+                                        <text class="gauge-center-unit" id="gauge-used-unit" x="90" y="98" text-anchor="middle"></text>
+                                    </svg>
+                                    <div class="allowance-gauge__notes">
+                                        <p class="allowance-gauge__allowance" id="gauge-allowance">Monthly allowance unavailable</p>
+                                        <p class="allowance-gauge__remaining" id="gauge-remaining"></p>
+                                        <p class="allowance-gauge__percents" id="gauge-percents"></p>
+                                        <p class="allowance-gauge__reset" id="gauge-reset" hidden></p>
+                                        <p class="allowance-gauge__source" id="gauge-source"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box" id="session-token-box">
+                                <h4 class="info-box__title">Session Token</h4>
+                                <p class="info-box__text">Paste a Firefox Accounts session token (or import one from a text/JSON file) to sign in without a password. Tokens are validated by Firefox Accounts, then stored securely in the system credential manager.</p>
+                                <div class="setting-group">
+                                    <label for="session-token-input" class="setting-label">Session token</label>
+                                    <input type="password" id="session-token-input" class="setting-input setting-input--token"
+                                           autocomplete="off" spellcheck="false" placeholder="Paste session token" aria-describedby="session-token-feedback">
+                                </div>
+                                <input type="file" id="session-token-file" accept=".json,.txt,application/json,text/plain" hidden>
+                                <p class="setting-feedback" id="session-token-feedback" role="status" aria-live="polite" hidden></p>
+                                <div class="signin-form__actions">
+                                    <button type="button" class="btn btn--primary" id="btn-save-token">Save</button>
+                                    <button type="button" class="btn btn--secondary" id="btn-import-token">Import…</button>
+                                    <button type="button" class="btn btn--danger" id="btn-clear-tokens">Clear All Tokens</button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+            </main>
+
+            <footer class="app-footer" role="contentinfo">
+                <span id="version-info" class="app-footer__version">Perch VPN v2.0.3</span>
+                <button type="button" class="btn btn--secondary btn--small" id="btn-check-updates">Check for updates</button>
+                <span class="app-footer__meta">Perch VPN is an independent client, not affiliated with Mozilla.</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="country-sort.js?v=1"></script>
+    <script src="status-contract.js?v=1"></script>
+    <script src="app.js?v=10"></script>
+</body>
+</html>

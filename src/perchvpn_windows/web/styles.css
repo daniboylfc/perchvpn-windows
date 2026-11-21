@@ -1,0 +1,3581 @@
+/* Perch VPN — futuristic cyberpunk visual system
+ *
+ * Palette: deep crimson (#C8102E), near-black, charcoal, clean white,
+ * brushed steel. Restrained red illumination, soft gradients, fine
+ * borders, controlled shadows and dimensional depth.
+ * Modern sans-serif, consistent spacing, precise alignment.
+ * No remote image dependencies; decorative motifs are CSS/SVG only.
+ */
+
+:root {
+    /* Core palette */
+    --perch-red: #C8102E;
+    --perch-red-deep: #8E0A20;
+    --perch-red-dark: #A01022;
+    --perch-red-light: #E03E4A;
+    --perch-red-glow: rgba(200, 16, 46, 0.35);
+    --perch-red-tint: rgba(200, 16, 46, 0.08);
+
+    /* Neutrals */
+    --near-black: #0A0708;
+    --charcoal-900: #100C0D;
+    --charcoal-800: #171213;
+    --charcoal-700: #1F1819;
+    --charcoal-600: #2A2224;
+    --charcoal-500: #3A3133;
+    --charcoal-400: #504748;
+    --slate-300: #7C7476;
+    --slate-200: #9C9496;
+    --white: #FFFFFF;
+    --white-80: rgba(255, 255, 255, 0.80);
+    --white-60: rgba(255, 255, 255, 0.60);
+    --white-40: rgba(255, 255, 255, 0.40);
+
+    /* Semantic */
+    --success: #2FBF71;
+    --success-dim: rgba(47, 191, 113, 0.14);
+    --warning: #E8A33D;
+    --warning-dim: rgba(232, 163, 61, 0.14);
+    --danger: #E5484D;
+    --danger-dim: rgba(229, 72, 77, 0.14);
+    --info: #4C9AFF;
+    --info-dim: rgba(76, 154, 255, 0.14);
+
+    /* Surfaces */
+    --surface: var(--charcoal-800);
+    --surface-raised: var(--charcoal-700);
+    --surface-hover: var(--charcoal-600);
+    --surface-inset: rgba(0, 0, 0, 0.28);
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --border: rgba(255, 255, 255, 0.11);
+    --border-strong: rgba(200, 16, 46, 0.45);
+
+    /* Typography */
+    --font-sans: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas, "Liberation Mono", "Courier New", monospace;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.48);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+    --shadow-glow: 0 0 20px rgba(200, 16, 46, 0.28);
+
+    --transition-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    --header-height: 56px;
+    --footer-height: 36px;
+    --content-max: 1600px;
+}
+
+/* ============================================================
+   Reset
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--white-80);
+    background-color: var(--near-black);
+    background-image:
+        radial-gradient(ellipse 90% 55% at 50% -10%, rgba(200, 16, 46, 0.16), transparent 70%),
+        radial-gradient(ellipse 60% 40% at 85% 5%, rgba(200, 16, 46, 0.06), transparent 65%),
+        linear-gradient(to bottom, var(--charcoal-900), var(--near-black) 60%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Subtle stadium-light hairline across the top */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(200, 16, 46, 0.55) 20%,
+        rgba(224, 62, 74, 0.75) 50%,
+        rgba(200, 16, 46, 0.55) 80%,
+        transparent 100%);
+    z-index: 200;
+    pointer-events: none;
+}
+
+/* Faint pitch-flank / horizon illumination */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(ellipse 40% 70% at 0% 50%, rgba(200, 16, 46, 0.07), transparent 70%),
+        radial-gradient(ellipse 40% 70% at 100% 50%, rgba(200, 16, 46, 0.07), transparent 70%);
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--surface-inset);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--charcoal-500);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--perch-red);
+    background-clip: content-box;
+}
+
+/* ============================================================
+   App Shell Layout
+   ============================================================ */
+
+.app-shell {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ============================================================
+   App Main Column
+   ============================================================ */
+
+.app-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ============================================================
+   Left Navigation Rail
+   ============================================================ */
+
+.rail {
+    display: flex;
+    flex-direction: column;
+    width: 216px;
+    flex: 0 0 216px;
+    background: #0c090a;
+    border-right: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: width var(--transition-normal), flex-basis var(--transition-normal);
+}
+
+.rail.is-collapsed {
+    width: 68px;
+    flex-basis: 68px;
+}
+
+.rail.is-collapsed .rail__title,
+.rail.is-collapsed .rail__label {
+    display: none;
+}
+
+.rail.is-collapsed .rail__item,
+.rail.is-collapsed .rail__collapse {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.rail.is-collapsed .rail__item {
+    position: relative;
+}
+
+/* Collapsed: keep the active marker as a left edge bar */
+.rail.is-collapsed .rail__item--active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--perch-red);
+}
+
+.rail__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: var(--header-height);
+    flex: 0 0 var(--header-height);
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    overflow: hidden;
+}
+
+.rail__logo {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(200, 16, 46, 0.45));
+}
+
+.rail__title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    white-space: nowrap;
+}
+.rail__title::after {
+    content: "Windows";
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--white-40);
+}
+
+.rail__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 auto;
+    padding: 12px 10px;
+    align-items: stretch;
+}
+
+.rail__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-left: 3px solid transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--white-60);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--transition-fast), background-color var(--transition-fast),
+                border-color var(--transition-fast);
+}
+
+.rail__item:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.rail__item:focus-visible {
+    outline: 2px solid var(--perch-red-light);
+    outline-offset: 2px;
+}
+
+.rail__item--active,
+.rail__item[aria-selected="true"] {
+    color: var(--white);
+    background-image: linear-gradient(90deg, rgba(200, 16, 46, 0.18), rgba(200, 16, 46, 0.02));
+    border-left-color: var(--perch-red);
+    box-shadow: inset 0 0 0 1px rgba(200, 16, 46, 0.14);
+}
+
+.rail__item--active .rail__icon,
+.rail__item[aria-selected="true"] .rail__icon {
+    color: var(--perch-red-light);
+    filter: drop-shadow(0 0 6px rgba(200, 16, 46, 0.45));
+}
+
+.rail__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+    color: currentColor;
+}
+
+.rail__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rail__footer {
+    flex: 0 0 auto;
+    padding: 10px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.rail__collapse {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--white-40);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.rail__collapse:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.rail__collapse:focus-visible {
+    outline: 2px solid var(--perch-red-light);
+    outline-offset: 2px;
+}
+
+.rail.is-collapsed .rail__collapse .rail__icon {
+    transform: rotate(180deg);
+    transition: transform var(--transition-normal);
+}
+
+/* ============================================================
+   App Header / Footer
+   ============================================================ */
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: var(--header-height);
+    flex: 0 0 var(--header-height);
+    padding: 0 20px;
+    background: #100c0d;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.app-header__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--white);
+}
+
+.app-header__status {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-inset);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.status-indicator__dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    border-radius: 50%;
+    background: var(--slate-200);
+    transition: background-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.status-indicator--connected {
+    border-color: rgba(47, 191, 113, 0.4);
+    background: var(--success-dim);
+    color: var(--success);
+}
+.status-indicator--connected .status-indicator__dot {
+    background: var(--success);
+    box-shadow: 0 0 10px rgba(47, 191, 113, 0.7);
+}
+
+.status-indicator--connecting {
+    border-color: rgba(232, 163, 61, 0.4);
+    background: var(--warning-dim);
+    color: var(--warning);
+}
+.status-indicator--connecting .status-indicator__dot {
+    background: var(--warning);
+    box-shadow: 0 0 10px rgba(232, 163, 61, 0.7);
+    animation: pulse 1.4s ease-in-out infinite;
+}
+
+.status-indicator--disconnected,
+.status-indicator--disconnected .status-indicator__dot,
+.status-indicator--error .status-indicator__dot {
+    background: var(--slate-300);
+}
+.status-indicator--error {
+    border-color: rgba(229, 72, 77, 0.45);
+    background: var(--danger-dim);
+    color: var(--danger);
+}
+.status-indicator--error .status-indicator__dot {
+    background: var(--danger);
+    box-shadow: 0 0 10px rgba(229, 72, 77, 0.7);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(0.85); }
+}
+
+/* ============================================================
+   Main Content & Tab Panels
+   ============================================================ */
+
+.app-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.tab-panel {
+    display: none;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.tab-panel--active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Elements deliberately hidden via the `hidden` attribute must stay hidden
+   even though .tab-panel rules set display for the active state. */
+[hidden] {
+    display: none !important;
+}
+
+/* ============================================================
+   Dashboard Grid
+   ============================================================ */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-rows: auto auto;
+    gap: clamp(12px, 1.5vw, 16px);
+    height: 100%;
+    min-height: 0;
+    padding: clamp(12px, 1.5vw, 16px);
+    width: 100%;
+    margin: 0 auto;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.right-sidebar {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+}
+
+.dashboard-telemetry,
+.traffic-panel {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.dashboard-telemetry {
+    grid-column: 1;
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: minmax(180px, 240px) minmax(260px, 1fr) minmax(200px, 280px);
+    gap: clamp(10px, 1.2vw, 16px);
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+
+.dashboard-telemetry__stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    min-height: 0;
+}
+
+.dashboard-sidebar,
+.right-sidebar {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.dashboard-sidebar > .card,
+.right-sidebar > .card {
+    flex: 0 0 auto;
+}
+
+.dashboard-log-row {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    min-height: clamp(200px, 24vh, 280px);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.dashboard-col--exit,
+.dashboard-col--connection,
+.dashboard-col--traffic,
+.dashboard-col--countries,
+.dashboard-col--server,
+.dashboard-col--log {
+    min-width: 0;
+}
+
+.dashboard-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    min-height: 0;
+}
+
+.dashboard-col--main {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+}
+
+.dashboard-col--sidebar {
+    min-height: 0;
+}
+
+/* ============================================================
+   Cards
+   ============================================================ */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    background-color: var(--surface);
+    background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 42%);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    /* Layout+style containment: updates inside one card (log line, gauge,
+       badge) never trigger a whole-window layout pass. */
+    contain: layout style;
+}
+
+.card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(0, 0, 0, 0.22);
+}
+
+.card__title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--perch-red-light);
+}
+
+.card__body {
+    padding: 16px;
+    min-height: 0;
+}
+
+.card__body--log {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 12px;
+    overflow: hidden;
+}
+
+/* Inside the flex card body the main log stream shares vertical space with
+   the Debug / Diagnostics subsection below it (height: 100% would push the
+   details out of the overflow-clipped card body). */
+#log-container {
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* Card grid utility */
+.card-grid {
+    display: grid;
+    gap: 16px;
+}
+.card-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ============================================================
+   Connection Card (primary control)
+   ============================================================ */
+
+.card--connection {
+    border-color: var(--border-subtle);
+    box-shadow: var(--shadow-md);
+    min-height: 132px;
+    flex: 0 0 auto;
+}
+
+.card--connection .card__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 16px;
+    /* Stadium-floodlight sheen */
+    background-image:
+        radial-gradient(ellipse 70% 60% at 50% 120%, rgba(200, 16, 46, 0.14), transparent 70%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 45%);
+}
+
+.card--connection.is-connected {
+    border-color: rgba(200, 16, 46, 0.4);
+    box-shadow: var(--shadow-md), 0 0 0 1px rgba(200, 16, 46, 0.12), var(--shadow-glow);
+}
+
+.card--connection.is-connecting {
+    border-color: rgba(232, 163, 61, 0.4);
+}
+
+.connection-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-inset);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.connection-state__indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--slate-300);
+    transition: background-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.connection-state.is-connected {
+    border-color: rgba(47, 191, 113, 0.4);
+    background: var(--success-dim);
+    color: var(--success);
+}
+.connection-state.is-connected .connection-state__indicator {
+    background: var(--success);
+    box-shadow: 0 0 10px rgba(47, 191, 113, 0.7);
+}
+
+.connection-state.is-connecting {
+    border-color: rgba(232, 163, 61, 0.4);
+    background: var(--warning-dim);
+    color: var(--warning);
+}
+.connection-state.is-connecting .connection-state__indicator {
+    background: var(--warning);
+    box-shadow: 0 0 10px rgba(232, 163, 61, 0.7);
+    animation: pulse 1.4s ease-in-out infinite;
+}
+
+.connection-state.is-disconnected {
+    color: var(--white-60);
+}
+
+.connection-state.is-error {
+    border-color: rgba(229, 72, 77, 0.45);
+    background: var(--danger-dim);
+    color: var(--danger);
+}
+.connection-state.is-error .connection-state__indicator {
+    background: var(--danger);
+    box-shadow: 0 0 10px rgba(229, 72, 77, 0.7);
+}
+
+.connection-subtext {
+    font-size: 12px;
+    color: var(--white-40);
+    text-align: center;
+    max-width: 42ch;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast),
+                color var(--transition-fast), box-shadow var(--transition-fast),
+                transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--perch-red-light);
+    outline-offset: 2px;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* In-flight lifecycle actions stay interactive-looking: the old hard
+   `disabled` state produced the Windows "no symbol" cursor for the whole
+   UAC/adapter/route transition. */
+.btn.is-loading,
+.btn[aria-busy="true"] {
+    cursor: progress;
+    opacity: 1;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn.is-loading:not(.btn--connection)::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    flex: 0 0 12px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: perch-button-spin 800ms linear infinite;
+}
+
+@keyframes perch-button-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Primary — Perch crimson, prominent */
+.btn--primary {
+    background-image: linear-gradient(to bottom, var(--perch-red), var(--perch-red-dark));
+    background-color: var(--perch-red);
+    color: var(--white);
+    border-color: rgba(255, 255, 255, 0.13);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, var(--shadow-sm);
+}
+
+.btn--primary:hover:not(:disabled) {
+    background-image: linear-gradient(to bottom, var(--perch-red-light), var(--perch-red));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.22) inset, var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn--primary:active:not(:disabled) {
+    transform: translateY(0);
+    background-image: linear-gradient(to bottom, var(--perch-red-dark), var(--perch-red-deep));
+}
+
+/* Connection toggle — the hero control */
+.btn--connection {
+    min-width: 200px;
+    padding: 14px 32px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, var(--shadow-md);
+}
+
+.btn--connection:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.24) inset, var(--shadow-lg), var(--shadow-glow);
+}
+
+.btn--connection.is-connecting {
+    background-image: linear-gradient(to bottom, var(--warning), #B87A1E);
+    pointer-events: auto;
+}
+
+.btn--connection.is-connected {
+    background-image: linear-gradient(to bottom, var(--perch-red), var(--perch-red-deep));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, var(--shadow-md), var(--shadow-glow);
+}
+
+.btn__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn__icon--disconnect {
+    display: none;
+}
+.btn--connection.is-connected .btn__icon--connect {
+    display: none;
+}
+.btn--connection.is-connected .btn__icon--disconnect {
+    display: inline-flex;
+}
+
+/* Secondary */
+.btn--secondary {
+    background: var(--charcoal-600);
+    color: var(--white-80);
+    border-color: var(--border);
+}
+
+.btn--secondary:hover:not(:disabled) {
+    background: var(--charcoal-500);
+    color: var(--white);
+    border-color: var(--border-strong);
+}
+
+.btn--secondary:active:not(:disabled) {
+    background: var(--charcoal-700);
+}
+
+/* Danger */
+.btn--danger {
+    background: var(--danger);
+    color: var(--white);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.btn--danger:hover:not(:disabled) {
+    background: #C63C41;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Ghost */
+.btn--ghost {
+    background: transparent;
+    color: var(--white-60);
+    border-color: transparent;
+}
+
+.btn--ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--white);
+}
+
+/* Sizes */
+.btn--sm {
+    padding: 5px 12px;
+    font-size: 12px;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+/* ============================================================
+   Info Lists (key/value)
+   ============================================================ */
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.info-item {
+    /* Stacked key-above-value rows: the narrow left-rail cards must never
+       squeeze a long value (IPv6 exit IP, multi-word status detail) beside
+       its uppercase key on one flex line. The label owns the first line,
+       the value owns a full-width second line. */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    min-width: 0;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.info-item:first-child {
+    padding-top: 0;
+}
+
+.info-label {
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--white-40);
+}
+
+.info-value {
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    text-align: left;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Slots that carry raw backend error strings (#status-value,
+   #tunnel-value): the stacked row gives them the full card width, so a
+   long message wraps naturally instead of being clamped with an
+   ellipsis. No mid-word clipping, no truncation. */
+#status-value,
+#tunnel-value {
+    max-width: 100%;
+}
+
+/* SOCKS5 endpoint is a host:port literal: it must always render in full
+   on one line — no wrapping, no ellipsis. The stacked row reserves the
+   whole card width for it. */
+#socks5-addr {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+}
+
+.info-value--mono {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+/* Value state colours */
+.info-value--verified { color: var(--success); }
+.info-value--pending { color: var(--warning); }
+.info-value--failed,
+.info-value--unavailable { color: var(--slate-200); }
+.info-value--connected { color: var(--success); }
+.info-value--connecting { color: var(--warning); }
+.info-value--disconnected,
+.info-value--error { color: var(--danger); }
+
+/* ============================================================
+   Traffic Card
+   ============================================================ */
+
+.traffic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 12px;
+}
+
+.traffic-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 8px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-inset);
+    text-align: center;
+}
+
+.traffic-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--white-40);
+}
+
+.traffic-value {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    color: var(--white);
+}
+
+.traffic-value--download {
+    color: #7FD4FF;
+}
+.traffic-value--upload {
+    color: #FFB27F;
+}
+
+.traffic-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.traffic-summary-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.traffic-summary-label {
+    font-size: 12px;
+    color: var(--white-40);
+}
+
+.traffic-summary-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--white);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Log Panel
+   ============================================================ */
+
+.card--log {
+    flex: 1 1 auto;
+    min-height: 220px;
+    height: 100%;
+}
+
+.log-container {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.55;
+}
+
+.log-entry {
+    padding: 5px 9px;
+    border-radius: var(--radius-sm);
+    border-left: 2px solid var(--charcoal-500);
+    background: rgba(255, 255, 255, 0.028);
+    color: var(--white-80);
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    flex: 0 0 auto;
+    contain: layout style;
+}
+
+.log-entry--system {
+    border-left-color: var(--slate-300);
+    color: var(--white-60);
+    font-style: italic;
+}
+
+.log-entry--new {
+    animation: log-in 260ms ease-out;
+}
+
+@keyframes log-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Log severity tinting */
+.log-entry[data-level="error"],
+.log-entry[data-level="critical"] {
+    border-left-color: var(--danger);
+    background: var(--danger-dim);
+}
+.log-entry[data-level="warning"],
+.log-entry[data-level="warn"] {
+    border-left-color: var(--warning);
+    background: var(--warning-dim);
+}
+.log-entry[data-level="info"] {
+    border-left-color: rgba(76, 154, 255, 0.5);
+}
+.log-entry[data-level="debug"] {
+    border-left-color: var(--charcoal-500);
+    color: var(--white-60);
+}
+
+/* ============================================================
+   Countries Panel
+   ============================================================ */
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.panel-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: min(320px, 100%);
+}
+
+.search-box__icon {
+    position: absolute;
+    left: 11px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--white-40);
+    pointer-events: none;
+}
+
+.search-box__input {
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-inset);
+    color: var(--white);
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.search-box__input::placeholder {
+    color: var(--white-40);
+}
+
+.search-box__input:focus {
+    outline: none;
+    border-color: var(--perch-red);
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.18);
+}
+
+.countries-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px;
+    max-width: var(--content-max);
+    width: 100%;
+    margin: 0 auto;
+}
+
+#dashboard-countries-list {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.countries-list[hidden] {
+    display: none;
+}
+
+.country-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background-color: var(--surface);
+    background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 45%);
+    transition: border-color var(--transition-fast), background-color var(--transition-fast),
+                transform var(--transition-fast);
+    /* Each row is independent: latency badge updates stop at the row's
+       layout/style boundary instead of recalculating the whole list. */
+    contain: layout style;
+}
+
+.country-item:hover {
+    border-color: var(--border-strong);
+    background-color: var(--surface-raised);
+    transform: translateX(3px);
+}
+
+.country-item:focus-within {
+    border-color: var(--perch-red-light);
+    outline: 2px solid var(--perch-red-light);
+    outline-offset: 1px;
+}
+
+.country-item.is-selected {
+    border-color: var(--perch-red);
+    box-shadow: inset 3px 0 0 var(--perch-red);
+    background-color: var(--surface-raised);
+}
+
+.country-item.is-selected--pending {
+    border-color: var(--amethyst-400, #b06ab3);
+    box-shadow: inset 3px 0 0 var(--amethyst-400, #b06ab3);
+    background-color: var(--surface-raised);
+}
+
+.country-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.country-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.country-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.country-pin {
+    flex: 0 0 auto;
+    padding: 1px 7px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--white-60);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    font-family: var(--font-mono);
+    line-height: 1.5;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.country-item.is-selected .country-pin {
+    color: var(--perch-red-light);
+    border-color: rgba(200, 16, 46, 0.55);
+    background-color: rgba(200, 16, 46, 0.14);
+}
+
+.country-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--white-40);
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.country-cities {
+    font-size: 12px;
+    color: var(--white-40);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.country-flag {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    font-size: 18px;
+    line-height: 1;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--border-strong);
+}
+
+.country-flag__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    object-fit: cover;
+    background-color: #ffffff22;
+}
+
+.country-flag__code {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--white-60);
+    font-family: var(--font-mono);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    width: 100%;
+    height: 100%;
+    display: inline-grid;
+    place-items: center;
+    line-height: 1;
+}
+
+.country-hostname {
+    font-size: 12px;
+    color: var(--white-60);
+    font-family: var(--font-mono);
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.country-action {
+    flex: 0 0 auto;
+    padding: 7px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: var(--radius-md);
+    background-image: linear-gradient(to bottom, var(--perch-red), var(--perch-red-dark));
+    color: var(--white);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: box-shadow var(--transition-fast), filter var(--transition-fast),
+                transform var(--transition-fast);
+}
+
+.country-action:hover {
+    filter: brightness(1.12);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.country-action:active {
+    transform: translateY(0);
+}
+
+.country-action.is-selected {
+    background-image: none;
+    background: var(--charcoal-600);
+    color: var(--white-60);
+    border-color: var(--border);
+}
+
+.country-item.is-selected .country-action {
+    background-image: none;
+    background: var(--charcoal-600);
+    color: var(--white-80, rgba(255, 255, 255, 0.8));
+    border-color: rgba(200, 16, 46, 0.45);
+}
+
+.country-action:focus-visible {
+    outline: 2px solid var(--perch-red-light);
+    outline-offset: 2px;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px 16px;
+    color: var(--white-40);
+    font-size: 13px;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    border: 2px solid var(--charcoal-500);
+    border-top-color: var(--perch-red);
+    border-radius: 50%;
+    animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   Settings Panels (Network / Account)
+   ============================================================ */
+
+.settings-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    /* Clear the fixed footer height plus breathing room so the last card
+       (Session Token) is fully reachable when scrolled to the end. */
+    padding: 16px 16px calc(var(--footer-height, 38px) + 24px);
+}
+
+.settings-section {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background-color: var(--surface);
+    background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 42%);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Account panel: every card shares one container width so the sign-in form,
+   verification blocks, allowance gauge and Session Token card line up. */
+.settings-section--account {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-section--account > * {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.settings-section__header {
+    margin-bottom: 16px;
+}
+
+.settings-section__title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--perch-red-light);
+}
+
+.setting-group {
+    margin-bottom: 20px;
+    min-width: 0;
+}
+.setting-group[hidden] {
+    display: none;
+}
+
+.setting-label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--white-60);
+}
+
+.setting-select,
+.setting-input {
+    width: 100%;
+    max-width: 420px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-inset);
+    color: var(--white);
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.setting-select {
+    appearance: none;
+    padding-right: 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%239C9496'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+}
+
+.setting-select:focus,
+.setting-input:focus {
+    outline: none;
+    border-color: var(--perch-red);
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.18);
+}
+
+.setting-input--readonly,
+.setting-input[readonly] {
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--white-40);
+    cursor: not-allowed;
+}
+
+.setting-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--white-40);
+    max-width: 56ch;
+}
+
+/* Inline validation error */
+.setting-group.has-error .setting-input {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.16);
+}
+
+.setting-error {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--danger);
+    display: none;
+}
+.setting-group.has-error .setting-error {
+    display: block;
+}
+/* Inline errors may also be toggled with the [hidden] attribute
+   (sign-in / verification form showSigninError / showVerifyError).
+   Without this rule those messages are rendered but never visible:
+   display:none wins over the removed attribute. */
+.setting-error:not([hidden]) {
+    display: block;
+}
+
+/* Non-error status feedback (Session Token save/import results). */
+.setting-feedback {
+    margin: 0;
+    font-size: 12px;
+    color: var(--white-60);
+}
+.setting-feedback:not([hidden]) {
+    display: block;
+}
+.setting-feedback.is-error {
+    color: var(--danger);
+}
+.setting-feedback.is-success {
+    color: var(--success, #3ddc84);
+}
+
+.setting-input--token {
+    max-width: 100%;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+    margin: 20px 0;
+}
+
+/* Account */
+.account-info {
+    padding: 16px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-inset);
+    margin-bottom: 20px;
+}
+
+.account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.info-box {
+    padding: 16px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-inset);
+}
+
+.info-box__title {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--white);
+}
+
+.info-box__text {
+    font-size: 12.5px;
+    color: var(--white-40);
+    margin-bottom: 14px;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+
+.app-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: var(--footer-height);
+    flex: 0 0 auto;
+    padding: 8px 20px;
+    border-top: 1px solid var(--border-subtle);
+    background: rgba(16, 12, 13, 0.85);
+    font-size: 11.5px;
+    color: var(--white-40);
+}
+
+.app-footer__meta {
+    letter-spacing: 0.03em;
+}
+
+/* ============================================================
+   Focus visibility
+   ============================================================ */
+
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--perch-red-light);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   Responsive layout
+   ============================================================ */
+
+/* Narrow rail before content collapse */
+@media (max-width: 900px) {
+    .rail {
+        width: 64px;
+        flex-basis: 64px;
+    }
+    .rail .rail__title,
+    .rail .rail__label {
+        display: none;
+    }
+    .rail .rail__item,
+    .rail .rail__collapse {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .rail .rail__item--active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 20%;
+        bottom: 20%;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: var(--perch-red);
+    }
+    .rail .rail__brand {
+        justify-content: center;
+        padding: 0;
+    }
+    .rail__title::after {
+        display: none;
+    }
+    .rail__footer {
+        display: none;
+    }
+}
+
+@media (max-width: 1180px) {
+    /* Keep the third telemetry column from colliding into the fixed
+       sidebar before the single-column fallback engages at 1080px:
+       shrink the sidebar instead of squeezing the main column. */
+    .right-sidebar,
+    .dashboard-sidebar {
+        width: 300px;
+        flex: 0 0 300px;
+    }
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 1fr) 300px;
+    }
+    /* The 1100x720 acceptance window sits in this band: the three
+       telemetry columns no longer fit, so put the scope and the
+       connection control side by side first and let the read-only
+       cards follow. */
+    .dashboard-telemetry {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+    }
+    .card--radar { order: 1; }
+    .card--connection { order: 2; }
+    .dashboard-telemetry__stack {
+        order: 3;
+        grid-column: 1 / -1;
+        flex-direction: row;
+    }
+    .dashboard-telemetry__stack > .card {
+        flex: 1 1 0;
+    }
+    .dashboard-telemetry > .card--diagnostics {
+        order: 4;
+        grid-column: 1 / -1;
+    }
+    .dashboard-telemetry > .card--traffic {
+        order: 5;
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 1080px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: max-content;
+        grid-auto-rows: max-content;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    .dashboard-telemetry,
+    .dashboard-sidebar,
+    .right-sidebar,
+    .dashboard-log-row {
+        grid-column: 1;
+        grid-row: auto;
+        width: 100%;
+        max-width: 100%;
+    }
+    .dashboard-telemetry {
+        grid-template-columns: 1fr;
+    }
+    .card--radar { order: 2; }
+    .card--connection { order: 1; }
+    .dashboard-telemetry__stack {
+        order: 3;
+        flex-direction: column;
+    }
+    .dashboard-telemetry > .card--diagnostics { order: 4; }
+    .dashboard-telemetry > .card--traffic { order: 5; }
+    .dashboard-sidebar,
+    .right-sidebar {
+        overflow: visible;
+        min-height: 240px;
+    }
+    .card--log {
+        min-height: 200px;
+    }
+}
+
+@media (max-width: 720px) {
+    .app-header,
+    .app-footer {
+        padding: 0 12px;
+    }
+    .app-footer__meta {
+        display: none;
+    }
+    .card-grid--2 {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-grid {
+        padding: 12px;
+        gap: 12px;
+    }
+    .card__body {
+        padding: 12px;
+    }
+    .settings-section {
+        padding: 16px;
+    }
+    .setting-select,
+    .setting-input {
+        max-width: 100%;
+    }
+    .btn--connection {
+        min-width: 100%;
+    }
+    .rail {
+        width: 56px;
+        flex-basis: 56px;
+    }
+}
+
+@media (max-width: 480px) {
+    .status-indicator__text {
+        display: none;
+    }
+    .traffic-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .app-header__title {
+        font-size: 14px;
+    }
+}
+
+/* ============================================================
+   Accessibility: reduced motion
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* High contrast */
+@media (prefers-contrast: more) {
+    :root {
+        --perch-red-light: #FF4D63;
+        --white-40: rgba(255, 255, 255, 0.62);
+        --white-60: rgba(255, 255, 255, 0.82);
+        --border: rgba(255, 255, 255, 0.25);
+        --border-subtle: rgba(255, 255, 255, 0.18);
+    }
+    .card,
+    .settings-section,
+    .country-item {
+        border-width: 2px;
+    }
+}
+
+/* ============================================================
+   Print
+   ============================================================ */
+
+@media print {
+    .rail,
+    .app-header,
+    .app-footer,
+    .log-container {
+        display: none !important;
+    }
+    body {
+        background: var(--white);
+        color: #000;
+    }
+    .card {
+        break-inside: avoid;
+        border-color: #ccc;
+        background: var(--white);
+    }
+}
+/* ============================================================
+   Perch VPN dashboard presentation baseline
+   ============================================================ */
+
+.app-shell {
+    --perch-red: #C8102E;
+}
+
+body {
+    background-color: #070506;
+    background-image:
+        radial-gradient(circle at 50% -10%, rgba(200, 16, 46, 0.20), transparent 52%),
+        linear-gradient(180deg, #120A0B 0%, #070506 100%);
+}
+
+.app-header {
+    min-height: 112px;
+    padding: 18px 30px;
+    background:
+        linear-gradient(135deg, rgba(200, 16, 46, 0.42), rgba(12, 9, 10, 0.94) 42%, rgba(12, 9, 10, 0.98) 100%),
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.06), transparent 42%);
+    border-bottom: 2px solid rgba(200, 16, 46, 0.72);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+}
+
+.app-header__brand-block {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.app-header__emblem {
+    display: inline-flex;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 14px rgba(200, 16, 46, 0.35));
+}
+
+.app-header__emblem-img {
+    display: block;
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+.app-header__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.app-header__brand {
+    margin: 0;
+    font-size: 29px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: #FFFFFF;
+    line-height: 1.05;
+}
+
+.app-header__tagline {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.app-header__view-title {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.44);
+}
+
+.app-header__motif {
+    margin-inline: 20px;
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.07);
+    align-self: center;
+    pointer-events: none;
+}
+
+.app-header__status {
+    margin-left: auto;
+}
+
+.rail {
+    background: rgba(10, 7, 8, 0.97);
+    border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+.rail__footer {
+    padding: 14px 10px 16px;
+}
+
+.rail__collapse {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.rail__item--active,
+.rail__item[aria-selected="true"] {
+    background-image: linear-gradient(90deg, rgba(200, 16, 46, 0.28), rgba(200, 16, 46, 0.03));
+    box-shadow: inset 0 0 0 1px rgba(200, 16, 46, 0.22), inset 2px 0 0 #E03E4A;
+}
+
+.app-footer {
+    min-height: 38px;
+    background: #0A0708;
+    border-top: 1px solid rgba(200, 16, 46, 0.28);
+}
+
+.app-footer__version {
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.04em;
+}
+
+.card {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(16, 12, 13, 0.95);
+}
+
+.card__header {
+    background: linear-gradient(180deg, rgba(200, 16, 46, 0.12), rgba(0, 0, 0, 0.25));
+}
+
+.card__title {
+    color: #FFC7CE;
+}
+
+.card--connection .card__body {
+    gap: 14px;
+    padding: 28px 18px;
+}
+
+.btn--connection {
+    min-width: 230px;
+    padding: 15px 34px;
+    border-radius: 20px;
+}
+
+.status-indicator {
+    background: rgba(0, 0, 0, 0.42);
+}
+
+.traffic-summary-value,
+.traffic-value {
+    color: #F8F8F8;
+}
+
+.card--log {
+    min-height: 260px;
+}
+
+@media (max-width: 1400px) {
+    .app-header__motif { display: none; }
+    .dashboard-grid {
+        max-width: 100%;
+    }
+}
+
+/* Perch VPN dashboard additions */
+.card--connection {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+/* Status pill is kept in the DOM (GearCore watches its data-state) but
+   not shown in the connection header; System Status card carries the state. */
+.connection-state {
+    display: none;
+}
+
+.connection-dial {
+    width: 218px;
+    height: 218px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle at 50% 50%, #101114, #08090b 72%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow:
+        0 0 0 4px rgba(10, 11, 14, 0.85),
+        0 0 0 6px rgba(255, 255, 255, 0.05),
+        0 0 0 10px rgba(0, 0, 0, 0.75),
+        inset 0 1px 2px rgba(255, 255, 255, 0.06);
+}
+
+.card--connection .card__body {
+    align-items: center;
+}
+
+.connection-state {
+    margin: 0;
+}
+
+.traffic-empty {
+    margin: 0;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.38);
+    text-align: center;
+}
+
+.card--server-details .card__body {
+    padding: 12px 16px 16px;
+}
+
+.server-detail__label {
+    color: var(--white);
+    font-weight: 600;
+    font-size: 13px;
+    margin: 0 2px 0 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#server-country,
+#server-city,
+#server-latency {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.server-detail__host {
+    color: var(--white-40);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.server-latency__value {
+    color: var(--white-80, rgba(255, 255, 255, 0.8));
+}
+
+.server-latency__value--unreachable {
+    color: var(--white-40);
+}
+
+@media (max-width: 1280px) {
+    .connection-dial {
+        width: 196px;
+        height: 196px;
+    }
+    .app-header__motif {
+        display: none;
+    }
+}
+
+@media (max-width: 1080px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .connection-dial {
+        width: 182px;
+        height: 182px;
+    }
+}
+
+@media (max-width: 720px) {
+    .connection-dial {
+        width: 164px;
+        height: 164px;
+    }
+}
+
+/* ============================================================
+   Gear energy core (mechanical connection button)
+   Gears: exact involute geometry, module 2.2, PA 20, 36/18/18 teeth,
+   pitch radii 39.6/19.8/19.8, centre distance 59.4 (200-unit viewBox).
+   Side gears track -2x the central angle (ratio implied by tooth counts).
+   Rotation is driven by one rAF loop in web/app.js (GearCore).
+   ============================================================ */
+
+.gearcore {
+    position: relative;
+    width: 154px;
+    height: 154px;
+    display: block;
+    isolation: isolate;
+}
+
+.btn--connection {
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    min-width: 0;
+    padding: 0;
+    background: none;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* Label is hidden; the dial core alone represents the button state
+   (aria-label on the button keeps it accessible). */
+.btn--connection .btn__text {
+    display: none;
+}
+
+.btn--connection:hover:not(:disabled) {
+    background: none;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Circular hover halo: the machine glows under the cursor, never a
+    rectangular overlay. */
+.gearcore::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.07) 0%, rgba(224, 40, 66, 0.05) 55%, transparent 72%);
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity 260ms ease, transform 260ms ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.btn--connection:hover:not(:disabled) .gearcore::after,
+.btn--connection:focus-visible .gearcore::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.btn--connection:disabled {
+    background: none;
+    opacity: 1;
+}
+
+.btn--connection.is-connecting,
+.btn--connection.is-connected {
+    background: none;
+    background-image: none;
+    border-color: transparent;
+    box-shadow: none;
+    pointer-events: auto;
+}
+
+.gearcore__scene {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.gear__body {
+}
+
+.gear {
+    transform-box: view-box;
+    will-change: transform;
+}
+
+.gearcore__rays {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+    will-change: transform;
+}
+
+.gear--c {
+    transform-origin: 50% 50%;
+}
+
+.gear--l {
+    transform-origin: 21% 50%;
+}
+
+.gear--r {
+    transform-origin: 79% 50%;
+}
+
+/* State-driven metal/bloom character: JS drives numeric glow opacity per
+   frame while animating; CSS handles the qualitative tint per state. */
+.gearcore__glow .gearcore__ring {
+    opacity: 0.9;
+}
+
+.gearcore__sheen {
+    opacity: 0.55;
+}
+
+.gearcore__glow,
+.gearcore__sheen,
+.gearcore__radiance {
+    will-change: opacity;
+}
+
+.btn--connection.is-connected .gearcore__sheen {
+    opacity: 0.85;
+}
+
+.btn--connection.is-connecting .gearcore__sheen {
+    opacity: 0.72;
+}
+
+/* Failed-exit state (proxy up, exit not verified): keep the machine alive
+   but cool the sheen so it never looks fully powered. */
+.btn--connection.is-error .gearcore__sheen {
+    opacity: 0.45;
+}
+
+.gearcore__bird {
+    color: rgba(255, 255, 255, 0.62);
+    filter:
+        drop-shadow(0 1.5px 2.5px rgba(0, 0, 0, 0.85))
+        drop-shadow(0 0 1px rgba(255, 90, 100, 0.25));
+    transition: color 420ms ease, filter 420ms ease;
+}
+
+.btn--connection.is-connecting .gearcore__bird {
+    color: rgba(255, 255, 255, 0.9);
+    filter:
+        drop-shadow(0 1.5px 2.5px rgba(0, 0, 0, 0.85))
+        drop-shadow(0 0 3px rgba(255, 120, 96, 0.45));
+}
+
+.btn--connection.is-connected .gearcore__bird {
+    color: #ffffff;
+    filter:
+        drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.9))
+        drop-shadow(0 0 4px rgba(224, 40, 66, 0.55))
+        drop-shadow(0 0 1px rgba(255, 60, 80, 0.5));
+}
+
+.btn--connection.is-error .gearcore__bird {
+    color: rgba(255, 255, 255, 0.72);
+    filter:
+        drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.9))
+        drop-shadow(0 0 2px rgba(224, 40, 66, 0.25));
+}
+
+@media (max-width: 720px) {
+    .gearcore {
+        width: 132px;
+        height: 132px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gear .gear__body,
+    .gearcore__glow,
+    .gearcore__sheen,
+    .gearcore__bird {
+        transition: none !important;
+    }
+}
+
+/* ============================================================
+   Gemini dashboard refinements
+   ============================================================ */
+
+.app-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.08), transparent 34%),
+        radial-gradient(circle at 88% 18%, rgba(200, 16, 46, 0.24), transparent 38%);
+    z-index: 0;
+}
+
+.app-header > * {
+    position: relative;
+    z-index: 1;
+}
+
+.app-header__subtitle {
+    margin: 0;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.52);
+}
+
+.app-header__heritage {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    margin-inline: 24px;
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(200, 16, 46, 0.25);
+    pointer-events: none;
+}
+
+.rail__motto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+.rail.is-collapsed .rail__motto {
+    display: none;
+}
+
+@media (max-width: 1280px) {
+    .app-header__heritage {
+        display: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .app-header__subtitle {
+        display: none;
+    }
+}
+
+/* ============================================================
+   Perch VPN — dimensional cyberpunk presentation layer
+   Additive styling only. No dependency on the connection state
+   machine, networking, or configuration. Motion is limited to
+   transform/opacity on compositor layers; the theme crimson
+   (#C8102E) is retained and only lit/dimensioned, not replaced.
+   ============================================================ */
+
+:root {
+    /* Local, system-installed families only (no remote fonts). */
+    --font-display: "Bahnschrift", "Segoe UI Variable Display", "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "Cascadia Mono", "Consolas", "SFMono-Regular", ui-monospace, monospace;
+
+    --steel-050: #f4f7fa;
+    --steel-200: #c9d2dc;
+    --steel-400: #8b96a3;
+    --steel-600: #4a525c;
+
+    --panel-top: rgba(255, 255, 255, 0.055);
+    --panel-bottom: rgba(0, 0, 0, 0.22);
+    --hairline: rgba(255, 255, 255, 0.085);
+    --bevel-edge: inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                  inset 0 -1px 0 rgba(0, 0, 0, 0.55);
+    --depth-shadow: 0 1px 0 rgba(255, 255, 255, 0.04),
+                    0 18px 40px -24px rgba(0, 0, 0, 0.9);
+    --title-extrude: 0 1px 0 rgba(0, 0, 0, 0.9),
+                     0 2px 0 rgba(0, 0, 0, 0.5),
+                     0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Typography: a distinctive display face anchors information hierarchy,
+   with mono reserved for measured/technical values. */
+body,
+input,
+select,
+textarea,
+button {
+    font-family: var(--font-body);
+}
+
+.app-header__brand,
+.app-header__motif,
+.card__title,
+.panel-title,
+.app-header__view-title,
+.settings-section__title,
+.rail__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+/* Brand: brushed-steel gradient with a restrained extruded shadow. */
+.app-header__brand {
+    background-image: linear-gradient(180deg, #ffffff 0%, #dfe6ee 46%, #9aa4b1 78%, #6b7581 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 12px 26px rgba(0, 0, 0, 0.55));
+}
+
+.app-header__tagline {
+    font-family: var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--steel-400);
+}
+
+.app-header__tagline em { font-style: normal; }
+
+.card__title,
+.panel-title,
+.settings-section__title,
+.app-header__view-title {
+    color: var(--perch-red-light);
+    text-shadow: var(--title-extrude);
+}
+
+/* Technical labels read as instrument markings. */
+.info-label,
+.traffic-label,
+.setting-label,
+.app-footer__meta,
+.rail__label,
+.app-header__heritage-line,
+.rail__motto {
+    font-family: var(--font-mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+/* Ambient depth: faint HUD grid and scanlines over the existing crimson wash. */
+body {
+    background-image:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 3px),
+        linear-gradient(rgba(200, 16, 46, 0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200, 16, 46, 0.028) 1px, transparent 1px),
+        radial-gradient(circle at 50% -10%, rgba(200, 16, 46, 0.20), transparent 52%),
+        linear-gradient(180deg, #120a0b 0%, #070506 100%);
+    background-size: auto, 100% 48px, 48px 100%, auto, auto;
+}
+
+/* Dimensional cards: lit top edge, dark base, crimson corner brackets. */
+.card {
+    position: relative;
+    border: 1px solid var(--hairline);
+    border-top-color: rgba(255, 255, 255, 0.16);
+    background-image: linear-gradient(180deg, var(--panel-top), rgba(255, 255, 255, 0.012) 36%, var(--panel-bottom));
+    box-shadow: var(--bevel-edge), var(--depth-shadow);
+}
+
+.card--connection {
+    border: 0;
+    background-image: none;
+    box-shadow: none;
+}
+
+.card:not(.card--connection)::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    pointer-events: none;
+    background-image:
+        linear-gradient(var(--perch-red), var(--perch-red)),
+        linear-gradient(var(--perch-red), var(--perch-red)),
+        linear-gradient(var(--perch-red), var(--perch-red)),
+        linear-gradient(var(--perch-red), var(--perch-red));
+    background-repeat: no-repeat;
+    background-size: 14px 1px, 1px 14px, 14px 1px, 1px 14px;
+    background-position: left top, left top, right bottom, right bottom;
+    opacity: 0.4;
+}
+
+.card__header {
+    background-image: linear-gradient(180deg, rgba(200, 16, 46, 0.16), rgba(0, 0, 0, 0.10) 62%, rgba(0, 0, 0, 0.30));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* Rail: brushed vertical face; the active tab is edge-lit, not filled. */
+.rail {
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 24%, rgba(0, 0, 0, 0.35) 100%);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.rail__item {
+    transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.rail__item:hover {
+    transform: translateX(2px);
+}
+
+.rail__item[aria-selected="true"] {
+    box-shadow: inset 3px 0 0 var(--perch-red), inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 24px -8px rgba(200, 16, 46, 0.55);
+}
+
+/* Controls: pressed-steel secondary buttons and recessed inputs. */
+.btn--secondary {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.02) 48%, rgba(0, 0, 0, 0.18));
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: var(--bevel-edge);
+}
+
+.btn--secondary:hover:not(:disabled),
+.btn--ghost:hover:not(:disabled) {
+    box-shadow: var(--bevel-edge), 0 0 0 1px rgba(200, 16, 46, 0.25), 0 8px 22px -12px rgba(0, 0, 0, 0.9);
+}
+
+.setting-input,
+.setting-select,
+.search-box__input {
+    background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(255, 255, 255, 0.015));
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+/* Country rows: shallow bevel, quiet hover lift; latency is tabular. */
+.country-item {
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(0, 0, 0, 0.10));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    contain: layout style;
+}
+
+.country-item:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 10px 22px -16px rgba(0, 0, 0, 0.9);
+    transform: translateY(-1px);
+}
+
+.country-latency {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Connection core: static specular highlight + deep-set dial. The gears
+   themselves keep their existing rAF-driven rotation; no per-frame
+   filters or extra animation loops are introduced here. */
+.gearcore::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background-image:
+        radial-gradient(42% 34% at 32% 24%, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0) 68%),
+        radial-gradient(60% 60% at 70% 82%, rgba(200, 16, 46, 0.10), rgba(200, 16, 46, 0) 70%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.85;
+}
+
+/* Truthful lighting: an idle (disconnected) core is visibly dimmer than a
+   connecting or connected one. */
+.gearcore[data-state="disconnected"]::before {
+    opacity: 0.5;
+}
+
+.gearcore__plate {
+    filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.65));
+}
+
+.gearcore__hub {
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 5px rgba(200, 16, 46, 0.28));
+}
+
+.connection-dial {
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.10),
+        0 0 0 4px rgba(10, 11, 14, 0.9),
+        0 0 0 6px rgba(255, 255, 255, 0.06),
+        0 0 0 10px rgba(0, 0, 0, 0.75),
+        0 24px 48px -20px rgba(0, 0, 0, 0.95),
+        inset 0 1px 2px rgba(255, 255, 255, 0.08),
+        inset 0 -12px 26px rgba(0, 0, 0, 0.6);
+}
+
+/* Status indicators: inset jewel with a state-coloured bloom. */
+.status-indicator {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+.status-indicator--connected .status-indicator__dot {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 10px 1px rgba(46, 204, 113, 0.5);
+}
+
+/* Exit-IP / verified-exit area: long IPv6 literals wrap instead of
+   clipping their card, and the row set reads top-to-bottom. */
+.info-value--mono {
+    overflow-wrap: anywhere;
+}
+
+.card--status .card__body {
+    padding: 14px 16px;
+}
+
+/* Keep the three telemetry columns from clipping between the rail-width
+   breakpoint and the single-column fallback. The scope and the connection
+   control stay side by side above the fold; read-only cards follow. */
+@media (min-width: 1081px) and (max-width: 1360px) {
+    .dashboard-telemetry {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+    .card--radar { order: 1; }
+    .card--connection { order: 2; }
+    .dashboard-telemetry__stack {
+        order: 3;
+        grid-column: 1 / -1;
+        flex-direction: row;
+    }
+    .dashboard-telemetry__stack > .card {
+        flex: 1 1 0;
+    }
+    .dashboard-telemetry > .card--diagnostics {
+        order: 4;
+        grid-column: 1 / -1;
+    }
+    .dashboard-telemetry > .card--traffic {
+        order: 5;
+        grid-column: 1 / -1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rail__item,
+    .country-item,
+    .btn--secondary,
+    .setting-input,
+    .setting-select,
+    .search-box__input {
+        transition: none !important;
+    }
+    .rail__item:hover,
+    .country-item:hover {
+        transform: none !important;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .card,
+    .country-item,
+    .btn--secondary,
+    .setting-input,
+    .setting-select {
+        background-image: none;
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    .card__title,
+    .panel-title,
+    .settings-section__title {
+        text-shadow: none;
+        color: var(--steel-050);
+    }
+    .app-header__brand {
+        background-image: none;
+        -webkit-text-fill-color: currentColor;
+        color: var(--steel-050);
+        filter: none;
+    }
+    body {
+        background-image: none;
+    }
+}
+
+/* ------------------------------------------------------------
+ * Connection-mode selector (under the gear dial)
+ * ------------------------------------------------------------ */
+
+.mode-switch {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.btn--mode {
+    border-color: rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+}
+
+.btn--mode.is-active {
+    color: var(--perch-red-light);
+    border-color: rgba(224, 62, 74, 0.55);
+    background: var(--perch-red-tint);
+}
+
+.btn--mode.is-active:hover:not(:disabled) {
+    color: var(--perch-red-light);
+    background: var(--perch-red-tint);
+}
+
+/* ============================================================
+   Signed-out onboarding prompt
+   ============================================================ */
+
+.onboarding-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid rgba(224, 62, 74, 0.45);
+    border-radius: var(--radius-md);
+    background: var(--perch-red-tint);
+    box-shadow: 0 0 18px rgba(200, 16, 46, 0.12);
+}
+
+.onboarding-banner[hidden] {
+    display: none;
+}
+
+.onboarding-banner--error {
+    border-color: rgba(255, 94, 110, 0.65);
+}
+
+.onboarding-banner__message {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+}
+
+.onboarding-banner__message:hover .onboarding-banner__text {
+    text-decoration: underline;
+}
+
+.onboarding-banner__text {
+    display: block;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--white-80);
+}
+
+.onboarding-banner--error .onboarding-banner__text {
+    color: var(--perch-red-light);
+}
+
+.onboarding-banner__action {
+    flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Account & allowance (Network tab)
+   ========================================================================== */
+
+.settings-section--account .settings-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.account-status-pill {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle);
+    color: var(--slate-300);
+    background: var(--surface-inset);
+    white-space: nowrap;
+}
+
+.account-status-pill.is-signed-out {
+    color: var(--slate-300);
+}
+
+.account-status-pill.is-signing-in {
+    color: var(--info);
+    border-color: var(--info-dim);
+    background: var(--info-dim);
+}
+
+.account-status-pill.is-signed-in {
+    color: var(--success);
+    border-color: var(--success-dim);
+    background: var(--success-dim);
+}
+
+.account-status-pill.is-retrieving {
+    color: var(--info);
+    border-color: var(--info-dim);
+    background: var(--info-dim);
+}
+
+.account-status-pill.is-no-pass,
+.account-status-pill.is-quota-exhausted {
+    color: var(--danger);
+    border-color: var(--danger-dim);
+    background: var(--danger-dim);
+}
+
+.account-status-pill.is-auth-error,
+.account-status-pill.is-service-error {
+    color: var(--warning);
+    border-color: var(--warning-dim);
+    background: var(--warning-dim);
+}
+
+.account-card {
+    background: var(--surface-inset);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px 18px;
+}
+
+.account-card .info-item {
+    display: contents;
+}
+
+.signin-form,
+.signin-verify {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Account form fields stay readable on wide windows without breaking the
+   card grid alignment. */
+.signin-form .setting-group,
+.signin-verify .setting-group {
+    max-width: 460px;
+}
+
+.setting-group--password {
+    position: relative;
+}
+
+/* The Show/Hide control lives *inside* the input's wrapper so it can never
+   float past the right border of the password field. */
+.password-field {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 420px; /* matches .setting-input so the toggle sits inside it */
+}
+
+.password-field .setting-input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-right: 68px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    font-size: 11px;
+}
+
+.signin-form__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.signin-progress {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--white-60);
+}
+
+.spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    border-top-color: var(--perch-red-light);
+    animation: perch-spin 0.9s linear infinite;
+    display: inline-block;
+}
+
+@keyframes perch-spin {
+    to { transform: rotate(360deg); }
+}
+
+.signin-verify__text {
+    font-size: 13px;
+    color: var(--white-80);
+    margin: 0;
+}
+
+/* Allowance gauge ---------------------------------------------------------- */
+
+.allowance-gauge {
+    margin-top: 16px;
+    background: var(--surface-inset);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 14px;
+}
+
+.allowance-gauge__scope {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+#gauge-svg {
+    width: 170px;
+    height: 170px;
+    flex: 0 0 auto;
+}
+
+.gauge-track {
+    stroke-width: 12;
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-linecap: round;
+}
+
+.gauge-arc {
+    stroke-width: 12;
+    stroke-linecap: round;
+    /* 2*pi*r for r=70 */
+    stroke-dasharray: 439.823;
+    stroke-dashoffset: 439.823;
+    transition: stroke-dashoffset 700ms cubic-bezier(0.22, 0.61, 0.36, 1), stroke 400ms ease;
+    will-change: stroke-dashoffset;
+}
+
+.gauge-arc--unlimited {
+    transition: stroke 400ms ease;
+}
+
+.gauge-arc--ok { stroke: url(#gaugeArcGrad); }
+.gauge-arc--warn { stroke: url(#gaugeArcGradWarn); }
+.gauge-arc--crit { stroke: url(#gaugeArcGradCrit); }
+
+.gauge-center-used {
+    font-family: var(--font-sans);
+    font-size: 26px;
+    font-weight: 700;
+    fill: var(--white);
+}
+
+.gauge-center-unit {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    fill: var(--slate-300);
+}
+
+.allowance-gauge__notes {
+    display: grid;
+    gap: 4px;
+    min-width: 180px;
+}
+
+.allowance-gauge__allowance {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+}
+
+.allowance-gauge__remaining {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--success);
+}
+
+.allowance-gauge__remaining--amber { color: var(--warning); }
+.allowance-gauge__remaining--red { color: var(--danger); }
+.allowance-gauge__remaining--muted { color: var(--slate-300); }
+
+.allowance-gauge__percents {
+    margin: 0;
+    font-size: 12px;
+    color: var(--slate-300);
+    font-variant-numeric: tabular-nums;
+}
+
+.allowance-gauge__reset {
+    margin: 0;
+    font-size: 12px;
+    color: var(--slate-200);
+}
+
+.allowance-gauge__source {
+    margin: 6px 0 0;
+    font-size: 11px;
+    color: var(--slate-300);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gauge-arc { transition: none; }
+    .spinner { animation-duration: 1.6s; }
+}
+
+/* ==========================================================================
+   Sonar radar (Dashboard tab)
+   ========================================================================== */
+
+.card--radar .card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+}
+
+.card--radar .card__title {
+    white-space: nowrap;
+}
+
+.radar-mode-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--slate-300);
+    white-space: nowrap;
+}
+
+.card__body--radar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-top: 8px;
+}
+
+@media (max-width: 1360px) {
+    .card--radar .card__title {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+    }
+    .radar-mode-label {
+        font-size: 9px;
+    }
+}
+
+/* Keep the tactical scope above the fold on 1100x720 / 1366x768. */
+@media (max-height: 820px) {
+    .radar-scope {
+        width: min(252px, 100%);
+    }
+    .card__body--radar {
+        gap: 6px;
+    }
+}
+
+@media (max-height: 820px) and (min-width: 1081px) and (max-width: 1360px) {
+    .radar-scope {
+        width: min(200px, 100%);
+    }
+    .connection-dial {
+        width: 160px;
+        height: 160px;
+        margin: 0 auto;
+    }
+    .gearcore {
+        width: 112px;
+        height: 112px;
+    }
+    .card__body--radar {
+        padding-top: 4px;
+    }
+    .radar-mode-label {
+        display: none;
+    }
+}
+
+.radar-scope {
+    position: relative;
+    width: min(300px, 100%);
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 50% 50%, #0d1512 0%, #091009 55%, #050807 100%);
+    border: 1px solid rgba(64, 220, 130, 0.14);
+    box-shadow:
+        inset 0 0 34px rgba(20, 80, 44, 0.16),
+        inset 0 0 4px rgba(0, 0, 0, 0.85);
+    overflow: hidden;
+    contain: layout paint;
+}
+
+.radar-scope::after {
+    /* CRT scanlines + vignette */
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 0px,
+        rgba(0, 0, 0, 0) 2px,
+        rgba(0, 0, 0, 0.22) 3px,
+        rgba(0, 0, 0, 0.22) 4px
+    );
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.72);
+    border-radius: 50%;
+}
+
+#radar-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    will-change: transform;
+}
+
+/* Heads-up readouts: real values from /api/status + measured latencies.
+   Positioned over the scope corners so the sweep stays unobstructed. */
+.radar-hud {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    align-content: space-between;
+    padding: 20px;
+    pointer-events: none;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: rgba(140, 246, 188, 0.72);
+    text-shadow: 0 0 6px rgba(30, 120, 70, 0.6);
+}
+
+.radar-hud__cell {
+    display: flex;
+    gap: 5px;
+    align-items: baseline;
+    /* Inset chip: the sweep ring passes close to the corners, so each
+       readout gets its own darkened plate instead of touching the ring. */
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: rgba(5, 9, 7, 0.6);
+    box-shadow: 0 0 0 1px rgba(120, 220, 165, 0.08);
+    text-shadow: 0 0 6px rgba(30, 120, 70, 0.6);
+}
+
+.radar-hud__cell:nth-child(2),
+.radar-hud__cell:nth-child(3) {
+    justify-content: flex-end;
+}
+
+.radar-hud__key {
+    font-size: 8px;
+    color: rgba(120, 220, 165, 0.45);
+}
+
+.radar-hud__val {
+    font-variant-numeric: tabular-nums;
+    color: rgba(180, 255, 214, 0.92);
+}
+
+.radar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--slate-300);
+}
+
+.radar-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.radar-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.radar-dot--ok { background: #37e17e; }
+.radar-dot--degraded { background: var(--warning); }
+.radar-dot--failed { background: var(--danger); }
+.radar-dot--inactive { background: var(--slate-400); }
+
+.radar-tooltip {
+    position: absolute;
+    z-index: 30;
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--charcoal-900);
+    border: 1px solid rgba(64, 220, 130, 0.25);
+    font-size: 11px;
+    color: var(--white-80);
+    pointer-events: none;
+    max-width: 240px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+.radar-tooltip__name {
+    font-weight: 600;
+    color: var(--white);
+}
+
+.radar-tooltip__state {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.radar-tooltip__seen {
+    color: var(--slate-300);
+    font-size: 10px;
+}
+
+/* Live logs (structured) ---------------------------------------------------- */
+
+.log-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Debug / Diagnostics subsection of the Live Logs card. */
+.logs-debug {
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 8px;
+}
+
+.logs-debug__summary {
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--slate-300);
+    user-select: none;
+}
+
+.logs-debug__summary::marker {
+    color: var(--slate-400);
+}
+
+.logs-debug__state {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--slate-300);
+    margin: 6px 0;
+}
+
+.log-container--mini {
+    max-height: 180px;
+    font-size: 10px;
+}
+
+.log-filter {
+    font-size: 11px;
+    padding: 3px 6px;
+    background: var(--surface-inset);
+    color: var(--white-60);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+}
+
+.log-filter--text {
+    width: 120px;
+}
+
+.log-container--structured {
+    display: grid;
+    gap: 2px;
+}
+
+.log-entry--structured {
+    display: grid;
+    grid-template-columns: 90px 52px 108px 1fr;
+    gap: 8px;
+    align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--white-60);
+    padding: 1px 2px;
+    border-radius: 3px;
+}
+
+.log-entry--structured:hover {
+    background: var(--surface-inset);
+}
+
+.log-entry--structured .log-ts {
+    color: var(--slate-300);
+    font-variant-numeric: tabular-nums;
+}
+
+.log-entry--structured .log-sev {
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.log-sev--DEBUG { color: var(--slate-300); }
+.log-sev--INFO { color: var(--info); }
+.log-sev--WARN { color: var(--warning); }
+.log-sev--ERROR { color: var(--danger); }
+
+.log-entry--structured .log-component {
+    color: var(--perch-red-light);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.log-entry--structured .log-msg {
+    color: var(--white-60);
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.log-entry--structured .log-detail {
+    color: var(--slate-200);
+    overflow-wrap: anywhere;
+}
+
+.log-entry--structured .log-repeats {
+    color: var(--slate-300);
+    font-weight: 600;
+}
+
+/* Diagnostics strip (Dashboard tab) ------------------------------------------ */
+
+.diag-strip {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.diag-strip__msg {
+    color: var(--white-60);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   Window-height responsive pass (placed last so it out-cascades
+   the presentation-layer header overrides above).
+   ============================================================ */
+
+/* Short windows: the 112px presentation header eats a
+   disproportional share of a compact viewport. Scale it down
+   alongside the width rules so the content column keeps a usable
+   share of vertical space. */
+@media (max-height: 700px) {
+    .app-header {
+        min-height: 76px;
+        padding: 10px 30px;
+    }
+    .app-header__brand {
+        font-size: 23px;
+    }
+}
+
+@media (max-height: 560px) {
+    .app-header {
+        min-height: 58px;
+        padding: 6px 30px;
+    }
+    .app-header__brand {
+        font-size: 19px;
+    }
+    .app-header__tagline {
+        display: none;
+    }
+    .rail__brand {
+        height: 58px;
+        flex: 0 0 58px;
+    }
+    .app-footer {
+        min-height: 28px;
+        padding: 4px 20px;
+    }
+    .card__header {
+        padding: 9px 14px;
+    }
+    .card__body {
+        padding: 12px;
+    }
+}
+
+/* Mode switch in flight: opacity-only feedback (no repaint-heavy effects). */
+.btn--mode.is-switching {
+    opacity: 0.6;
+    transition: opacity 120ms linear;
+}

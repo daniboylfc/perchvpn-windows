@@ -1,0 +1,36 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
+inspect/
+bin/
+.codebase-memory/
+*.log
+*.bak
+*.checkpoint
+*.backup
+*.fixed
+test_invalid_config.json
+Screenshot*
+tun-ownership.json
+perchvpn_smoke_trial.json
+dist/
+build/
+artifacts/
+*.spec
+
+# graphify incremental AST cache — regenerated locally, not shared
+graphify-out/cache/
+graphify-out/.graphify_build_state.json
+
+# Local-only memory and runtime secrets/artifacts
+.opencode/memory/
+perch-synthetic-verification.json
+scripts/e2e/certs/*.key
+auth.json
+tokens.json
+settings.json
+.env
+*.key
+*.pfx

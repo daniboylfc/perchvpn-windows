@@ -1,0 +1,1316 @@
+{
+  "pyproject.toml": {
+    "mtime": 1795178463.893212,
+    "seen": 1795179162.8769312,
+    "ast_hash": "76eff96c477ebf421af3c999d1b0fb14",
+    "semantic_hash": ""
+  },
+  "scripts/build-candidate.ps1": {
+    "mtime": 1795281318.2727811,
+    "seen": 1795282218.563691,
+    "ast_hash": "5cf20e0d5e49656c8eb71568d5b9db05",
+    "semantic_hash": ""
+  },
+  "scripts/verify-normal-wifi-tun.ps1": {
+    "mtime": 1793919669.594677,
+    "seen": 1794050528.7550242,
+    "ast_hash": "b5bd7c366469d572c93563cb9e48ba7b",
+    "semantic_hash": "b5bd7c366469d572c93563cb9e48ba7b"
+  },
+  "src/perchvpn/__init__.py": {
+    "mtime": 1793399082.5028362,
+    "seen": 1794050528.7551043,
+    "ast_hash": "981a8f667304985efc95394fc5d79db9",
+    "semantic_hash": "981a8f667304985efc95394fc5d79db9"
+  },
+  "src/perchvpn/__main__.py": {
+    "mtime": 1793399082.5028362,
+    "seen": 1794050528.755193,
+    "ast_hash": "3a7af0b9c2d88b6e1527b7a273baef84",
+    "semantic_hash": "3a7af0b9c2d88b6e1527b7a273baef84"
+  },
+  "src/perchvpn/auth.py": {
+    "mtime": 1795174117.3487058,
+    "seen": 1795175878.7737741,
+    "ast_hash": "bd862b6a5213c1210b1f63e8a0758f20",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/buildinfo.py": {
+    "mtime": 1795001715.0338469,
+    "seen": 1795002086.2840893,
+    "ast_hash": "101059d83c0f20fb054dc84733a3c711",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/cli.py": {
+    "mtime": 1795005069.844053,
+    "seen": 1795005346.0014324,
+    "ast_hash": "7ea9ed4f5befaf6416710545b96556a1",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/controller.py": {
+    "mtime": 1795258083.327855,
+    "seen": 1795259445.6637022,
+    "ast_hash": "0ef20bacef729e64686dbe0e36b0c823",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/doh_resolver.py": {
+    "mtime": 1793637488.8587852,
+    "seen": 1794050528.7556021,
+    "ast_hash": "93203ee35df1efc81691127a3204dd9b",
+    "semantic_hash": "93203ee35df1efc81691127a3204dd9b"
+  },
+  "src/perchvpn/exceptions.py": {
+    "mtime": 1795022313.5549004,
+    "seen": 1795024004.8403833,
+    "ast_hash": "8a8796b7016b6972fb9755a83ae89fbb",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/exitcheck.py": {
+    "mtime": 1794583629.832219,
+    "seen": 1794655366.5666115,
+    "ast_hash": "40fb43a292ed9e4891531e56707a732b",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/fastly.py": {
+    "mtime": 1795178453.1052148,
+    "seen": 1795179162.8770397,
+    "ast_hash": "f63ca8ae683dfaefa8793b7caaea9627",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/fxa.py": {
+    "mtime": 1795174108.3006148,
+    "seen": 1795175878.773907,
+    "ast_hash": "aadd410ddb2abf81b160824738f65157",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/guardian.py": {
+    "mtime": 1793723328.480579,
+    "seen": 1794050528.756074,
+    "ast_hash": "388e24f12d7f2b31b96075ef5faf1f03",
+    "semantic_hash": "388e24f12d7f2b31b96075ef5faf1f03"
+  },
+  "src/perchvpn/headers.py": {
+    "mtime": 1793399082.5068362,
+    "seen": 1794050528.756154,
+    "ast_hash": "10502289d292e5e7408510ead4ad2a71",
+    "semantic_hash": "10502289d292e5e7408510ead4ad2a71"
+  },
+  "src/perchvpn/http_client.py": {
+    "mtime": 1795178458.8692133,
+    "seen": 1795179162.8770602,
+    "ast_hash": "d11fb8d2d8babf44927229080aa3b2b2",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/logging_config.py": {
+    "mtime": 1793399082.5068362,
+    "seen": 1794050528.756416,
+    "ast_hash": "414d5c194877478550f47528aa55039a",
+    "semantic_hash": "414d5c194877478550f47528aa55039a"
+  },
+  "src/perchvpn/proxy/__init__.py": {
+    "mtime": 1793399082.5068362,
+    "seen": 1794050528.7564824,
+    "ast_hash": "a0b557448ce45c9965251294588f0815",
+    "semantic_hash": "a0b557448ce45c9965251294588f0815"
+  },
+  "src/perchvpn/proxy/h3_session.py": {
+    "mtime": 1794751792.8565106,
+    "seen": 1794754043.5938122,
+    "ast_hash": "8b1f6ee217fdc836480692c678d19d9a",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/proxy/pool.py": {
+    "mtime": 1795204294.1051092,
+    "seen": 1795209951.3951929,
+    "ast_hash": "5c07d61230bb0837df9d5cf7559c516d",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/proxy/relay.py": {
+    "mtime": 1793399082.5068362,
+    "seen": 1794050528.756696,
+    "ast_hash": "86cbd4e67d3a6cbcbc08a2fdcf17e91c",
+    "semantic_hash": "86cbd4e67d3a6cbcbc08a2fdcf17e91c"
+  },
+  "src/perchvpn/proxy/session.py": {
+    "mtime": 1795272283.7537327,
+    "seen": 1795276375.254233,
+    "ast_hash": "6488ae81504769dcbae4dd7a0ba861e6",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/proxy/socks.py": {
+    "mtime": 1795007864.5027606,
+    "seen": 1795008676.6857324,
+    "ast_hash": "df527b05730ebb2048c13052bc049293",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/proxy/upstream_proxy.py": {
+    "mtime": 1793726553.310282,
+    "seen": 1794050528.7569566,
+    "ast_hash": "ccbace18fa7264285a905ac2686f30e9",
+    "semantic_hash": "ccbace18fa7264285a905ac2686f30e9"
+  },
+  "src/perchvpn/proxystate.py": {
+    "mtime": 1793399082.5068362,
+    "seen": 1794050528.7570288,
+    "ast_hash": "9852de7effd7bacc6c31b2054c778835",
+    "semantic_hash": "9852de7effd7bacc6c31b2054c778835"
+  },
+  "src/perchvpn/serverlist.py": {
+    "mtime": 1793399082.5068362,
+    "seen": 1794050528.7570934,
+    "ast_hash": "006a9d9c55255c8c23a81e7e32f771aa",
+    "semantic_hash": "006a9d9c55255c8c23a81e7e32f771aa"
+  },
+  "src/perchvpn/session_tokens.py": {
+    "mtime": 1793399082.5068362,
+    "seen": 1794050528.7571561,
+    "ast_hash": "e3c18412839631553eb41e25efee4e1e",
+    "semantic_hash": "e3c18412839631553eb41e25efee4e1e"
+  },
+  "src/perchvpn/tokens.py": {
+    "mtime": 1793399082.5068362,
+    "seen": 1794050528.7572193,
+    "ast_hash": "37bd3d890f0808e2f24493434aabfb1e",
+    "semantic_hash": "37bd3d890f0808e2f24493434aabfb1e"
+  },
+  "src/perchvpn_windows/__init__.py": {
+    "mtime": 1795254008.5157945,
+    "seen": 1795255502.4215975,
+    "ast_hash": "379a8aeaaa4673e8a113bb611395934e",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/api.py": {
+    "mtime": 1795291068.5891552,
+    "seen": 1795291449.6598787,
+    "ast_hash": "092ff1309429323e0ad02d4c95823d9d",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/app.py": {
+    "mtime": 1795272328.7827518,
+    "seen": 1795276375.2542686,
+    "ast_hash": "747e1b974146a0266452eae07b7ebf16",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/cli.py": {
+    "mtime": 1795005069.844053,
+    "seen": 1795005346.0015159,
+    "ast_hash": "62baf28fefe4a2bf5411b354a98c9a81",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/config.py": {
+    "mtime": 1794780917.598769,
+    "seen": 1794781350.7838697,
+    "ast_hash": "ac8284f895773ca1d9c65dfbab884497",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/diagnostics.py": {
+    "mtime": 1793459833.401573,
+    "seen": 1794050528.7575946,
+    "ast_hash": "8d5f022efc4c01ea7aa40ada6467aa0f",
+    "semantic_hash": "8d5f022efc4c01ea7aa40ada6467aa0f"
+  },
+  "src/perchvpn_windows/frontend.py": {
+    "mtime": 1794780838.205677,
+    "seen": 1794781350.7838752,
+    "ast_hash": "95754445bb0c82bef8f6739c0aa12bc6",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/http_proxy.py": {
+    "mtime": 1794780803.4337592,
+    "seen": 1794781350.7838776,
+    "ast_hash": "17893ad3878f3549e38367997ea2d66a",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/main.py": {
+    "mtime": 1795253845.1238725,
+    "seen": 1795255502.4216318,
+    "ast_hash": "b560fbfbe601e489357469d7f2f6e3df",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/metrics.py": {
+    "mtime": 1793399082.5108361,
+    "seen": 1794050528.7578592,
+    "ast_hash": "543e440655f8ee1931b5c5697c2aefda",
+    "semantic_hash": "543e440655f8ee1931b5c5697c2aefda"
+  },
+  "src/perchvpn_windows/oauth.py": {
+    "mtime": 1795171317.2503126,
+    "seen": 1795172012.768966,
+    "ast_hash": "399c9ef583862039a81ac6900044a74f",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/physical_dns.py": {
+    "mtime": 1794832713.1443102,
+    "seen": 1794855048.631328,
+    "ast_hash": "2a86a012915104e20a2d3c34baa91315",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/platform.py": {
+    "mtime": 1793537530.6913404,
+    "seen": 1794050528.7580373,
+    "ast_hash": "222e7c7fc367e8f0e4601fe688b7f711",
+    "semantic_hash": "222e7c7fc367e8f0e4601fe688b7f711"
+  },
+  "src/perchvpn_windows/singbox_config.py": {
+    "mtime": 1795037721.82232,
+    "seen": 1795109815.1482866,
+    "ast_hash": "aaacdeef7d6ae54ba2f250e23f586aa0",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/tun_frontend.py": {
+    "mtime": 1795211127.5432408,
+    "seen": 1795211350.4100366,
+    "ast_hash": "021455022c7758981a8a706cdd27e18b",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/tun_helper.py": {
+    "mtime": 1795267561.7329571,
+    "seen": 1795268747.0059986,
+    "ast_hash": "c7460047b78fd96f02d9c8f192c7312a",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/tun_recovery.py": {
+    "mtime": 1795211120.5735133,
+    "seen": 1795211350.4100423,
+    "ast_hash": "887d8e127c148f92b7bd5e42a6e02388",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/tun_state_capture.py": {
+    "mtime": 1795211150.538209,
+    "seen": 1795211350.4100447,
+    "ast_hash": "07dfd66456cd68ffed2275ba93418474",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/tun_status.py": {
+    "mtime": 1795033968.5419822,
+    "seen": 1795109815.1482997,
+    "ast_hash": "80a11d88169acfb9ad353955a4b095ef",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/tun_trial_journal.py": {
+    "mtime": 1793399082.5108361,
+    "seen": 1794050528.758518,
+    "ast_hash": "52afded93a4e8fd50e3ca459fdfa07e1",
+    "semantic_hash": "52afded93a4e8fd50e3ca459fdfa07e1"
+  },
+  "src/perchvpn_windows/tun_trial_runner.py": {
+    "mtime": 1794077019.472262,
+    "seen": 1794087191.4646003,
+    "ast_hash": "587ddf2b0172efbb908070c6112298b5",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/ui.py": {
+    "mtime": 1793399082.5108361,
+    "seen": 1794050528.7586336,
+    "ast_hash": "a286e343d22e291252ccfda699bfb1f8",
+    "semantic_hash": "a286e343d22e291252ccfda699bfb1f8"
+  },
+  "src/perchvpn_windows/web/app.js": {
+    "mtime": 1795267373.5979204,
+    "seen": 1795268747.0060227,
+    "ast_hash": "a6c545bb9ed58563d256946230c7a690",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/country-sort.js": {
+    "mtime": 1792712539.9429395,
+    "seen": 1794050528.7587583,
+    "ast_hash": "3bcfeabfe907706b4777201c3a1ac017",
+    "semantic_hash": "3bcfeabfe907706b4777201c3a1ac017"
+  },
+  "src/perchvpn_windows/web/status-contract.js": {
+    "mtime": 1793658801.6767354,
+    "seen": 1794050528.7588232,
+    "ast_hash": "ce435a4d02e5f02eddd87956ae75a14a",
+    "semantic_hash": "ce435a4d02e5f02eddd87956ae75a14a"
+  },
+  "src/perchvpn_windows/webview.py": {
+    "mtime": 1795203719.193107,
+    "seen": 1795209951.3953264,
+    "ast_hash": "e57a44d4a290601b695d72c017fca3c6",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/winconsole.py": {
+    "mtime": 1793452062.0717857,
+    "seen": 1794050528.758949,
+    "ast_hash": "fdcd1081eb39aa8ffa2be6eca521eaa5",
+    "semantic_hash": "fdcd1081eb39aa8ffa2be6eca521eaa5"
+  },
+  "tests/conftest.py": {
+    "mtime": 1794093206.4471262,
+    "seen": 1794133030.1116116,
+    "ast_hash": "d5682c1f97211ad04ef58a584d216ec5",
+    "semantic_hash": ""
+  },
+  "tests/test_account_lifecycle.py": {
+    "mtime": 1793399082.5108361,
+    "seen": 1794050528.759064,
+    "ast_hash": "05bb38ecf1d518f5150112fa5d0161b2",
+    "semantic_hash": "05bb38ecf1d518f5150112fa5d0161b2"
+  },
+  "tests/test_android_parity_v107.py": {
+    "mtime": 1793399082.5148363,
+    "seen": 1794050528.7591174,
+    "ast_hash": "0f9e2026b838bbb91d09599f37ba098a",
+    "semantic_hash": "0f9e2026b838bbb91d09599f37ba098a"
+  },
+  "tests/test_api_countries_cache.py": {
+    "mtime": 1794586072.0563567,
+    "seen": 1794655366.5667145,
+    "ast_hash": "dc46ea221ed8fc54d4b51a418c2b5b5a",
+    "semantic_hash": ""
+  },
+  "tests/test_api_mode_urlping.py": {
+    "mtime": 1793974307.325656,
+    "seen": 1794050528.7592247,
+    "ast_hash": "26cf1a8ead4143a9e381efced9929e1e",
+    "semantic_hash": "26cf1a8ead4143a9e381efced9929e1e"
+  },
+  "tests/test_app_mode.py": {
+    "mtime": 1793980814.8516204,
+    "seen": 1794050528.7592773,
+    "ast_hash": "a2a5db6ac2ab5a6e114f1990f9aeddb0",
+    "semantic_hash": "a2a5db6ac2ab5a6e114f1990f9aeddb0"
+  },
+  "tests/test_app_mode_switch.py": {
+    "mtime": 1793978524.59167,
+    "seen": 1794050528.7594366,
+    "ast_hash": "c4b572e5997c61a9784dbdcab44918a6",
+    "semantic_hash": "c4b572e5997c61a9784dbdcab44918a6"
+  },
+  "tests/test_auth_helper_command.py": {
+    "mtime": 1793449613.5481215,
+    "seen": 1794050528.7595077,
+    "ast_hash": "9e3147093fd3fc79fd7cfee4da4f4237",
+    "semantic_hash": "9e3147093fd3fc79fd7cfee4da4f4237"
+  },
+  "tests/test_candidate_failover.py": {
+    "mtime": 1794090489.7696416,
+    "seen": 1794133030.1116354,
+    "ast_hash": "0f9fd8b5b60c91e4465228eeacc07e73",
+    "semantic_hash": ""
+  },
+  "tests/test_config.py": {
+    "mtime": 1793399082.5148363,
+    "seen": 1794050528.7596827,
+    "ast_hash": "4ce24bd136e4cc8782992c260952a59f",
+    "semantic_hash": "4ce24bd136e4cc8782992c260952a59f"
+  },
+  "tests/test_control_plane_pins.py": {
+    "mtime": 1793723328.4807923,
+    "seen": 1794050528.7597754,
+    "ast_hash": "11aeacfe6a799bc5dc86c267c1198690",
+    "semantic_hash": "11aeacfe6a799bc5dc86c267c1198690"
+  },
+  "tests/test_country_hot_swap.py": {
+    "mtime": 1793964974.6052566,
+    "seen": 1794050528.7598433,
+    "ast_hash": "2f045e0d59c432a1d4478a6065809582",
+    "semantic_hash": "2f045e0d59c432a1d4478a6065809582"
+  },
+  "tests/test_country_sort.py": {
+    "mtime": 1793400499.4657712,
+    "seen": 1794050528.759898,
+    "ast_hash": "5991e7bc5f08aaa70ed9c003ef1239dd",
+    "semantic_hash": "5991e7bc5f08aaa70ed9c003ef1239dd"
+  },
+  "tests/test_custom_edge.py": {
+    "mtime": 1793399082.5148363,
+    "seen": 1794050528.7599523,
+    "ast_hash": "f2d5ef789a843919b64640e7bb1b3a50",
+    "semantic_hash": "f2d5ef789a843919b64640e7bb1b3a50"
+  },
+  "tests/test_diagnostics.py": {
+    "mtime": 1793461312.8015766,
+    "seen": 1794050528.7600057,
+    "ast_hash": "e761be605b90d9218812a1aeeffd90b2",
+    "semantic_hash": "e761be605b90d9218812a1aeeffd90b2"
+  },
+  "tests/test_exit_verification.py": {
+    "mtime": 1794764884.160502,
+    "seen": 1794765011.1785383,
+    "ast_hash": "a1654cbda46acbb0d4f80af4dd2fccbe",
+    "semantic_hash": ""
+  },
+  "tests/test_frontend.py": {
+    "mtime": 1793978534.878578,
+    "seen": 1794050528.760113,
+    "ast_hash": "220a1cf31d26633d0134bf9fde07fef4",
+    "semantic_hash": "220a1cf31d26633d0134bf9fde07fef4"
+  },
+  "tests/test_frozen_entry.py": {
+    "mtime": 1795253966.9638176,
+    "seen": 1795255502.4217741,
+    "ast_hash": "0a085c57766cbc9f5565f14fbed24041",
+    "semantic_hash": ""
+  },
+  "tests/test_fxa_identity.py": {
+    "mtime": 1795171628.62533,
+    "seen": 1795172012.76906,
+    "ast_hash": "5ed306488af08a77ed3ef526ddb4c549",
+    "semantic_hash": ""
+  },
+  "tests/test_guardian_retry.py": {
+    "mtime": 1793399082.5148363,
+    "seen": 1794050528.7604,
+    "ast_hash": "65fac609dc1bd07fc1f1e210e7b19630",
+    "semantic_hash": "65fac609dc1bd07fc1f1e210e7b19630"
+  },
+  "tests/test_h2_open_stream_timeout.py": {
+    "mtime": 1795272426.8202598,
+    "seen": 1795276375.2544363,
+    "ast_hash": "082a95dfb6351f22e05184e52a5fd326",
+    "semantic_hash": ""
+  },
+  "tests/test_http_proxy.py": {
+    "mtime": 1794781119.2157698,
+    "seen": 1794781350.784001,
+    "ast_hash": "716e91787ed8337ad047d82cda47b069",
+    "semantic_hash": ""
+  },
+  "tests/test_inapp_auth.py": {
+    "mtime": 1793461069.7477384,
+    "seen": 1794050528.760574,
+    "ast_hash": "407dba0fb650dda3b38d3133bb5a8128",
+    "semantic_hash": "407dba0fb650dda3b38d3133bb5a8128"
+  },
+  "tests/test_latency_probe.py": {
+    "mtime": 1793399082.5148363,
+    "seen": 1794050528.7606287,
+    "ast_hash": "28cdeec1854c36155fa4d0af6b33481a",
+    "semantic_hash": "28cdeec1854c36155fa4d0af6b33481a"
+  },
+  "tests/test_lifecycle.py": {
+    "mtime": 1795264899.9481776,
+    "seen": 1795265159.8410797,
+    "ast_hash": "8d3b7779cea6b066eeb53633f8784d37",
+    "semantic_hash": ""
+  },
+  "tests/test_live_physical_preflight.py": {
+    "mtime": 1794051731.2349875,
+    "seen": 1794087191.4646695,
+    "ast_hash": "3c2112923536a43f8677cd6c999f2d6f",
+    "semantic_hash": ""
+  },
+  "tests/test_oauth_flow.py": {
+    "mtime": 1795174673.4409862,
+    "seen": 1795175878.774466,
+    "ast_hash": "c38abf968b204e8423e092872673894c",
+    "semantic_hash": ""
+  },
+  "tests/test_packaging.py": {
+    "mtime": 1795001721.2300522,
+    "seen": 1795002086.2844462,
+    "ast_hash": "01f5e4e398cc1431de022bbc8294bbc3",
+    "semantic_hash": ""
+  },
+  "tests/test_physical_bootstrap.py": {
+    "mtime": 1794859926.184034,
+    "seen": 1794860587.1063478,
+    "ast_hash": "cf9962d72587e6142e349598e17513ec",
+    "semantic_hash": ""
+  },
+  "tests/test_physical_dns.py": {
+    "mtime": 1793721999.3293638,
+    "seen": 1794050528.7610102,
+    "ast_hash": "92909409b8683899a539df51fdf6dbb6",
+    "semantic_hash": "92909409b8683899a539df51fdf6dbb6"
+  },
+  "tests/test_physical_dns_doh.py": {
+    "mtime": 1794567804.4615948,
+    "seen": 1794568140.7007284,
+    "ast_hash": "7f5248f8654324f3973fe12cbd061a0c",
+    "semantic_hash": ""
+  },
+  "tests/test_physical_egress.py": {
+    "mtime": 1795272400.010034,
+    "seen": 1795276375.2544756,
+    "ast_hash": "7cd270536eba320d38226c431509673b",
+    "semantic_hash": ""
+  },
+  "tests/test_platform.py": {
+    "mtime": 1793399082.5148363,
+    "seen": 1794050528.7611763,
+    "ast_hash": "028db3dc5f42df13389be5d3bed5aee0",
+    "semantic_hash": "028db3dc5f42df13389be5d3bed5aee0"
+  },
+  "tests/test_quota_account.py": {
+    "mtime": 1793461155.2613504,
+    "seen": 1794050528.7612288,
+    "ast_hash": "d13863a052c73ebb940c2f6e7ad2f91d",
+    "semantic_hash": "d13863a052c73ebb940c2f6e7ad2f91d"
+  },
+  "tests/test_relay.py": {
+    "mtime": 1793399082.5188363,
+    "seen": 1794050528.761283,
+    "ast_hash": "9f01f36f2b8401508dbb2d4ae8e86fdc",
+    "semantic_hash": "9f01f36f2b8401508dbb2d4ae8e86fdc"
+  },
+  "tests/test_resolver_dns.py": {
+    "mtime": 1793399082.5188363,
+    "seen": 1794050528.7613785,
+    "ast_hash": "eaa6e0fe5b8a36dc67b2884ee42857ed",
+    "semantic_hash": "eaa6e0fe5b8a36dc67b2884ee42857ed"
+  },
+  "tests/test_runtime_fixes.py": {
+    "mtime": 1794847827.1868916,
+    "seen": 1794855048.6315315,
+    "ast_hash": "00f16556ce9b3516e101d5df27cb1924",
+    "semantic_hash": ""
+  },
+  "tests/test_runtime_token_refresh.py": {
+    "mtime": 1793399082.5188363,
+    "seen": 1794050528.7614884,
+    "ast_hash": "75b4685c4e54b775735d222285efafa7",
+    "semantic_hash": "75b4685c4e54b775735d222285efafa7"
+  },
+  "tests/test_signedout_boot.py": {
+    "mtime": 1793647099.7170258,
+    "seen": 1794050528.7615414,
+    "ast_hash": "250cbdecdc01795bb8489bf2bb5a2a6d",
+    "semantic_hash": "250cbdecdc01795bb8489bf2bb5a2a6d"
+  },
+  "tests/test_signin_errors.py": {
+    "mtime": 1795178856.8868992,
+    "seen": 1795179162.8774526,
+    "ast_hash": "02f78e68642aebd5c71b91f6acae4344",
+    "semantic_hash": ""
+  },
+  "tests/test_singbox_config.py": {
+    "mtime": 1795125698.335901,
+    "seen": 1795125899.8877604,
+    "ast_hash": "2f960c9d7d59803e131c70c99d2f2332",
+    "semantic_hash": ""
+  },
+  "tests/test_socks5_exposure.py": {
+    "mtime": 1794781023.5048952,
+    "seen": 1794781350.7841005,
+    "ast_hash": "27c0566472b26e5fdef1d5a3f1b01868",
+    "semantic_hash": ""
+  },
+  "tests/test_socks5_protocol.py": {
+    "mtime": 1794781093.6511035,
+    "seen": 1794781350.7841032,
+    "ast_hash": "411912a29912e7766bf0ea056b68d680",
+    "semantic_hash": ""
+  },
+  "tests/test_status_presentation.py": {
+    "mtime": 1794583336.867547,
+    "seen": 1794655366.5668395,
+    "ast_hash": "f9e900494f6b7fdda1496b6bef3ad1ff",
+    "semantic_hash": ""
+  },
+  "tests/test_token_cache.py": {
+    "mtime": 1793399082.5188363,
+    "seen": 1794050528.7618597,
+    "ast_hash": "2887281e537bc6a324ec9fccfbba5d63",
+    "semantic_hash": "2887281e537bc6a324ec9fccfbba5d63"
+  },
+  "tests/test_token_migration.py": {
+    "mtime": 1793537572.4673295,
+    "seen": 1794050528.7619123,
+    "ast_hash": "33791430106928ad6210088c23da1c68",
+    "semantic_hash": "33791430106928ad6210088c23da1c68"
+  },
+  "tests/test_tun_frontend.py": {
+    "mtime": 1795182251.0274048,
+    "seen": 1795182674.6140091,
+    "ast_hash": "adf919cc8a5128bf0c99915947d94427",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_graceful_shutdown.py": {
+    "mtime": 1794845840.9340856,
+    "seen": 1794855048.6315806,
+    "ast_hash": "7174f8bcfaa47885b8187046053ceecd",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_helper.py": {
+    "mtime": 1795297137.1726522,
+    "seen": 1795297298.1402907,
+    "ast_hash": "ff5d1c9697ad6dc2b7be54632b55ded6",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_recovery.py": {
+    "mtime": 1795012250.5002162,
+    "seen": 1795012824.83646,
+    "ast_hash": "12592b86a1fa1ad94a1c5174686d2127",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_status.py": {
+    "mtime": 1794584094.3828528,
+    "seen": 1794655366.5668693,
+    "ast_hash": "f0585c03acfc7f9c561c828238c2a921",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_trial_journal.py": {
+    "mtime": 1794086931.164701,
+    "seen": 1794087191.4647255,
+    "ast_hash": "8a8526a5c2f8d92c2a453b3cfff75793",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_trial_runner.py": {
+    "mtime": 1793399082.5188363,
+    "seen": 1794050528.7622848,
+    "ast_hash": "15d71d1ae60f44e49b5746547a0bc3fe",
+    "semantic_hash": "15d71d1ae60f44e49b5746547a0bc3fe"
+  },
+  "tests/test_upstream_proxy.py": {
+    "mtime": 1793399082.5188363,
+    "seen": 1794050528.7623377,
+    "ast_hash": "c319b5ab24a9305d2cc6229f40541e4c",
+    "semantic_hash": "c319b5ab24a9305d2cc6229f40541e4c"
+  },
+  "tests/test_upstream_proxy_pin.py": {
+    "mtime": 1793726951.7330713,
+    "seen": 1794050528.7623909,
+    "ast_hash": "c5d3b44a2e4a6052f9104694baf4f499",
+    "semantic_hash": "c5d3b44a2e4a6052f9104694baf4f499"
+  },
+  "tests/test_upstream_proxy_settings.py": {
+    "mtime": 1793399082.5188363,
+    "seen": 1794050528.7624452,
+    "ast_hash": "b5effdcc7e97c6d73445186d63945ac3",
+    "semantic_hash": "b5effdcc7e97c6d73445186d63945ac3"
+  },
+  "tests/test_urltest_token_state.py": {
+    "mtime": 1793452908.0876687,
+    "seen": 1794050528.762498,
+    "ast_hash": "23eebd9f6d407be19f5e8bbfd2888a1f",
+    "semantic_hash": "23eebd9f6d407be19f5e8bbfd2888a1f"
+  },
+  "tests/test_urltest_unified_delay.py": {
+    "mtime": 1795005138.990722,
+    "seen": 1795005346.0017872,
+    "ast_hash": "7eab440d6cfa1f8ec2a589b9b6f4ba4e",
+    "semantic_hash": ""
+  },
+  "tests/test_web_frontend.py": {
+    "mtime": 1795211127.544969,
+    "seen": 1795211350.4103045,
+    "ast_hash": "42199323f2ce73b27792411c602c0bec",
+    "semantic_hash": ""
+  },
+  "tests/test_web_mode_perf.py": {
+    "mtime": 1795267398.9744306,
+    "seen": 1795268747.006337,
+    "ast_hash": "5e3bbb38fc71953cb4442129e9993f52",
+    "semantic_hash": ""
+  },
+  "tests/test_web_onboarding.py": {
+    "mtime": 1795257805.4515166,
+    "seen": 1795259445.6641085,
+    "ast_hash": "7e38af6f2a78a87040f9d6767b8a1870",
+    "semantic_hash": ""
+  },
+  "tests/test_web_radar_logs.py": {
+    "mtime": 1795188037.1948776,
+    "seen": 1795188746.9767234,
+    "ast_hash": "d9b49da940afda66d6346aecc24bcadc",
+    "semantic_hash": ""
+  },
+  "tests/test_web_structure.py": {
+    "mtime": 1795267752.9191773,
+    "seen": 1795268747.006347,
+    "ast_hash": "2f9e19d106957e4e9934d9e5f9cb9058",
+    "semantic_hash": ""
+  },
+  "tests/test_webview_auth.py": {
+    "mtime": 1793399082.5188363,
+    "seen": 1794050528.7628732,
+    "ast_hash": "f5254f25f7e13a89023c7ccd11277dda",
+    "semantic_hash": "f5254f25f7e13a89023c7ccd11277dda"
+  },
+  "tests/test_webview_lifecycle.py": {
+    "mtime": 1795204233.7251394,
+    "seen": 1795209951.3956234,
+    "ast_hash": "8891984e1eee5df8553ff983fc47203f",
+    "semantic_hash": ""
+  },
+  "tests/test_webview_readiness.py": {
+    "mtime": 1793441517.3332536,
+    "seen": 1794050528.762978,
+    "ast_hash": "c6ae98c82263edd2de3f2d8892dde80d",
+    "semantic_hash": "c6ae98c82263edd2de3f2d8892dde80d"
+  },
+  "tests/test_winconsole.py": {
+    "mtime": 1793452661.355702,
+    "seen": 1794050528.76303,
+    "ast_hash": "e43b8356cbc06249dd15f474a8b7a383",
+    "semantic_hash": "e43b8356cbc06249dd15f474a8b7a383"
+  },
+  "tests/verify-foreign-snapshot.tests.ps1": {
+    "mtime": 1793919651.358678,
+    "seen": 1794050528.7630827,
+    "ast_hash": "ca73b12cb4def684d7124baa37aaeeec",
+    "semantic_hash": "ca73b12cb4def684d7124baa37aaeeec"
+  },
+  ".agents/skills/grill-me/SKILL.md": {
+    "mtime": 1794061608.3525395,
+    "seen": 1794087191.4647627,
+    "ast_hash": "2390f6f52ad4bfe1e8d44eba270df4e3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/investigate/SKILL.md": {
+    "mtime": 1794061608.3454847,
+    "seen": 1794087191.4647648,
+    "ast_hash": "99ec9e1b94e05f091783d304a8ebf890",
+    "semantic_hash": ""
+  },
+  ".agents/skills/research/SKILL.md": {
+    "mtime": 1794061608.348796,
+    "seen": 1794087191.464767,
+    "ast_hash": "72d55737acbe7ba2bdca358cbe49d7b6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/verify/SKILL.md": {
+    "mtime": 1794061608.3508105,
+    "seen": 1794087191.464769,
+    "ast_hash": "44806e13bb6d94b3bb40932049871b7d",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1795297137.8325136,
+    "seen": 1795297298.140376,
+    "ast_hash": "995a73fef13d77954c32abfb9ee4d833",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/index.html": {
+    "mtime": 1795182112.0008745,
+    "seen": 1795182674.6141117,
+    "ast_hash": "3d3440a1e549e69d3ff38640d42edcf2",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/ar.svg": {
+    "mtime": 1792258079.5479102,
+    "seen": 1794087191.4647744,
+    "ast_hash": "1d7e00ff9865ea89b08d028b42baa503",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/at.svg": {
+    "mtime": 1792258091.1912389,
+    "seen": 1794087191.4647763,
+    "ast_hash": "a0e5865313bbfd0ee7411ad59832192b",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/au.svg": {
+    "mtime": 1792258091.7586854,
+    "seen": 1794087191.464778,
+    "ast_hash": "26b17d670b64aafb25fdaecf3b74e934",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/be.svg": {
+    "mtime": 1792258088.048101,
+    "seen": 1794087191.4647799,
+    "ast_hash": "0d72048ba90512a794c881b1b26fb5e0",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/bg.svg": {
+    "mtime": 1792258098.0806901,
+    "seen": 1794087191.4647815,
+    "ast_hash": "813f4105785ca18d96247198003fb0c2",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/br.svg": {
+    "mtime": 1792258076.9019234,
+    "seen": 1794087191.4647832,
+    "ast_hash": "5fc02ad513bf2a2e04713f6a61daaa41",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/ca.svg": {
+    "mtime": 1792258082.2072403,
+    "seen": 1794087191.4647849,
+    "ast_hash": "8ce7bacf57b7f970b82fff0c1ee2e38f",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/cl.svg": {
+    "mtime": 1792258086.4516964,
+    "seen": 1794087191.4647868,
+    "ast_hash": "e9b67a59841886e9b55fff67f1260909",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/co.svg": {
+    "mtime": 1792258094.6428845,
+    "seen": 1794087191.4647882,
+    "ast_hash": "eefa6c2cd269ce7da90dc5ac0d78a48a",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/de.svg": {
+    "mtime": 1792258096.2417855,
+    "seen": 1794087191.46479,
+    "ast_hash": "e88d88604d655d0bd7059cf1fbd59ec2",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/dk.svg": {
+    "mtime": 1792258085.89124,
+    "seen": 1794087191.4647918,
+    "ast_hash": "33bba71c12896b2df18901d98cf2b62c",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/es.svg": {
+    "mtime": 1792258090.619239,
+    "seen": 1794087191.4647937,
+    "ast_hash": "e3ee044c3d0dd611613075a24e7639ae",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/fi.svg": {
+    "mtime": 1792258084.1710947,
+    "seen": 1794087191.4647954,
+    "ast_hash": "0e5ef3f583daa1a415330bed83ce8c4a",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/fr.svg": {
+    "mtime": 1792258081.1998646,
+    "seen": 1794087191.4647973,
+    "ast_hash": "ed733e43e399b1c35945f2c87bfc57f0",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/gb.svg": {
+    "mtime": 1792258080.6012266,
+    "seen": 1794087191.4647987,
+    "ast_hash": "6dcadf6916764560c2f1fec586e2c1de",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/gh.svg": {
+    "mtime": 1792258077.7528489,
+    "seen": 1794087191.4648006,
+    "ast_hash": "a64592b4513a2648c11e6e00d1a1d158",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/ie.svg": {
+    "mtime": 1792258095.699691,
+    "seen": 1794087191.4648023,
+    "ast_hash": "1c12635a2932de4b8036779933a84d97",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/it.svg": {
+    "mtime": 1792258095.1593857,
+    "seen": 1794087191.464804,
+    "ast_hash": "1d72a5dec3acd073763570e3e5fdf784",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/jp.svg": {
+    "mtime": 1792258092.80327,
+    "seen": 1794087191.4648056,
+    "ast_hash": "22e3b3a4abbb24945620817fd27ed7db",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/kr.svg": {
+    "mtime": 1792258077.4009128,
+    "seen": 1794087191.4648075,
+    "ast_hash": "2a183310b78d3d4fe57f88abcc491fcd",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/mx.svg": {
+    "mtime": 1792258094.0872386,
+    "seen": 1794087191.464809,
+    "ast_hash": "281bf244efba667fefc3479788b0f01f",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/my.svg": {
+    "mtime": 1792258088.7045062,
+    "seen": 1794087191.464811,
+    "ast_hash": "6175b67f2c004626cbb214c9b52c5bc4",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/nl.svg": {
+    "mtime": 1792258087.496439,
+    "seen": 1794087191.4648128,
+    "ast_hash": "8c9bb5ae9234eb56f35372409f204c95",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/no.svg": {
+    "mtime": 1792258086.971319,
+    "seen": 1794087191.4648144,
+    "ast_hash": "859a13561a1b24bfa65fb1a03835da49",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/nz.svg": {
+    "mtime": 1792258085.1598082,
+    "seen": 1794087191.464816,
+    "ast_hash": "229d2fadba8d00df102927eae199d46f",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/pe.svg": {
+    "mtime": 1792258076.4019475,
+    "seen": 1794087191.464818,
+    "ast_hash": "5156eee1494fa9ccb9ff78c95f6053d0",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/ph.svg": {
+    "mtime": 1792258080.0694606,
+    "seen": 1794087191.4648197,
+    "ast_hash": "d8046bd209c4750f7a67beb68f780dd1",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/pt.svg": {
+    "mtime": 1792258092.283239,
+    "seen": 1794087191.4648216,
+    "ast_hash": "f0f95b343296722c38dc0857f3a4c73d",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/se.svg": {
+    "mtime": 1792258083.4733465,
+    "seen": 1794087191.464823,
+    "ast_hash": "79da0f189e8fb82d6e148a77b5690e14",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/sg.svg": {
+    "mtime": 1792258082.8552403,
+    "seen": 1794087191.464825,
+    "ast_hash": "b8d345820ac52f8187155ff5c79ef5b0",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/th.svg": {
+    "mtime": 1792258097.5481339,
+    "seen": 1794087191.4648266,
+    "ast_hash": "bcc03a3cd1a367274a2444aff71c0a68",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/us.svg": {
+    "mtime": 1792258096.7474134,
+    "seen": 1794087191.4648285,
+    "ast_hash": "1d23b9509d0a0a828e3071096b0d2edf",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/flags/4x3/za.svg": {
+    "mtime": 1792258075.598127,
+    "seen": 1794087191.4648302,
+    "ast_hash": "da9e50f2ae3cc80343b9be4f2a5f599d",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_state_capture.py": {
+    "mtime": 1795008501.6611028,
+    "seen": 1795008676.6859715,
+    "ast_hash": "8ed00ebb2ef09aba02ad89355b51c0c7",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/client_e2e.py": {
+    "mtime": 1795297136.3368278,
+    "seen": 1795297298.1398573,
+    "ast_hash": "b1b42fbd5ad5b816b14da29d582f23a0",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/e2e_support.py": {
+    "mtime": 1794567937.1250393,
+    "seen": 1794568140.7004802,
+    "ast_hash": "6b9058b7548aa28d796ac5bef3c7609f",
+    "semantic_hash": ""
+  },
+  "tests/test_e2e_split_routes.py": {
+    "mtime": 1794567899.253096,
+    "seen": 1794568140.7006814,
+    "ast_hash": "53dd2199ccf79e0389a7e080bc6e81b1",
+    "semantic_hash": ""
+  },
+  ".opencode/atlas/failure-modes.md": {
+    "mtime": 1795297137.8605077,
+    "seen": 1795297298.1403642,
+    "ast_hash": "01ed06964752ccd051827c7df5e2f508",
+    "semantic_hash": ""
+  },
+  ".opencode/atlas/interface-lifecycles.md": {
+    "mtime": 1794218311.5488763,
+    "seen": 1794568140.7008493,
+    "ast_hash": "77b4ef98d52a5cab93090fdffa56ebfe",
+    "semantic_hash": ""
+  },
+  ".opencode/atlas/module-routing.md": {
+    "mtime": 1794218304.436877,
+    "seen": 1794568140.7008517,
+    "ast_hash": "5255b78d5772b6dfb11b8d8fb316d5f7",
+    "semantic_hash": ""
+  },
+  ".opencode/atlas/system-architecture.md": {
+    "mtime": 1794218300.4408774,
+    "seen": 1794568140.7008579,
+    "ast_hash": "fc95b327efed77a4a23a1672a715deb0",
+    "semantic_hash": ""
+  },
+  "tests/test_api_parity.py": {
+    "mtime": 1795290951.2051885,
+    "seen": 1795291449.660075,
+    "ast_hash": "4ae433a1d5ea09010f94265e3d9c4b80",
+    "semantic_hash": ""
+  },
+  "tests/test_config_parity.py": {
+    "mtime": 1794658331.820929,
+    "seen": 1794658960.0930862,
+    "ast_hash": "e3a80012140e35164ab0dfb75878bc6b",
+    "semantic_hash": ""
+  },
+  "tests/test_masque_port_gating.py": {
+    "mtime": 1795008017.343675,
+    "seen": 1795008676.6858969,
+    "ast_hash": "c4d65b51ef7dde7fd564a1bcc1de7b84",
+    "semantic_hash": ""
+  },
+  "tests/test_singbox_parity.py": {
+    "mtime": 1794658356.3214085,
+    "seen": 1794658960.0931888,
+    "ast_hash": "fa334230d4309358c0637ebb527cbfcb",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_diagnostic_fixes.py": {
+    "mtime": 1795034096.3743553,
+    "seen": 1795109815.1485054,
+    "ast_hash": "acef3c8cda42ba9eb40b48e0f7cd5b12",
+    "semantic_hash": ""
+  },
+  "tests/test_tun_perf.py": {
+    "mtime": 1794653192.3237374,
+    "seen": 1794655366.5668604,
+    "ast_hash": "87b494664fc60299e69ebc9f93fd4dc5",
+    "semantic_hash": ""
+  },
+  "tests/test_ws_status_push.py": {
+    "mtime": 1795257659.7764025,
+    "seen": 1795259445.6641312,
+    "ast_hash": "139784de3794786daa5769764aca4c12",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/proxy/http1_session.py": {
+    "mtime": 1794756176.8270137,
+    "seen": 1794762803.1408727,
+    "ast_hash": "02c3cd06b593b914d5929099daecc82d",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/proxy/transport_options.py": {
+    "mtime": 1794655983.599994,
+    "seen": 1794658960.092962,
+    "ast_hash": "4f9728699e4594791dcaa723521fe13b",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/relayer.py": {
+    "mtime": 1794658287.1533751,
+    "seen": 1794658960.0929716,
+    "ast_hash": "e3cc96f45708db25efbae6ca2f7f6d07",
+    "semantic_hash": ""
+  },
+  "tests/test_pool_multiplex.py": {
+    "mtime": 1795203759.257107,
+    "seen": 1795209951.3954954,
+    "ast_hash": "69c9d8ae693035507e9860e279e22473",
+    "semantic_hash": ""
+  },
+  "tests/test_relayer.py": {
+    "mtime": 1794658141.4557064,
+    "seen": 1794658960.0931685,
+    "ast_hash": "8bcb2725c080fd9d69223396903f6eaf",
+    "semantic_hash": ""
+  },
+  "tests/test_transport_options.py": {
+    "mtime": 1794756619.9725566,
+    "seen": 1794762803.1412318,
+    "ast_hash": "22961304ca6eba4298decc9ba693b76f",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/add-roots.ps1": {
+    "mtime": 1794687617.7018712,
+    "seen": 1794754043.5937235,
+    "ast_hash": "66c27cc97de6499cd7497e31668d1c4e",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/add-roots2.ps1": {
+    "mtime": 1794688424.6613648,
+    "seen": 1794754043.5937285,
+    "ast_hash": "165c9b701f8fe4d0424d1bf7ebf1886a",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/check-config-auth.ps1": {
+    "mtime": 1794692185.7459009,
+    "seen": 1794754043.5937319,
+    "ast_hash": "8cdd06001439ea976524f61fde836090",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/egress_probe.py": {
+    "mtime": 1794688760.0798273,
+    "seen": 1794754043.5937426,
+    "ast_hash": "7fcc30343c5b78ef1b12f677d58d16de",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/fix-roots.ps1": {
+    "mtime": 1794687476.1813128,
+    "seen": 1794754043.5937455,
+    "ast_hash": "b5033331fb46f572c9716d3cf7c68d1e",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/fix-roots2.ps1": {
+    "mtime": 1794687548.7695062,
+    "seen": 1794754043.5937476,
+    "ast_hash": "d0dbb8184ccc394cb42ea96d6d8e6a2e",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/install_socksio.py": {
+    "mtime": 1794689239.281652,
+    "seen": 1794754043.5937502,
+    "ast_hash": "30a492f4aa8784bc1a3b3075c0b9ed82",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/live_prod.py": {
+    "mtime": 1794691110.082022,
+    "seen": 1794754043.5937526,
+    "ast_hash": "2946ef3d72408cfe5c835d9853f70164",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/ps_timing.py": {
+    "mtime": 1794689445.863799,
+    "seen": 1794754043.5937545,
+    "ast_hash": "6a70135f9896982068c8d5047603b670",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/sanitize-guest.ps1": {
+    "mtime": 1794692140.3182318,
+    "seen": 1794754043.5937572,
+    "ast_hash": "ac75caf01d31ae2d117df0144328202a",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/save-vm.ps1": {
+    "mtime": 1794692232.8895643,
+    "seen": 1794754043.5937595,
+    "ast_hash": "b16b05df9424f526e5a3bad3481b0eab",
+    "semantic_hash": ""
+  },
+  "scripts/e2e/tls_probe.py": {
+    "mtime": 1794688477.2697759,
+    "seen": 1794754043.5937622,
+    "ast_hash": "2aecea74febde354f295374df8d90d6d",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/tls_trust.py": {
+    "mtime": 1794751754.280536,
+    "seen": 1794754043.5938447,
+    "ast_hash": "f7ec11cd3eb78f9b3f72e05e9bb145d4",
+    "semantic_hash": ""
+  },
+  "tests/test_pool_churn_and_fallback.py": {
+    "mtime": 1794762601.3228061,
+    "seen": 1794762803.1411326,
+    "ast_hash": "cc677f80696a9ba4d4fc979e15924199",
+    "semantic_hash": ""
+  },
+  "tests/test_tls_trust.py": {
+    "mtime": 1794762702.6949832,
+    "seen": 1794762803.1412163,
+    "ast_hash": "0c459e6b369bb4faff0faf6d06a14e93",
+    "semantic_hash": ""
+  },
+  "tests/test_dpapi_and_bind_parity.py": {
+    "mtime": 1794781249.9681475,
+    "seen": 1794781350.7839792,
+    "ast_hash": "8e60e79da598d29bc7473956981db564",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/iphelper.py": {
+    "mtime": 1795035672.2378838,
+    "seen": 1795109815.1482682,
+    "ast_hash": "b438732ed071b279291bc31cc2b189ad",
+    "semantic_hash": ""
+  },
+  "tests/test_iphelper_native.py": {
+    "mtime": 1795035752.9305418,
+    "seen": 1795109815.1484165,
+    "ast_hash": "bc311d9b9749f925ce6135d2b5c4201b",
+    "semantic_hash": ""
+  },
+  "tests/test_http_client_rebuild_race.py": {
+    "mtime": 1794859882.50637,
+    "seen": 1794860587.1063237,
+    "ast_hash": "656b737f4c497fb0bc4824c649cd8851",
+    "semantic_hash": ""
+  },
+  "tests/test_dashboard_flag.py": {
+    "mtime": 1795005069.854858,
+    "seen": 1795005346.0016289,
+    "ast_hash": "b7b68b175c03c632a64c7b54eb982e3a",
+    "semantic_hash": ""
+  },
+  "scripts/layout_check.py": {
+    "mtime": 1795175758.633182,
+    "seen": 1795175878.7737422,
+    "ast_hash": "b3376e3b52c2a62e595c142076ff74fb",
+    "semantic_hash": ""
+  },
+  "tests/test_account_layout.py": {
+    "mtime": 1795023052.1181915,
+    "seen": 1795024004.8405018,
+    "ast_hash": "013d9e85823a152e9f490b333ef40596",
+    "semantic_hash": ""
+  },
+  "tests/test_fxa_antibot.py": {
+    "mtime": 1795174689.7994823,
+    "seen": 1795175878.774385,
+    "ast_hash": "36b8686af6a2feb1e9215d1272431138",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/guardian_login.py": {
+    "mtime": 1795128945.9031124,
+    "seen": 1795168454.7332225,
+    "ast_hash": "04e91d060b0ab63c35b4165882a248dd",
+    "semantic_hash": ""
+  },
+  "tests/test_guardian_login.py": {
+    "mtime": 1795174673.4419758,
+    "seen": 1795175878.774406,
+    "ast_hash": "1129a516d24681986f5c0bd3cc3a0a5f",
+    "semantic_hash": ""
+  },
+  "src/perchvpn/fxa_pkce.py": {
+    "mtime": 1795171077.6702836,
+    "seen": 1795172012.7688909,
+    "ast_hash": "e55dee9a4bcff4f154e8d4e118e1c439",
+    "semantic_hash": ""
+  },
+  "tests/test_fxa_pkce.py": {
+    "mtime": 1795175123.4476552,
+    "seen": 1795175878.7744012,
+    "ast_hash": "dbce739346fba4c92c48a9a789d0f6f5",
+    "semantic_hash": ""
+  },
+  "tests/test_fxa_login_v2.py": {
+    "mtime": 1795178856.8871255,
+    "seen": 1795179162.877357,
+    "ast_hash": "09e6a7facaff30b718774da1c4a33688",
+    "semantic_hash": ""
+  },
+  "tests/test_fastly_solver.py": {
+    "mtime": 1795178515.6451988,
+    "seen": 1795179162.8773398,
+    "ast_hash": "fef51f69b10ba5a645c9ee67cdc317e0",
+    "semantic_hash": ""
+  },
+  "assets/perch-vixen.png": {
+    "mtime": 1795182059.6244407,
+    "seen": 1795182674.614115,
+    "ast_hash": "f9d36c8dc250f1d9d219b1a7f7feedda",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/web/assets/perch-vixen.png": {
+    "mtime": 1795182060.9484403,
+    "seen": 1795182674.6142082,
+    "ast_hash": "47c86b5d9b28867ed8b53ae5abcfe987",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/instance_guard.py": {
+    "mtime": 1795209444.2183912,
+    "seen": 1795209951.3952615,
+    "ast_hash": "0abc7f73a6cf62fc13ad04b927ba55eb",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/win_process.py": {
+    "mtime": 1795211067.2572734,
+    "seen": 1795211350.410071,
+    "ast_hash": "313588720916ca6907a998915ad23b8a",
+    "semantic_hash": ""
+  },
+  "tests/test_win_process.py": {
+    "mtime": 1795211098.8023996,
+    "seen": 1795211350.410326,
+    "ast_hash": "a125dc7d526dd912a5af91a93f499455",
+    "semantic_hash": ""
+  },
+  ".github/workflows/release-windows.yml": {
+    "mtime": 1795286172.7393441,
+    "seen": 1795289116.5095792,
+    "ast_hash": "1725152910656b981f83baaecb159902",
+    "semantic_hash": ""
+  }
+}
