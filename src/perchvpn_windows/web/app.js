@@ -1848,8 +1848,9 @@
         // are one of "Measuring…", "<n> ms" or "Unavailable" — a failed
         // probe is never reported as 0 ms — and the country lists are
         // ordered by the measured value.
-        // Boundaries: max 4 in-flight probes (bounded concurrent batches so
-        // a 34-country sweep cannot spike TLS/CPU on a low-power GPU/CPU),
+        // Boundaries: max 3 in-flight probes (bounded concurrent batches so
+        // a 34-country sweep cannot spike TLS/CPU on a low-power GPU/CPU and
+        // can never occupy the API thread pool a disconnect needs),
         // ~9s per-probe client timeout (backend itself caps at ~8.0s), 60s
         // refresh interval only while a countries view/tab is active and
         // the page is not hidden, and a generation token so a newer refresh
@@ -1893,9 +1894,9 @@
             // Duplicate countries lists may carry the same host:port; keys
             // above are unique so each endpoint is probed at most once.
             const queue = targets.slice();
-            // Bounded concurrent sweep: worker-pool of 4 keeps peak TLS
+            // Bounded concurrent sweep: worker-pool of 3 keeps peak TLS
             // handshakes and canvas/CPU contention low on integrated GPUs.
-            const workers = Math.min(4, queue.length);
+            const workers = Math.min(3, queue.length);
             for (let i = 0; i < workers; i++) this.latencyWorker(queue, gen, force);
         }
 

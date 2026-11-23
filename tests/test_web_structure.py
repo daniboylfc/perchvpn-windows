@@ -184,9 +184,9 @@ class TestUnifiedDelaySweep:
         # The surgical Stage-2 RTT field first, legacy TTFB as fallback.
         assert "result.latency_ms != null ? result.latency_ms : result.elapsed_ms" in source
 
-    def test_bounded_concurrent_sweep_of_four(self):
+    def test_bounded_concurrent_sweep_of_three(self):
         source = _read("app.js")
-        assert "Math.min(4, queue.length)" in source
+        assert "Math.min(3, queue.length)" in source
 
     def test_badge_writes_batched_inside_one_requestanimationframe(self):
         source = _read("app.js")

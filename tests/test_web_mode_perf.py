@@ -155,7 +155,7 @@ class TestIdleRepaintGuards:
     def test_country_latency_sweep_is_bounded(self):
         src = _read("app.js")
         cycle = src[src.index("countriesLatencyCycle(force = false) {"):src.index("async latencyWorker(queue, gen, force) {")]
-        assert "Math.min(4, queue.length)" in cycle
+        assert "Math.min(3, queue.length)" in cycle
         assert "this._authenticated !== true" in cycle
         measure = src[src.index("async measureLatency(target, gen, force = false) {"):src.index("latencyErrorLabel(message) {")]
         assert "(Date.now() - cached.at) < 60000" in measure
