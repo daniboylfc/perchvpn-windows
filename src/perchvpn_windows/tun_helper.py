@@ -27,7 +27,6 @@ import os
 import signal
 import subprocess
 import sys
-import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -234,12 +233,7 @@ def build_sidecar_command(
     setup: bool = True,
 ) -> List[str]:
     """Write a sing-box config and return its ``run`` command line."""
-    target = (
-        Path(config_path)
-        if config_path is not None
-        else Path(tempfile.gettempdir())
-        / ("perchvpn-singbox-%s.json" % spec.fingerprint)
-    )
+    target = Path(config_path) if config_path is not None else _default_config_path(spec)
     config = singbox_config.build_config(
         proxy_host=spec.proxy_host,
         proxy_port=spec.proxy_port,
@@ -257,6 +251,19 @@ def build_sidecar_command(
     cmd.extend(str(arg) for arg in spec.extra_args)
     cmd.extend(["run", "-c", str(target)])
     return cmd
+
+
+def _default_config_path(spec: TunHelperSpec) -> Path:
+    """Generated config lives in our own writable data root, never beside the EXE.
+
+    ``%TEMP%`` works but is pruned by cleaners mid-session and can be redirected
+    by a policy; an MSI install directory is not writable at all.  The elevated
+    sidecar can read ``%LOCALAPPDATA%`` of the interactive user, so keep it
+    there next to the other runtime files.
+    """
+    from perchvpn_windows.platform import get_runtime_dir
+
+    return get_runtime_dir() / ("perchvpn-singbox-%s.json" % spec.fingerprint)
 
 
 def _atomic_write_json(path: Path, data: Dict[str, Any]) -> None:

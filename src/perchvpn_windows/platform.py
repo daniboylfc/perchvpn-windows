@@ -24,6 +24,38 @@ def get_config_dir() -> Path:
     return Path(_appdata_base()) / "PerchVPN"
 
 
+def _local_appdata_base() -> str:
+    base = os.environ.get("LOCALAPPDATA")
+    if not base:
+        base = str(Path.home() / "AppData" / "Local")
+    return base
+
+
+def get_local_app_data_dir() -> Path:
+    """Return the per-user local data root: ``%LOCALAPPDATA%\\PerchVPN``.
+
+    Caches, the WebView2 profile and generated sing-box configs live here, not
+    beside the executable: an MSI install sits in ``Program Files``, where a
+    standard user cannot write.
+    """
+    return Path(_local_appdata_base()) / "PerchVPN"
+
+
+def get_webview2_data_dir() -> Path:
+    """Return the persistent WebView2 user-data folder.
+
+    A fresh per-launch temp profile pays the full WebView2 cold-init cost on
+    every start (several seconds on a clean machine); this directory lets the
+    runtime cache its environment across launches.
+    """
+    return get_local_app_data_dir() / "webview2"
+
+
+def get_runtime_dir() -> Path:
+    """Return the writable directory for generated runtime files."""
+    return get_local_app_data_dir() / "runtime"
+
+
 def get_legacy_config_dir() -> Path:
     """Configuration directory of the pre-rebrand install: %APPDATA%/FoxyVPN.
 
