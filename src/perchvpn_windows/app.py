@@ -46,6 +46,10 @@ PREFLIGHT_TIMEOUT_SECONDS = 1.0
 # minutes on a cold/AV-scanned host and continues in the background.
 MODE_APPLY_ACK_SECONDS = 5.0
 MODE_STARTUP_TIMEOUT_SECONDS = 660.0
+# Disconnect must answer promptly.  The helper gets this long to confirm a
+# clean teardown; when it publishes a terminal phase and its process is gone,
+# ownership is released instead of waiting out the old 20 s ceiling.
+TUN_HELPER_STOP_TIMEOUT_SECONDS = 12.0
 
 
 def auth_helper_command(sys_executable: str, env: dict) -> list[str]:
@@ -297,6 +301,10 @@ class PerchVPNApp:
         self._switch_duration_ms = 0.0
         self._switch_phases: list = []
         self._switch_error = ""
+        # Set when the TUN helper exited with a terminal (recovery/failed)
+        # verdict.  Ownership is released; this is status, never a latch that
+        # blocks the next connect.
+        self._tun_recovery_unverified = False
         self._source_bind_ip: Optional[str] = None
         self._resolved_edge_host: Optional[str] = None
         # Persistent control-plane endpoints resolved on the physical path
@@ -813,6 +821,16 @@ class PerchVPNApp:
             file_handler.setLevel(level)
             for target in loggers:
                 target.addHandler(file_handler)
+            # pywebview reports WebView2 environment/init failures on its own
+            # logger.  Without a handler those records vanish in the windowed
+            # build, leaving a blank window with no trace.
+            pywebview_logger = logging.getLogger("pywebview")
+            if (
+                pywebview_logger.level == logging.NOTSET
+                or pywebview_logger.level > logging.WARNING
+            ):
+                pywebview_logger.setLevel(logging.WARNING)
+            pywebview_logger.addHandler(file_handler)
         except Exception as exc:  # noqa: BLE001
             logger.warning("file logging unavailable: %s", exc)
     
@@ -2422,6 +2440,9 @@ class PerchVPNApp:
                 float(timings.get("total_seconds") or 0.0),
             )
         if str(state.get("phase") or "") == "ready":
+            # A fresh, verified tunnel supersedes any previous recovery
+            # verdict; clear the non-fatal latch so status reflects reality.
+            self._tun_recovery_unverified = False
             # Verified pins exist and the helper verified every route: from
             # now on the guardian may only dial those addresses, and a
             # rotated answer is pinned before it replaces them.
@@ -3064,17 +3085,34 @@ class PerchVPNApp:
             helper = self._tun_helper
             await self._stop_tun_helper_watch()
             try:
-                stop_state = await helper.stop()
-                if stop_state.get("phase") != "stopped":
-                    # Keep the ownership handle when teardown is unverified.
+                stop_state = await helper.stop(
+                    timeout=TUN_HELPER_STOP_TIMEOUT_SECONDS
+                )
+                released = bool(stop_state.get("ownership_released"))
+                if stop_state.get("phase") == "stopped" or released:
+                    self._tun_helper = None
+                    if stop_state.get("phase") != "stopped":
+                        # The helper process is gone but its teardown verdict
+                        # was terminal (recovery/failed).  Nothing owns the
+                        # adapter now, so release the handle and surface the
+                        # verdict as non-fatal status: latching the app here
+                        # used to fail every later disconnect/restart with
+                        # HTTP 500 until the whole process was killed.
+                        self._tun_recovery_unverified = True
+                        logger.warning(
+                            "TUN helper exited with phase %s (%s); ownership "
+                            "released, recovery remains unverified",
+                            stop_state.get("phase"),
+                            stop_state.get("error") or "no detail",
+                        )
+                else:
+                    # Only keep ownership when the helper may still be alive.
                     errors.append(
                         RuntimeError(
                             "TUN helper did not confirm teardown: %s"
                             % (stop_state.get("error") or stop_state.get("phase"))
                         )
                     )
-                else:
-                    self._tun_helper = None
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001
