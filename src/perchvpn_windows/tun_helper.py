@@ -1159,7 +1159,9 @@ class TunHelperClient:
         launcher: Callable[[str], Dict[str, Any]] = launch_elevated,
         sleep: Callable[[float], Any] = asyncio.sleep,
         clock: Callable[[], float] = time.monotonic,
-        poll_interval: float = 0.25,
+        # 100 ms: a state-file read is cheap, and readiness/stop is
+        # detected the moment it lands instead of up to 250 ms later.
+        poll_interval: float = 0.1,
         handshake_timeout: float = _IPC_HANDSHAKE_TIMEOUT_SECONDS,
         terminator: Optional[Callable[[int, str], bool]] = None,
     ) -> None:
@@ -1784,7 +1786,9 @@ async def run_helper(
     parent_alive: Callable[[int], bool] = _parent_alive,
     terminate: Callable[[Any], None] = _terminate,
     startup_timeout: float = 25.0,
-    poll_interval: float = 0.5,
+    # 100 ms: the adapter probe is a native table read, so Wintun + sing-box
+    # readiness is seen as soon as it happens rather than up to 500 ms after.
+    poll_interval: float = 0.1,
     fast_adapter: bool = False,
     compare: Optional[Callable[..., Any]] = None,
     apply_bypass: Callable[[Sequence[str], Sequence[str]], Any] = apply_bypass_routes,
