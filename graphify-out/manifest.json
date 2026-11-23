@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/api.py": {
-    "mtime": 1795435746.217188,
-    "seen": 1795436571.148128,
-    "ast_hash": "b1112df6ba39da80399b934ba58d8200",
+    "mtime": 1795446354.791748,
+    "seen": 1795447165.8066745,
+    "ast_hash": "89a98e40698bdd1a9d533cab8c910457",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/app.py": {
@@ -324,9 +324,9 @@
     "semantic_hash": "ce435a4d02e5f02eddd87956ae75a14a"
   },
   "src/perchvpn_windows/webview.py": {
-    "mtime": 1795445163.3712256,
-    "seen": 1795445365.1702802,
-    "ast_hash": "08b7865382cba4c8fbeac89fa4442a94",
+    "mtime": 1795446492.8858585,
+    "seen": 1795447165.8068016,
+    "ast_hash": "d10e6a41f1df0434623b98cd57ee32bb",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/winconsole.py": {
@@ -354,9 +354,9 @@
     "semantic_hash": "0f9e2026b838bbb91d09599f37ba098a"
   },
   "tests/test_api_countries_cache.py": {
-    "mtime": 1794586072.0563567,
-    "seen": 1794655366.5667145,
-    "ast_hash": "dc46ea221ed8fc54d4b51a418c2b5b5a",
+    "mtime": 1795446354.8258526,
+    "seen": 1795447165.8068314,
+    "ast_hash": "80e7b568b4b195a594f054b4fac4a154",
     "semantic_hash": ""
   },
   "tests/test_api_mode_urlping.py": {
@@ -1335,6 +1335,18 @@
     "mtime": 1795445049.8000073,
     "seen": 1795445365.170388,
     "ast_hash": "eab74dad8ac4b8e38559c486e31da480",
+    "semantic_hash": ""
+  },
+  "src/perchvpn_windows/tray.py": {
+    "mtime": 1795445753.4248862,
+    "seen": 1795447165.8067477,
+    "ast_hash": "85c3b4264e4f654d59eedbbda40f825a",
+    "semantic_hash": ""
+  },
+  "tests/test_tray.py": {
+    "mtime": 1795446365.9184468,
+    "seen": 1795447165.8072262,
+    "ast_hash": "9c294b94eb355c6d74f0d601f794ceec",
     "semantic_hash": ""
   }
 }
