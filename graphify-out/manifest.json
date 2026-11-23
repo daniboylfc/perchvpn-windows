@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/main.py": {
-    "mtime": 1795434650.319427,
-    "seen": 1795436571.1481643,
-    "ast_hash": "66803f2207c7bcbc5b92a267c1ac9697",
+    "mtime": 1795444066.4871624,
+    "seen": 1795445365.170231,
+    "ast_hash": "b879b4ea0264cd8244c146c27138ca27",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/metrics.py": {
@@ -246,10 +246,10 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/platform.py": {
-    "mtime": 1793537530.6913404,
-    "seen": 1794050528.7580373,
-    "ast_hash": "222e7c7fc367e8f0e4601fe688b7f711",
-    "semantic_hash": "222e7c7fc367e8f0e4601fe688b7f711"
+    "mtime": 1795443986.4691234,
+    "seen": 1795445365.1702418,
+    "ast_hash": "0367173b53e19b96ab1fb6030f96e338",
+    "semantic_hash": ""
   },
   "src/perchvpn_windows/singbox_config.py": {
     "mtime": 1795037721.82232,
@@ -264,9 +264,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_helper.py": {
-    "mtime": 1795435568.8353317,
-    "seen": 1795436571.1481948,
-    "ast_hash": "6937dc632466e239058349fd991328c7",
+    "mtime": 1795444113.9827359,
+    "seen": 1795445365.1702528,
+    "ast_hash": "dc7dcd85d7b2436988890713c52ddfc6",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_recovery.py": {
@@ -324,9 +324,9 @@
     "semantic_hash": "ce435a4d02e5f02eddd87956ae75a14a"
   },
   "src/perchvpn_windows/webview.py": {
-    "mtime": 1795435909.4882355,
-    "seen": 1795436571.1482332,
-    "ast_hash": "0a7ccc7c6a6cfefb7ad90d7be4f5c4b5",
+    "mtime": 1795445163.3712256,
+    "seen": 1795445365.1702802,
+    "ast_hash": "08b7865382cba4c8fbeac89fa4442a94",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/winconsole.py": {
@@ -1308,9 +1308,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/release-windows.yml": {
-    "mtime": 1795286172.7393441,
-    "seen": 1795289116.5095792,
-    "ast_hash": "1725152910656b981f83baaecb159902",
+    "mtime": 1795444200.9798727,
+    "seen": 1795445365.1700363,
+    "ast_hash": "fa903c4a7f3785c8e2cdfda3f375d192",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/startup_diagnostics.py": {
@@ -1329,6 +1329,12 @@
     "mtime": 1795435417.6016264,
     "seen": 1795436571.1485038,
     "ast_hash": "842ef2632f5dfa9b61369439917e0db2",
+    "semantic_hash": ""
+  },
+  "tests/test_install_path_parity.py": {
+    "mtime": 1795445049.8000073,
+    "seen": 1795445365.170388,
+    "ast_hash": "eab74dad8ac4b8e38559c486e31da480",
     "semantic_hash": ""
   }
 }
