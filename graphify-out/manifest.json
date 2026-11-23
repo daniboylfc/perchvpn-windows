@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/api.py": {
-    "mtime": 1795446354.791748,
-    "seen": 1795447165.8066745,
-    "ast_hash": "89a98e40698bdd1a9d533cab8c910457",
+    "mtime": 1795471494.093416,
+    "seen": 1795472477.4731638,
+    "ast_hash": "1a4ed7a513991593e1aa149b5b75a0d2",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/app.py": {
@@ -264,15 +264,15 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_helper.py": {
-    "mtime": 1795444113.9827359,
-    "seen": 1795445365.1702528,
-    "ast_hash": "dc7dcd85d7b2436988890713c52ddfc6",
+    "mtime": 1795471321.460254,
+    "seen": 1795472477.4732165,
+    "ast_hash": "f4af5877be9df60e2e126f9243ef7194",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_recovery.py": {
-    "mtime": 1795211120.5735133,
-    "seen": 1795211350.4100423,
-    "ast_hash": "887d8e127c148f92b7bd5e42a6e02388",
+    "mtime": 1795471321.4614944,
+    "seen": 1795472477.4732194,
+    "ast_hash": "5b9cb5d3f353132f816e1fe520494eb9",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_state_capture.py": {
@@ -306,9 +306,9 @@
     "semantic_hash": "a286e343d22e291252ccfda699bfb1f8"
   },
   "src/perchvpn_windows/web/app.js": {
-    "mtime": 1795435839.2992883,
-    "seen": 1795436571.148222,
-    "ast_hash": "6c2e91702fcdb349094b9a1a402bfa5c",
+    "mtime": 1795471413.7948895,
+    "seen": 1795472477.4732363,
+    "ast_hash": "cb59018bc33c2c708d01b8280eb72a9e",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/web/country-sort.js": {
@@ -324,9 +324,9 @@
     "semantic_hash": "ce435a4d02e5f02eddd87956ae75a14a"
   },
   "src/perchvpn_windows/webview.py": {
-    "mtime": 1795446492.8858585,
-    "seen": 1795447165.8068016,
-    "ast_hash": "d10e6a41f1df0434623b98cd57ee32bb",
+    "mtime": 1795471549.1116583,
+    "seen": 1795472477.4732447,
+    "ast_hash": "88424a8740952d9f355c0ea53536ee20",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/winconsole.py": {
@@ -630,9 +630,9 @@
     "semantic_hash": ""
   },
   "tests/test_tun_recovery.py": {
-    "mtime": 1795436392.586215,
-    "seen": 1795436571.1485393,
-    "ast_hash": "7cc257e2866bf1178a19df047f05bdb2",
+    "mtime": 1795471210.4678624,
+    "seen": 1795472477.4734693,
+    "ast_hash": "ade44aa022184ce1db72dbb00c54e12a",
     "semantic_hash": ""
   },
   "tests/test_tun_status.py": {
@@ -726,10 +726,10 @@
     "semantic_hash": ""
   },
   "tests/test_webview_readiness.py": {
-    "mtime": 1793441517.3332536,
-    "seen": 1794050528.762978,
-    "ast_hash": "c6ae98c82263edd2de3f2d8892dde80d",
-    "semantic_hash": "c6ae98c82263edd2de3f2d8892dde80d"
+    "mtime": 1795471608.2388673,
+    "seen": 1795472477.4735157,
+    "ast_hash": "169e4d9c4de87e03905b18436305a6d1",
+    "semantic_hash": ""
   },
   "tests/test_winconsole.py": {
     "mtime": 1793452661.355702,
