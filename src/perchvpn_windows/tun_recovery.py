@@ -57,7 +57,7 @@ DEFAULT_ADAPTER_NAME = "PerchVPN"
 
 _RECORD_VERSION = 2  # v2 adds "network_baseline" for DNS/route-metric restoration
 _VERIFY_WINDOW_SECONDS = 8.0
-_POLL_INTERVAL_SECONDS = 0.25
+_POLL_INTERVAL_SECONDS = 0.1
 _CREATE_TIME_TOLERANCE_SECONDS = 0.05
 
 _VIRTUAL_ADAPTER_MARKERS = (
@@ -571,7 +571,10 @@ class TunRecoveryGate:
                         with contextlib.suppress(Exception):
                             probe_future.result()
                     state = existing.get("state")
-                    if state == "unverified" and operator_trial:
+                    if state == "released":
+                        self._consume_released(existing, name)
+                        self._clear_record()
+                    elif state == "unverified" and operator_trial:
                         self._reset_unverified_if_clean(existing, current, name)
                     elif state in ("prepared", "unverified"):
                         raise RecoveryUnverified(
@@ -676,18 +679,21 @@ class TunRecoveryGate:
             )
             deadline = self._clock() + self._window_seconds
             while True:
-                # A probe that cannot answer (native walk transiently failing
-                # while Wintun unloads, or the PowerShell fallback timing out
-                # under load) is inconclusive, not evidence of survival: keep
-                # polling until the window expires so one slow probe cannot
-                # turn a clean teardown into RECOVERY_UNVERIFIED.
+                # Two questions per poll: does the row still exist, and is it
+                # Up?  A Wintun device that the driver has torn down can sit
+                # in the adapter table with IfOperStatus Down for seconds.
+                # Deciding "clean" on the Up probe alone (the old behaviour)
+                # cleared the ownership record while the row was still there;
+                # the next Connect then saw an unowned adapter and failed
+                # closed forever ("tunnel failed" after multi-country
+                # switches).  A probe that cannot answer is inconclusive, not
+                # evidence of survival: keep polling until the deadline.
                 try:
-                    if self._adapter_probe_require_up:
-                        present = self._adapter_probe(
-                            self.adapter_guid, name, require_up=True  # type: ignore[call-arg]
-                        )
-                    else:
-                        present = self._adapter_probe(self.adapter_guid, name)
+                    up = self._probe_adapter(name, require_up=True)
+                except Exception:  # noqa: BLE001 - retried until the deadline
+                    up = None
+                try:
+                    present = self._probe_adapter(name)
                 except Exception:  # noqa: BLE001 - retried until the deadline
                     present = None
                 if present is False:
@@ -708,10 +714,44 @@ class TunRecoveryGate:
                 now = self._clock()
                 if now >= deadline:
                     await self._settle_restore(restore_task)
+                    if self._restore_failed(restore_task):
+                        return self._mark_unverified(current)
+                    if up is False:
+                        # Only a down row remains: it is provably ours and it
+                        # cannot carry traffic, so keep a released record for
+                        # pre_start() to validate and consume.  A latch here
+                        # would need an operator (reboot) for no safety gain.
+                        released = dict(current)
+                        released["state"] = "released"
+                        released["updated_at"] = self._clock()
+                        try:
+                            self._write_record(released)
+                        except Exception:  # noqa: BLE001
+                            logger.error(
+                                "could not persist released TUN ownership record",
+                                exc_info=True,
+                            )
+                            return self._mark_unverified(current)
+                        logger.warning(
+                            "TUN adapter %r is down but still listed after "
+                            "%.1fs; keeping a released ownership record for the "
+                            "next start",
+                            name,
+                            self._window_seconds,
+                        )
+                        return CLEAN
                     return self._mark_unverified(current)
                 await self._sleep(
                     min(_POLL_INTERVAL_SECONDS, max(0.0, deadline - now))
                 )
+
+    @staticmethod
+    def _restore_failed(restore_task: "asyncio.Future") -> bool:
+        if not restore_task.done():
+            return False
+        if restore_task.cancelled():
+            return True
+        return restore_task.exception() is not None
 
     @staticmethod
     async def _settle_restore(restore_task: "asyncio.Future") -> None:
@@ -757,7 +797,7 @@ class TunRecoveryGate:
             if record is None:
                 return CLEAN
             state = str(record.get("state", ""))
-            if state == "unverified":
+            if state in ("unverified", "released"):
                 pid = record.get("pid")
                 create_time = record.get("create_time")
                 if pid is not None and create_time is not None:
@@ -779,7 +819,7 @@ class TunRecoveryGate:
                             "refusing to reconcile ownership record", pid,
                         )
                         return self._mark_unverified(record)
-            elif state != "running":
+            elif state not in ("running", "released"):
                 # prepared records are evidence until the gate proves the
                 # spawn never happened; keep them.
                 return RECOVERY_UNVERIFIED
@@ -850,6 +890,55 @@ class TunRecoveryGate:
         if present is None:
             raise RecoveryUnverified("adapter probe was inconclusive")
         return bool(present)
+
+    def _consume_released(self, record: dict, name: str) -> None:
+        """Validate a released ownership record and allow the next start.
+
+        A released record means the previous run's adapter row outlived the
+        sidecar (Windows keeps it listed with IfOperStatus Down).  It is only
+        safe to adopt when the identity still matches ours and no live sidecar
+        holds it; a released adapter that is *Up* means something is using our
+        name, which stays fail-closed.
+        """
+        if record.get("adapter_guid") != self.adapter_guid:
+            raise RecoveryUnverified("released ownership record GUID mismatch")
+        if record.get("adapter_name") != name:
+            raise RecoveryUnverified("released ownership record adapter name mismatch")
+        pid = record.get("pid")
+        create_time = record.get("create_time")
+        if isinstance(pid, int) and pid > 0 and isinstance(create_time, (int, float)):
+            try:
+                live = self._creation_time_probe(pid)
+            except RecoveryUnverified:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                raise RecoveryUnverified(
+                    "cannot validate the released sidecar PID: %s" % exc
+                ) from exc
+            if live is not None and (
+                abs(float(live) - float(create_time))
+                <= _CREATE_TIME_TOLERANCE_SECONDS
+            ):
+                raise RecoveryUnverified(
+                    "released TUN sidecar (PID %d) is still running" % pid
+                )
+        try:
+            still_up = self._probe_adapter(name, require_up=True)
+        except RecoveryUnverified:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            raise RecoveryUnverified(
+                "adapter probe failed for the released record: %s" % exc
+            ) from exc
+        if still_up:
+            raise RecoveryUnverified(
+                "adapter %r is up under a released ownership record; refusing "
+                "to adopt it" % name
+            )
+        logger.info(
+            "released TUN ownership record validated; the adapter row is down "
+            "and the next start may reuse the name"
+        )
 
     def _validate_existing(self, record: dict, identity: dict, name: str) -> None:
         if record.get("adapter_guid") != self.adapter_guid:
@@ -1058,7 +1147,7 @@ class TunRecoveryGate:
                 "TUN ownership record version is unsupported (legacy version "
                 "1 records cannot be used for network restoration)"
             )
-        if record.get("state") not in ("prepared", "running", "unverified"):
+        if record.get("state") not in ("prepared", "running", "unverified", "released"):
             raise RecoveryUnverified("TUN ownership record state is invalid")
         adapter_guid = record.get("adapter_guid")
         if adapter_guid is not None and not isinstance(adapter_guid, str):

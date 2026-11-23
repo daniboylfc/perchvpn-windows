@@ -1748,3 +1748,115 @@ class TestStaleOwnershipReconciliation:
             "-Confirm:$false -ErrorAction SilentlyContinue"
         ]
         assert not (tmp_path / "tun-ownership.json").exists()
+
+
+async def _instant_sleep(_seconds):
+    return None
+
+
+class TestReleasedOwnershipAfterTeardown:
+    """Regression: switched countries, disconnected, cannot reconnect.
+
+    Live log (2026-11-24T01:14): teardown probed the adapter with "is it Up?",
+    saw Down, declared CLEAN and deleted the ownership record.  Seven seconds
+    later the next Connect probed "does the row exist?", saw the same row and
+    failed closed with "adapter 'PerchVPN'/None is already present without an
+    ownership record" — permanently, because nothing in the UI can consume
+    that latch.  A down row is provably ours and carries no traffic, so
+    teardown now keeps a released record and pre_start consumes it.
+    """
+
+    @staticmethod
+    def _gate(tmp_path, probe, creation):
+        return TunRecoveryGate(
+            enabled=True,
+            state_path=tmp_path / "tun-ownership.json",
+            adapter_probe=probe,
+            creation_time_probe=lambda pid: creation["value"],
+            identity_probe=lambda path: _identity(),
+            snapshot_capture=_capture_of(_snapshot_dict()),
+            window_seconds=0.05,
+            sleep=_instant_sleep,
+        )
+
+    @pytest.mark.asyncio
+    async def test_down_row_survives_teardown_and_the_next_connect_succeeds(
+        self, tmp_path
+    ):
+        state = {"row": False, "up": False}
+        creation = {"value": 100.0}
+
+        def probe(guid, name, *, require_up=False):
+            if not state["row"]:
+                return False
+            return state["up"] if require_up else True
+
+        gate = self._gate(tmp_path, probe, creation)
+
+        run = gate.pre_start("/fake/tun2proxy.exe")
+        gate.mark_running(run, 4242, 100.0)
+        state["row"], state["up"] = True, True
+
+        # Disconnect: the sidecar exits, the driver tears down the device, but
+        # Windows keeps the adapter row listed with IfOperStatus Down.
+        state["up"] = False
+        creation["value"] = None
+        assert await gate.verify_after_exit(run) == CLEAN
+
+        record = json.loads((tmp_path / "tun-ownership.json").read_text(encoding="utf-8"))
+        assert record["state"] == "released"
+
+        # Reconnect (after any number of country switches): must not latch.
+        again = gate.pre_start("/fake/tun2proxy.exe")
+        gate.mark_running(again, 4243, 101.0)
+        assert again.record is not None
+
+        # The row finally ages out and the second teardown clears everything.
+        state["row"] = False
+        assert await gate.verify_after_exit(again) == CLEAN
+        assert not (tmp_path / "tun-ownership.json").exists()
+
+    @pytest.mark.asyncio
+    async def test_released_row_that_is_up_still_fails_closed(self, tmp_path):
+        state = {"row": False, "up": False}
+        creation = {"value": 100.0}
+
+        def probe(guid, name, *, require_up=False):
+            if not state["row"]:
+                return False
+            return state["up"] if require_up else True
+
+        gate = self._gate(tmp_path, probe, creation)
+        run = gate.pre_start("/fake/tun2proxy.exe")
+        gate.mark_running(run, 4242, 100.0)
+        state["row"], state["up"] = True, True
+
+        state["up"] = False
+        creation["value"] = None
+        assert await gate.verify_after_exit(run) == CLEAN
+
+        # Something now holds our name and it is up: keep the fail-closed gate.
+        state["up"] = True
+        with pytest.raises(RecoveryUnverified):
+            gate.pre_start("/fake/tun2proxy.exe")
+
+    @pytest.mark.asyncio
+    async def test_released_record_with_a_live_sidecar_fails_closed(self, tmp_path):
+        state = {"row": False, "up": False}
+        creation = {"value": 100.0}
+
+        def probe(guid, name, *, require_up=False):
+            if not state["row"]:
+                return False
+            return state["up"] if require_up else True
+
+        gate = self._gate(tmp_path, probe, creation)
+        run = gate.pre_start("/fake/tun2proxy.exe")
+        gate.mark_running(run, 4242, 100.0)
+        state["row"], state["up"] = True, False
+
+        # The device is down but the recorded helper process is still alive.
+        creation["value"] = 100.0
+        assert await gate.verify_after_exit(run) == CLEAN
+        with pytest.raises(RecoveryUnverified):
+            gate.pre_start("/fake/tun2proxy.exe")
