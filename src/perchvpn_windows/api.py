@@ -1157,12 +1157,21 @@ def _cached_countries(allow_refresh: bool = True) -> list:
     return countries
 
 
+# The server list carries an "automatically choose" pseudo-country.  It is
+# not a location: it has no flag, no cities of its own and resolve_proxy()
+# already falls back to it, so listing it as a pickable row is noise (and a
+# row whose data-code is empty).  Only the explicit picker drops it.
+_AUTO_COUNTRY_CODES = frozenset({"REC"})
+
+
 def _filter_country_response(countries) -> list[CountryResponse]:
     """Project the server list into the countries API shape, skipping
-    countries without a usable first city/server (unchanged filter)."""
+    countries without a usable first city/server and the auto pseudo-country."""
     result = []
     for c in countries:
         if not c.code or not c.cities:
+            continue
+        if str(c.code).strip().upper() in _AUTO_COUNTRY_CODES:
             continue
         cities = []
         for city in c.cities:

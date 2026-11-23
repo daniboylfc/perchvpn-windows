@@ -46,6 +46,22 @@ def _country(code: str) -> SimpleNamespace:
     )
 
 
+class TestAutoCountryFilter:
+    def test_recommended_pseudo_country_is_not_a_listed_location(self, monkeypatch):
+        """REC (\"automatically choose\") is resolved implicitly, not pickable.
+
+        It has no flag, no cities of its own and produced a row with an empty
+        data-code in the location list.
+        """
+        api_module._config = None
+        monkeypatch.setattr(
+            "perchvpn.serverlist.fetch_server_list",
+            lambda path=None: [_country("REC"), _country("DE")],
+        )
+        result = asyncio.run(api_module.get_countries())
+        assert [c.code for c in result] == ["DE"]
+
+
 class TestCountriesCache:
     def test_countries_served_from_single_fetch(self, monkeypatch):
         # No config: the fetch runs without a disk cache path.
