@@ -548,6 +548,7 @@ def _launch_webview() -> int:
     # Interactive re-authentication runs in the background so the window can
     # open immediately; the app serves a signed-out UI until it completes.
     _start_auth_preflight()
+    tray = None
     try:
         # Wait for application initialization to complete
         if not _wait_for_api_ready():
@@ -563,7 +564,7 @@ def _launch_webview() -> int:
             return 1
 
         # Create the WebView2 window
-        webview.create_window(
+        window = webview.create_window(
             title="Perch VPN",
             url=url,
             width=1100,
@@ -572,6 +573,8 @@ def _launch_webview() -> int:
             text_select=False,
         )
         _mark("window_created", "webview2 window queued")
+
+        tray = _start_tray(window)
 
         try:
             webview.start(
@@ -593,6 +596,8 @@ def _launch_webview() -> int:
 
         return 0
     finally:
+        if tray is not None:
+            tray.stop()
         api_server.should_exit = True
         if api_thread.is_alive():
             api_thread.join(timeout=SHUTDOWN_JOIN_TIMEOUT)
@@ -606,6 +611,106 @@ def _launch_webview() -> int:
             logger.warning(
                 "API server thread did not stop within %.1fs", SHUTDOWN_JOIN_TIMEOUT
             )
+
+
+def _api_status(timeout: float = 1.5) -> tuple:
+    """Return ``(status, is_active)`` from the local API, best effort."""
+    import json
+    import urllib.request
+
+    url = f"http://{API_HOST}:{API_PORT}/api/status"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except Exception:  # noqa: BLE001 - the menu must render even if the API stalls
+        return "Disconnected", False
+    status = str(data.get("status") or "disconnected").strip().lower()
+    active = status in ("connected", "connecting")
+    return status.capitalize(), active
+
+
+def _tray_toggle() -> None:
+    """Connect or disconnect from the tray menu without blocking the icon."""
+
+    def _work() -> None:
+        import urllib.request
+
+        _label, active = _api_status()
+        path = "/api/disconnect" if active else "/api/connect"
+        url = f"http://{API_HOST}:{API_PORT}{path}"
+        request = urllib.request.Request(url, data=b"", method="POST")
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                response.read()
+        except Exception as exc:  # noqa: BLE001 - the UI shows the real error
+            logger.warning("tray %s failed: %s", path, exc)
+
+    thread = threading.Thread(target=_work, daemon=True, name="perchvpn-tray-toggle")
+    thread.start()
+    return thread
+
+
+def _start_tray(window):
+    """Attach a tray icon and hide (instead of close) on the X button.
+
+    Returns the tray icon, or None when unsupported or unavailable; a machine
+    without a notification area still gets a normal window.
+    """
+    from perchvpn_windows import tray as tray_module
+
+    if not tray_module.is_supported():
+        return None
+    state = {"quitting": False}
+
+    def _open() -> None:
+        window.show()
+        window.restore()
+
+    def _quit() -> None:
+        state["quitting"] = True
+        try:
+            window.destroy()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("tray quit could not close the window: %s", exc)
+
+    def _menu() -> list:
+        _label, active = _api_status()
+        return [
+            (tray_module.MENU_OPEN, "Open Perch VPN", True),
+            (tray_module.MENU_TOGGLE, "Disconnect" if active else "Connect", True),
+            (0, "", False),
+            (tray_module.MENU_QUIT, "Quit", True),
+        ]
+
+    icon = tray_module.TrayIcon(
+        on_open=_open,
+        on_toggle=_tray_toggle,
+        on_quit=_quit,
+        icon_path=_web_icon_path(),
+        menu_provider=_menu,
+    )
+
+    def _on_closing(*_args):
+        if state["quitting"]:
+            return True
+        try:
+            window.hide()
+        except Exception as exc:  # noqa: BLE001 - never trap the user
+            logger.warning("could not hide the window: %s", exc)
+            return True
+        _mark("window_hidden", "close button sent the window to the tray")
+        return False
+
+    # The close handler must only exist once there is a tray icon to restore
+    # the window from; otherwise the X button would hide it for good.
+    if not icon.start():
+        return None
+    try:
+        window.events.closing += _on_closing
+    except Exception as exc:  # noqa: BLE001 - never trap the user
+        logger.warning("close-to-tray unavailable: %s", exc)
+        return None
+    return icon
 
 
 def _webview2_storage_path() -> Optional[str]:
