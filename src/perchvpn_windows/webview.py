@@ -29,7 +29,12 @@ STARTUP_TIMEOUT = 30.0  # seconds
 SLOW_START_WARNING = 10.0  # seconds before the wait is reported as slow
 # Monotonic reference for the startup timing marks in perchvpn.log.
 _PROCESS_STARTED = time.monotonic()
-STARTUP_POLL_INTERVAL = 0.5  # seconds
+# 50 ms while the API is expected imminently, then 250 ms: the coarse 500 ms
+# grid used to add an average of ~250 ms to every window launch (the API is
+# ready, the window just had not noticed).
+STARTUP_POLL_INTERVAL = 0.05  # seconds
+STARTUP_POLL_BACKOFF_AFTER = 3.0  # seconds
+STARTUP_POLL_INTERVAL_SLOW = 0.25  # seconds
 AUTH_TIMEOUT = 300.0  # seconds (5 minutes for interactive auth)
 AUTH_POLL_INTERVAL = 1.0  # seconds
 # Wait long enough for TunHelperClient.stop() to confirm child termination
@@ -344,7 +349,11 @@ def _wait_for_api_ready() -> bool:
         except Exception as exc:  # noqa: BLE001
             logger.debug("Readiness check error: %s", exc)
 
-        time.sleep(STARTUP_POLL_INTERVAL)
+        time.sleep(
+            STARTUP_POLL_INTERVAL
+            if waited < STARTUP_POLL_BACKOFF_AFTER
+            else STARTUP_POLL_INTERVAL_SLOW
+        )
 
     logger.error("API server did not become ready within %.1fs", STARTUP_TIMEOUT)
     return False

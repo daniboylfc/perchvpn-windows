@@ -6,6 +6,7 @@ import asyncio
 import contextlib
 import functools
 import hashlib
+import importlib
 import ipaddress
 import logging
 import socket
@@ -21,8 +22,32 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from . import diagnostics
-from . import oauth as oauth_module
 from . import config as config_module
+
+# The OAuth module pulls the full FXA/pkce stack (≈80 ms) but only the four
+# /api/auth/oauth/* endpoints need it.  Importing it lazily keeps that cost off
+# the boot path, which is what the window waits for before first paint.
+class _LazyModule:
+    """Import a sibling module on first attribute access."""
+
+    def __init__(self, name: str) -> None:
+        self._name = name
+        self._module = None
+        self._lock = threading.Lock()
+
+    def _load(self):
+        if self._module is None:
+            with self._lock:
+                if self._module is None:
+                    self._module = importlib.import_module("." + self._name, __package__)
+        return self._module
+
+    def __getattr__(self, item: str):
+        return getattr(self._load(), item)
+
+
+oauth_module = _LazyModule("oauth")
+
 from .app import PerchVPNApp, resolve_tun_executable
 from .config import (
     WindowsConfig,

@@ -118,7 +118,7 @@ class TestWaitForApiReady:
 
         assert result is True
         assert mock_get.call_count == 2
-        mock_sleep.assert_called_once_with(0.5)
+        mock_sleep.assert_called_once_with(0.05)
 
     @patch("src.perchvpn_windows.webview.time.monotonic")
     @patch("src.perchvpn_windows.webview.time.sleep")
@@ -140,7 +140,7 @@ class TestWaitForApiReady:
 
         assert result is True
         assert mock_get.call_count == 2
-        mock_sleep.assert_called_once_with(0.5)
+        mock_sleep.assert_called_once_with(0.05)
 
     @patch("src.perchvpn_windows.webview.time.monotonic")
     @patch("src.perchvpn_windows.webview.time.sleep")
