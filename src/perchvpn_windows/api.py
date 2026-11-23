@@ -78,6 +78,17 @@ _API_EXECUTOR = ThreadPoolExecutor(
 _SERVERLIST_EXECUTOR = ThreadPoolExecutor(
     max_workers=1, thread_name_prefix="perchvpn-serverlist"
 )
+# Latency-sweep pass minting runs here, not on the shared API pool: a burst of
+# country-row probes (up to four at a time) could otherwise occupy every API
+# worker and starve /api/mode or a disconnect teardown of its thread.
+_URLTEST_WORKERS = 2
+_URLTEST_EXECUTOR = ThreadPoolExecutor(
+    max_workers=_URLTEST_WORKERS, thread_name_prefix="perchvpn-urltest"
+)
+# The disconnect button must answer promptly even when an elevated helper is
+# slow to confirm teardown; cleanup then continues in the background.
+_DISCONNECT_HTTP_TIMEOUT_SECONDS = 12.0
+_bg_shutdown_task: Optional[asyncio.Task] = None
 
 
 async def _run_in_api_pool(
@@ -89,6 +100,42 @@ async def _run_in_api_pool(
     loop = asyncio.get_running_loop()
     call = functools.partial(func, *args, **kwargs)
     return await loop.run_in_executor(_API_EXECUTOR, call)
+
+
+async def _run_in_urltest_pool(
+    func: Callable[..., Any], /, *args: Any, **kwargs: Any
+) -> Any:
+    """Run latency-sweep pass minting on its own isolated pool."""
+    import functools
+
+    loop = asyncio.get_running_loop()
+    call = functools.partial(func, *args, **kwargs)
+    return await loop.run_in_executor(_URLTEST_EXECUTOR, call)
+
+
+async def _await_background_shutdown(timeout: float = 30.0) -> None:
+    """Wait (bounded) for a disconnect that outlived its HTTP response.
+
+    A lifecycle endpoint must never build a new app on top of a half-torn-down
+    old one, but it must also never hang the UI: the wait is bounded and a
+    timeout is logged rather than propagated.
+    """
+    global _bg_shutdown_task
+    task = _bg_shutdown_task
+    if task is None:
+        return
+    try:
+        await asyncio.wait_for(asyncio.shield(task), timeout=timeout)
+    except asyncio.TimeoutError:
+        logger.error("background disconnect teardown still running after %.1fs", timeout)
+        return
+    except asyncio.CancelledError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - the verdict was already reported
+        logger.warning("background disconnect teardown failed: %s", exc)
+    finally:
+        if task.done():
+            _bg_shutdown_task = None
 
 
 class NetworkConfig(BaseModel):
@@ -603,19 +650,20 @@ async def _startup() -> None:
 
 
 async def _shutdown() -> None:
-    global _app, _config, _init_task, _restart_task
+    global _app, _config, _init_task, _restart_task, _bg_shutdown_task
     # Stop the /ws/status monitor before app teardown so it never races
     # _app/_config being torn down to None.
     await _stop_status_monitor()
-    # Sequence background work before app teardown: let an in-flight init
-    # finish (success or its own failure handling) rather than cancelling
-    # it mid-write; init itself is fully timeout-bounded.
-    for task in (_init_task, _restart_task):
+    # Sequence background work before app teardown: let an in-flight init or
+    # a disconnect that outlived its HTTP response finish (success or its own
+    # failure handling) rather than cancelling it mid-write.
+    for task in (_init_task, _restart_task, _bg_shutdown_task):
         if task is not None and not task.done():
             with contextlib.suppress(asyncio.CancelledError, Exception):
                 await task
     _init_task = None
     _restart_task = None
+    _bg_shutdown_task = None
     if _app is not None:
         try:
             await asyncio.wait_for(
@@ -2311,6 +2359,7 @@ async def set_connection_mode(request: ConnectionModeRequest) -> dict:
     """
     global _config
     async with _api_lock:
+        await _await_background_shutdown()
         config = load_config()
         mode = request.mode
         opt_in_auto_enabled = False
@@ -2883,7 +2932,7 @@ async def get_urltest(host: str, port: int, timeout: float = 6.0) -> dict:
     # Pass acquisition can make its own Guardian HTTP call.  Keep it off the
     # ASGI event loop so a burst of country-row probes and /api/status polls
     # do not serialize behind pass minting.
-    raw_token = await _run_in_api_pool(_get_urltest_raw_token)
+    raw_token = await _run_in_urltest_pool(_get_urltest_raw_token)
 
     from perchvpn.exceptions import ProxyError
     from perchvpn.proxy.session import H2ProxySession
@@ -3019,7 +3068,7 @@ async def get_urltest(host: str, port: int, timeout: float = 6.0) -> dict:
 @app.post("/api/disconnect")
 async def disconnect() -> dict:
     """Gracefully disconnect the VPN: stop controller and SOCKS frontend."""
-    global _app, _restart_task
+    global _app, _restart_task, _bg_shutdown_task
     if _restart_task is not None and not _restart_task.done():
         _restart_task.cancel()
         # The button must always answer: bound the wait for in-flight
@@ -3033,10 +3082,30 @@ async def disconnect() -> dict:
             await asyncio.sleep(0.05)
         _restart_task = None
     async with _api_lock:
+        await _await_background_shutdown()
         if _app is None:
             return {"success": True, "detail": "Not connected"}
+        shutdown_task = asyncio.ensure_future(_app.shutdown())
         try:
-            await _app.shutdown()
+            await asyncio.wait_for(
+                asyncio.shield(shutdown_task),
+                timeout=_DISCONNECT_HTTP_TIMEOUT_SECONDS,
+            )
+        except asyncio.TimeoutError:
+            # Teardown (elevated helper + recovery verification) can exceed
+            # any sensible HTTP budget.  Keep the UI responsive: report the
+            # request and let cleanup finish in the background; the next
+            # connect/restart waits for it before building a new app.
+            _bg_shutdown_task = shutdown_task
+            logger.warning(
+                "disconnect: teardown exceeded %.1fs; continuing in the background",
+                _DISCONNECT_HTTP_TIMEOUT_SECONDS,
+            )
+            await broadcast_status()
+            return {
+                "success": True,
+                "detail": "Disconnect requested; cleanup is finishing in the background",
+            }
         except RuntimeError as exc:
             raise HTTPException(
                 status_code=500,
@@ -3117,6 +3186,7 @@ async def _restart_worker(mode: Optional[str] = None) -> None:
     """
     global _app, _config
     async with _api_lock:
+        await _await_background_shutdown()
         if _app is not None:
             # /api/disconnect cancels this task to keep the button
             # responsive, and the cancellation must never land inside a
@@ -3138,11 +3208,29 @@ async def _restart_worker(mode: Optional[str] = None) -> None:
                 raise
             except RuntimeError as exc:
                 # Old-app shutdown failed — retain it as the recovery owner
-                # and do not initialize a replacement.
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"VPN restart failed; old shutdown error: {exc}",
-                ) from exc
+                # and do not initialize a replacement, unless the requested
+                # mode does not own the tunnel at all.  A proxy-only restart
+                # cannot race a residual TUN adapter, so refusing it turned a
+                # single unverified TUN teardown into a lockout of *both*
+                # modes until the process was killed.
+                requested = mode
+                if requested is None:
+                    try:
+                        requested = (
+                            "proxy_only" if load_config().proxy_only_mode else None
+                        )
+                    except Exception:  # noqa: BLE001 - treat as unknown
+                        requested = None
+                if requested != "proxy_only":
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"VPN restart failed; old shutdown error: {exc}",
+                    ) from exc
+                logger.warning(
+                    "old TUN shutdown did not complete (%s); continuing with a "
+                    "proxy-only restart because that mode does not own the tunnel",
+                    exc,
+                )
         config = load_config()
         if mode is not None:
             _apply_mode_flags(config, mode)
@@ -3208,6 +3296,7 @@ async def set_country(selection: CountrySelection) -> dict:
     """Set the selected country and persist to config."""
     global _app, _config
     async with _api_lock:
+        await _await_background_shutdown()
         # Validate country exists (shared server-list snapshot). When the app
         # can hot-swap, a stale snapshot is enough for validation and the
         # request must not block on a network refresh.
