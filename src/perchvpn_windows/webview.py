@@ -22,7 +22,13 @@ logger = logging.getLogger("perchvpn_windows.webview")
 
 API_HOST = "127.0.0.1"
 API_PORT = 8765
+# First launch from a downloaded ZIP/MSI can sit in a Defender scan of
+# _internal\ for 5-15 s, so a slow start is logged with timing marks instead
+# of looking hung; the budget below already covers that window.
 STARTUP_TIMEOUT = 30.0  # seconds
+SLOW_START_WARNING = 10.0  # seconds before the wait is reported as slow
+# Monotonic reference for the startup timing marks in perchvpn.log.
+_PROCESS_STARTED = time.monotonic()
 STARTUP_POLL_INTERVAL = 0.5  # seconds
 AUTH_TIMEOUT = 300.0  # seconds (5 minutes for interactive auth)
 AUTH_POLL_INTERVAL = 1.0  # seconds
@@ -47,6 +53,72 @@ from .winconsole import (
 )
 
 
+def _mark(stage: str, detail: str = "", *, elapsed: Optional[float] = None) -> None:
+    """Record one startup timing mark in the durable startup log.
+
+    The windowed build has no console, so cold-start behaviour (Defender
+    scanning ``_internal``, slow WebView2 environment init) is only observable
+    through this log.  Best effort: never raise from a timing mark.
+    """
+    if elapsed is None:
+        elapsed = time.monotonic() - _PROCESS_STARTED
+    message = "startup %s at %.2fs%s" % (
+        stage,
+        elapsed,
+        (" (%s)" % detail) if detail else "",
+    )
+    try:
+        _append_startup_log("INFO", message)
+    except Exception:  # noqa: BLE001
+        pass
+    # Debug only: the root file handler already captures INFO records, and
+    # writing both produced duplicate lines in perchvpn.log.
+    logger.debug(message)
+
+
+def _ensure_writable_cwd() -> Path:
+    """Move the process CWD off the install directory.
+
+    An MSI install lives in ``Program Files`` and the shortcuts launch with the
+    install folder as CWD, which a standard user cannot write.  Anything that
+    resolves a relative path would then fail (or worse, look like a missing
+    asset).  Point CWD at our own writable data root instead.
+    """
+    from perchvpn_windows.platform import get_local_app_data_dir
+
+    target = get_local_app_data_dir()
+    try:
+        target.mkdir(parents=True, exist_ok=True)
+        os.chdir(target)
+    except OSError as exc:
+        logger.warning("could not move CWD to %s: %s", target, exc)
+    return target
+
+
+def _uvicorn_log_config() -> dict:
+    """uvicorn logging that never touches the (possibly absent) console.
+
+    uvicorn's default formatter calls ``sys.stdout.isatty()``; a
+    ``--windowed`` PyInstaller build has ``sys.stdout is None``, so the default
+    config raises ``AttributeError: 'NoneType' object has no attribute
+    'isatty'`` inside ``uvicorn.Config()`` and the API never starts.  Launched
+    from Explorer or an MSI shortcut there is no console to show that, which is
+    exactly the "silent exit" class of failure.  Propagate to the root handler
+    installed by ``install_startup_logging`` instead of owning stream handlers.
+    """
+    return {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {"plain": {"format": "%(levelname)s:     %(message)s"}},
+        "handlers": {},
+        "loggers": {
+            "uvicorn": {"handlers": [], "level": "WARNING", "propagate": True},
+            "uvicorn.error": {"handlers": [], "level": "WARNING", "propagate": True},
+            "uvicorn.access": {"handlers": [], "level": "WARNING", "propagate": True},
+        },
+    }
+
+
 def start_api_server() -> tuple:
     """Start the FastAPI app on loopback in a background thread.
 
@@ -67,6 +139,7 @@ def start_api_server() -> tuple:
         host=API_HOST,
         port=API_PORT,
         log_level="warning",
+        log_config=_uvicorn_log_config(),
         lifespan="on",
         workers=1,
     )
@@ -228,9 +301,24 @@ def _wait_for_api_ready() -> bool:
     import httpx
 
     url = f"http://{API_HOST}:{API_PORT}/api/status"
-    deadline = time.monotonic() + STARTUP_TIMEOUT
+    started = time.monotonic()
+    deadline = started + STARTUP_TIMEOUT
+    slow_warned = False
 
-    while time.monotonic() < deadline:
+    while True:
+        now = time.monotonic()
+        if now >= deadline:
+            break
+        waited = now - started
+        if not slow_warned and waited >= SLOW_START_WARNING:
+            slow_warned = True
+            # Typical first launch from a downloaded archive: Defender is
+            # still scanning _internal\.  Say so instead of looking hung.
+            _mark(
+                "api_wait_slow",
+                "still waiting after %.0fs (antivirus scan of the bundle?)" % waited,
+                elapsed=now - _PROCESS_STARTED,
+            )
         try:
             resp = httpx.get(url, timeout=1.0)
             if resp.status_code == 200:
@@ -239,6 +327,11 @@ def _wait_for_api_ready() -> bool:
                     uptime = float(data.get("uptime") or 0.0)
                     logger.info(
                         "API ready (status=%s, uptime=%.2fs)", data["status"], uptime
+                    )
+                    _mark(
+                        "api_ready",
+                        "status=%s" % data["status"],
+                        elapsed=now - _PROCESS_STARTED,
                     )
                     return True
                 # No recognized status yet: app still initializing.
@@ -395,7 +488,7 @@ def launch_webview() -> int:
     """
     _install_startup_logging()
     _install_excepthook()
-    _append_startup_log("INFO", "GUI launch requested")
+    _mark("process_start", "gui launch requested")
     try:
         return _launch_webview()
     except Exception as exc:  # noqa: BLE001 - last-resort visibility
@@ -408,6 +501,9 @@ def launch_webview() -> int:
 
 def _launch_webview() -> int:
     url = f"http://{API_HOST}:{API_PORT}/"
+    # Must happen before anything resolves a relative path: the MSI shortcuts
+    # start us inside Program Files, which is read-only.
+    _ensure_writable_cwd()
 
     if not _port_available():
         logger.error("port %s:%s is already in use", API_HOST, API_PORT)
@@ -475,9 +571,14 @@ def _launch_webview() -> int:
             min_size=(900, 600),
             text_select=False,
         )
+        _mark("window_created", "webview2 window queued")
 
         try:
-            webview.start(icon=_web_icon_path())
+            webview.start(
+                icon=_web_icon_path(),
+                private_mode=False,
+                storage_path=_webview2_storage_path(),
+            )
         except Exception as exc:  # noqa: BLE001
             logger.error("WebView2 failed to start: %s", exc)
             _report_startup_failure(
@@ -505,6 +606,64 @@ def _launch_webview() -> int:
             logger.warning(
                 "API server thread did not stop within %.1fs", SHUTDOWN_JOIN_TIMEOUT
             )
+
+
+def _webview2_storage_path() -> Optional[str]:
+    """Return (and create) the persistent WebView2 user-data folder.
+
+    ``private_mode=True`` (pywebview's default) allocates a throwaway temp
+    profile per launch, so WebView2 re-initialises its environment from
+    scratch every time.  A stable folder under ``%LOCALAPPDATA%`` removes that
+    multi-second cold-start penalty on clean machines.
+    """
+    from perchvpn_windows.platform import get_webview2_data_dir
+
+    path = get_webview2_data_dir()
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+        return str(path)
+    except OSError as exc:
+        logger.warning("WebView2 profile directory %s unavailable: %s", path, exc)
+        return None
+
+
+def launch_api_smoke() -> int:
+    """Boot the API only, prove it answers, then shut it down cleanly.
+
+    Used by CI and by ``PerchVPN.exe --api-smoke``: a windowed build cannot
+    open or close a GUI in a headless runner, but the release smoke test still
+    needs to prove that the frozen bundle imports, writes nothing beside the
+    executable, serves ``/api/status`` and exits 0.
+    """
+    _install_startup_logging()
+    _install_excepthook()
+    _mark("process_start", "api smoke test")
+    _ensure_writable_cwd()
+    if not _port_available():
+        _report_startup_failure(
+            f"Port {API_PORT} on {API_HOST} is already in use.",
+            "The smoke test could not start PerchVPN's local service.",
+        )
+        return 1
+    api_thread, api_server = start_api_server()
+    try:
+        if not _wait_for_api_ready():
+            _report_startup_failure(
+                "The local PerchVPN service did not start in time.",
+                f"http://{API_HOST}:{API_PORT}/api/status did not answer within "
+                f"{STARTUP_TIMEOUT:.0f}s.",
+            )
+            return 1
+        _mark("api_smoke_ready", "status endpoint answered")
+        return 0
+    finally:
+        api_server.should_exit = True
+        if api_thread.is_alive():
+            api_thread.join(timeout=SHUTDOWN_JOIN_TIMEOUT)
+        if api_thread.is_alive():
+            api_server.force_exit = True
+            api_thread.join(timeout=5.0)
+        _mark("api_smoke_stopped")
 
 
 def main() -> int:

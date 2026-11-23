@@ -12,6 +12,10 @@ reflects reality (windowed frozen builds included).
 import sys
 
 _GUI_ONLY_FLAGS = frozenset({"--dashboard"})
+# Headless bundle smoke test: start the API, prove it answers, exit 0.  A
+# windowed build cannot open and close a GUI on a headless CI runner, so the
+# release workflow uses this instead of launching the window.
+_API_SMOKE_FLAGS = frozenset({"--api-smoke"})
 
 
 def _install_startup_reporting() -> None:
@@ -57,6 +61,10 @@ def _dispatch(argv=None) -> int:
     if spec_path or (argv and argv[0].split("=", 1)[0] == "--tun-helper"):
         from perchvpn_windows.tun_helper import helper_main
         return helper_main(spec_path)
+    if argv and set(argv) <= _API_SMOKE_FLAGS:
+        from perchvpn_windows.webview import launch_api_smoke
+
+        return launch_api_smoke()
     if argv and not set(argv) <= _GUI_ONLY_FLAGS:
         from perchvpn_windows.cli import main as cli_main
         return cli_main(argv)
