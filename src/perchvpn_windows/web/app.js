@@ -2182,16 +2182,21 @@
             if (this._switchBusy) return;
             this._switchBusy = true;
             const target = String(code).toUpperCase();
+            const previousChoice = this._userChoice;
+            const previousExit = this._selectedExit;
+            // Paint the choice on frame 1: the switch can take seconds (DoH
+            // resolve + hot-swap) and the row must acknowledge the click
+            // immediately. The 2s status poll promotes it to "in use" only
+            // once the new exit is verified; a failed request rolls it back.
+            this._userChoice = normaliseCountryCode(code);
+            this._selectedExit = '';
+            this.refreshCountrySelection();
+            this.log(`Switching to ${target}…`);
             try {
                 const result = await this.api('/api/country', {
                     method: 'POST',
                     body: JSON.stringify({ country_code: code })
                 });
-                // Optimistic: mark the choice immediately; the 2s status poll
-                // promotes it to "in use" only once the new exit is verified.
-                this._userChoice = normaliseCountryCode(code);
-                this._selectedExit = '';
-                this.refreshCountrySelection();
                 if (result && result.mode === 'hot_swap') {
                     this.log(`Switching to ${target} (upstream hot-swap)…`);
                 } else {
@@ -2200,6 +2205,11 @@
                 await this.loadCountries();
                 this.updateDashboard();
             } catch (e) {
+                // Roll the optimistic row back so the UI never claims a
+                // country the backend refused.
+                this._userChoice = previousChoice;
+                this._selectedExit = previousExit;
+                this.refreshCountrySelection();
                 this.log(`Failed to set country: ${e.message}`);
             } finally {
                 this._switchBusy = false;
