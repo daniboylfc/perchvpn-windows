@@ -167,6 +167,70 @@ jobs:
             throw "MSI is empty: $msi"
           }
 
+      - name: Build-flag parity guard
+        run: |
+          # One spec for local candidates and releases: the workflow must build
+          # through scripts/build-candidate.ps1 and that script must keep the
+          # flags the published bundles were validated with.
+          $workflow = Get-Content -Raw -LiteralPath ".github\workflows\release-windows.yml"
+          if ($workflow -notmatch "scripts\\build-candidate\.ps1") {
+            throw "release workflow no longer builds via scripts/build-candidate.ps1"
+          }
+          $script = Get-Content -Raw -LiteralPath "scripts\build-candidate.ps1"
+          $required = @(
+            "--noconfirm", "--onedir", "--windowed", "--clean",
+            "--collect-all", "curl_cffi", "--add-data", "--noupx"
+          )
+          $missing = $required | Where-Object { $script -notmatch [regex]::Escape($_) }
+          if ($missing) {
+            throw "build-candidate.ps1 drifted from the release flags: $($missing -join ', ')"
+          }
+          "build flags parity ok"
+
+      - name: Cold-path smoke test
+        run: |
+          # Prove the frozen bundle boots the API from a non-repo, read-only-CWD
+          # directory, writes nothing into the bundle, and exits cleanly.  The
+          # build is --windowed, so use --api-smoke (a GUI cannot open or close
+          # on a headless runner); Start-Process -Wait is required for the exit
+          # code of a GUI-subsystem executable.
+          $bundle = Join-Path $env:GITHUB_WORKSPACE "build\dist\PerchVPN"
+          $exe = Join-Path $bundle "PerchVPN.exe"
+          $sandbox = Join-Path $env:RUNNER_TEMP "smoke-cwd"
+          New-Item -ItemType Directory -Force $sandbox | Out-Null
+
+          $before = Get-ChildItem -LiteralPath $bundle -Recurse -File |
+            ForEach-Object { $_.FullName + "|" + $_.LastWriteTimeUtc.Ticks }
+
+          $logDir = Join-Path $env:LOCALAPPDATA "PerchVPN"
+          Get-ChildItem -LiteralPath $logDir -Filter "crash-*.log" -ErrorAction SilentlyContinue |
+            Remove-Item -Force -ErrorAction SilentlyContinue
+
+          $env:PERCHVPN_NO_GUI_DIALOG = "1"
+          $proc = Start-Process -FilePath $exe -ArgumentList "--api-smoke" `
+            -WorkingDirectory $sandbox -PassThru -Wait
+          if ($proc.ExitCode -ne 0) {
+            throw "api-smoke exited $($proc.ExitCode)"
+          }
+
+          $after = Get-ChildItem -LiteralPath $bundle -Recurse -File |
+            ForEach-Object { $_.FullName + "|" + $_.LastWriteTimeUtc.Ticks }
+          $changed = Compare-Object $before $after | Where-Object { $_.SideIndicator -eq "=>" }
+          if ($changed) {
+            $changed.InputObject
+            throw "runtime writes landed in the install bundle"
+          }
+
+          $crashes = Get-ChildItem -LiteralPath $logDir -Filter "crash-*.log" -ErrorAction SilentlyContinue
+          if ($crashes) {
+            $crashes.FullName
+            throw "crash log written during the smoke test"
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $logDir "perchvpn.log"))) {
+            throw "startup log was not written to %LOCALAPPDATA%\PerchVPN"
+          }
+          "cold-path smoke ok"
+
       - name: Generate SHA256SUMS
         run: |
           $artifacts = Join-Path $env:GITHUB_WORKSPACE "artifacts"

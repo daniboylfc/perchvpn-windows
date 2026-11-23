@@ -13,6 +13,32 @@
         Schedule="afterInstallInitialize" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
+    <!-- WebView2 Evergreen Runtime prerequisite.  Without it the window cannot
+         be created at all, and on a clean machine the failure used to look
+         like a silent exit.  Per-machine installs land under WOW6432Node
+         (Edge Update is 32-bit); per-user runtimes live under HKCU. -->
+    <Property Id="WEBVIEW2_MACHINE">
+      <RegistrySearch
+          Id="WebView2MachineSearch"
+          Root="HKLM"
+          Key="SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+          Name="pv"
+          Type="raw"
+          Bitness="always64" />
+    </Property>
+    <Property Id="WEBVIEW2_USER">
+      <RegistrySearch
+          Id="WebView2UserSearch"
+          Root="HKCU"
+          Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+          Name="pv"
+          Type="raw"
+          Bitness="always64" />
+    </Property>
+    <Launch
+        Condition="Installed OR WEBVIEW2_MACHINE OR WEBVIEW2_USER"
+        Message="$(var.ProductName) needs the Microsoft Edge WebView2 Evergreen Runtime to display its window. Install it from https://go.microsoft.com/fwlink/p/?LinkId=2124703 and run this installer again." />
+
     <Feature Id="MainFeature" Title="$(var.ProductName)" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="ShortcutComponents" />
