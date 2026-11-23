@@ -91,6 +91,15 @@ STATE_VERSION = 1
 
 _IPC_HANDSHAKE_TIMEOUT_SECONDS = 2.0
 _IPC_HANDSHAKE_POLL_SECONDS = 0.05
+# Windows removes the sidecar's adapter/routes asynchronously after the
+# process dies.  Capturing the residual snapshot immediately raced that
+# removal and reported a false "residual state detected" (PHASE_RECOVERY) on
+# otherwise clean teardowns, which then latched the GUI-side ownership handle.
+# Mirror the post-stop PnP settle so the snapshot observes the settled table.
+RESIDUAL_SETTLE_SECONDS = 1.0
+# How long stop() waits for a helper that published a terminal phase to
+# actually leave the process table before releasing ownership.
+TERMINAL_EXIT_WAIT_SECONDS = 3.0
 
 PHASE_STARTING = "starting"
 PHASE_READY = "ready"
@@ -99,6 +108,10 @@ PHASE_STOPPED = "stopped"
 PHASE_FAILED = "failed"
 PHASE_RECOVERY = "recovery_required"
 PHASE_CANCELLED = "cancelled"
+
+TERMINAL_PHASES = frozenset(
+    {PHASE_STOPPED, PHASE_CANCELLED, PHASE_FAILED, PHASE_RECOVERY}
+)
 
 _TUNNEL_HINTS = (
     "wintun",
@@ -1341,9 +1354,30 @@ class TunHelperClient:
         self._publish(state)
         return state
 
+    async def _wait_for_exit(self, pid: int) -> bool:
+        """True once *pid* is provably gone; bounded so Connect never hangs.
+
+        The GUI is intentionally unelevated, so ``taskkill /F`` against the
+        elevated helper fails with access denied.  A helper that published a
+        terminal phase has already given up and exits on its own; releasing
+        ownership only after the process table confirms it prevents both a
+        permanent handle latch and a second owner of the adapter.
+        """
+        if pid <= 0:
+            return True
+        deadline = self._clock() + TERMINAL_EXIT_WAIT_SECONDS
+        while True:
+            if not _parent_alive(pid):
+                return True
+            if self._clock() >= deadline:
+                return False
+            await self._sleep(self._poll_interval)
+
     async def stop(self, timeout: float = 20.0) -> Dict[str, Any]:
         state = await self._read_state_async()
         if state.get("phase") in (PHASE_STOPPED, PHASE_CANCELLED):
+            state = dict(state)
+            state["ownership_released"] = True
             self._publish(state)
             return state
         await asyncio.to_thread(self.stop_path.parent.mkdir, parents=True, exist_ok=True)
@@ -1352,6 +1386,8 @@ class TunHelperClient:
         while self._clock() < deadline:
             state = await self._read_state_async()
             if state.get("phase") == PHASE_STOPPED:
+                state = dict(state)
+                state["ownership_released"] = True
                 self._publish(state)
                 return state
             if state.get("phase") in (PHASE_FAILED, PHASE_RECOVERY):
@@ -1377,11 +1413,25 @@ class TunHelperClient:
                 "error": "",
                 "stop_reason": "force-terminated",
                 "adapter": self.spec.adapter,
+                "ownership_released": True,
             }
+            self._publish(result)
+            return result
+        if await self._wait_for_exit(pid):
+            # Terminal verdict from a helper that has left the process table.
+            # The state file is stale evidence, not live ownership: keep the
+            # verdict (recovery stays visible in status) but release the
+            # handle so disconnect/restart can proceed.
+            result = dict(state)
+            result.setdefault("phase", PHASE_RECOVERY)
+            result.setdefault("error", "helper did not confirm stop before timeout")
+            result["stop_reason"] = result.get("stop_reason") or "helper-exited"
+            result["ownership_released"] = True
             self._publish(result)
             return result
         state.setdefault("phase", PHASE_RECOVERY)
         state.setdefault("error", "helper did not confirm stop before timeout")
+        state["ownership_released"] = False
         self._publish(state)
         return state
 
@@ -1601,6 +1651,116 @@ def _residual_diffs(
     return residual
 
 
+def bypass_route_changes(
+    previous: Sequence[str], requested: Sequence[str], *, prune: bool = False
+) -> tuple[List[str], List[str]]:
+    """Return ``(to_add, to_remove)`` for one bypass update.
+
+    ``prune`` marks the requested set as authoritative: entries that are no
+    longer requested are removed from the live table instead of accumulating
+    forever (the pre-existing monitor loop ignored the flag entirely).
+    """
+    prev = {str(v).strip() for v in previous if str(v or "").strip()}
+    req = {str(v).strip() for v in requested if str(v or "").strip()}
+    to_add = sorted(req - prev)
+    to_remove = sorted(prev - req) if prune else []
+    return to_add, to_remove
+
+
+def apply_bypass_routes(add: Sequence[str], remove: Sequence[str]) -> None:
+    """Apply live /32 host routes for bypass IPs on the physical interface.
+
+    ``route_exclude_address`` is only read when sing-box starts, so an update
+    after activation (every country hot-swap) never reached the driver.  The
+    elevated helper makes the same guarantee at runtime by adding the host
+    route to the physical gateway, which keeps the dial out of the TUN.
+    Raises :class:`CoexistenceError` when the route cannot be proven.
+    """
+    adds = [str(ip).strip() for ip in add if _is_ipv4_literal(str(ip or ""))]
+    removes = [str(ip).strip() for ip in remove if _is_ipv4_literal(str(ip or ""))]
+    if not adds and not removes:
+        return
+    if sys.platform != "win32":
+        return
+    from perchvpn_windows.tun_state_capture import detect_physical_egress
+
+    egress = detect_physical_egress()
+    if egress is None:
+        raise CoexistenceError(
+            "cannot apply bypass routes: no physical egress with a default route"
+        )
+    source_ip, physical_index = str(egress[0] or ""), int(egress[1])
+    try:
+        snapshot = capture_snapshot_preferred()
+    except Exception as exc:  # noqa: BLE001
+        raise CoexistenceError(
+            "cannot apply bypass routes: network snapshot failed: %s" % exc
+        ) from exc
+    index, gateway = physical_route_gateway(snapshot, source_ip)
+    if index is None or not gateway:
+        raise CoexistenceError(
+            "cannot apply bypass routes: no physical gateway for %s" % source_ip
+        )
+    index = int(physical_index if physical_index else index)
+    for ip in adds:
+        _route_op("add", ip, gateway, index)
+    for ip in removes:
+        _route_op("delete", ip, gateway, index)
+
+
+def _route_op(action: str, ip: str, gateway: str, index: int) -> None:
+    result = run_hidden(
+        [
+            "route",
+            action.upper(),
+            ip,
+            "MASK",
+            "255.255.255.255",
+            gateway,
+            "METRIC",
+            "1",
+            "IF",
+            str(index),
+        ],
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return
+    output = _process_output(result)
+    if action == "delete" and (
+        "not found" in output.lower() or "cannot find" in output.lower()
+    ):
+        return
+    raise CoexistenceError(
+        "route %s %s via %s (if %s) failed: %s"
+        % (action, ip, gateway, index, output or "exit %s" % result.returncode)
+    )
+
+
+def _process_output(result: Any) -> str:
+    for name in ("stdout", "stderr"):
+        value = getattr(result, name, None)
+        if not value:
+            continue
+        if isinstance(value, bytes):
+            try:
+                value = value.decode("utf-8", "replace")
+            except Exception:  # noqa: BLE001
+                value = str(value)
+        text = str(value).strip()
+        if text:
+            return text
+    return ""
+
+
+def _is_ipv4_literal(value: str) -> bool:
+    try:
+        return ipaddress.ip_address(value).version == 4
+    except ValueError:
+        return False
+
+
 async def run_helper(
     spec: TunHelperSpec,
     *,
@@ -1620,6 +1780,7 @@ async def run_helper(
     poll_interval: float = 0.5,
     fast_adapter: bool = False,
     compare: Optional[Callable[..., Any]] = None,
+    apply_bypass: Callable[[Sequence[str], Sequence[str]], Any] = apply_bypass_routes,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """Run elevated sing-box lifecycle until stop or exit."""
@@ -1819,6 +1980,9 @@ async def run_helper(
     stop_reason = ""
     sidecar_died = False
     sidecar_exit_code = None
+    # /32 routes this helper added at runtime (never the ones sing-box created
+    # from the initial config); they are removed during teardown.
+    live_bypass_routes: set[str] = set()
 
     while True:
         if await asyncio.to_thread(stop_path.exists):
@@ -1848,10 +2012,23 @@ async def run_helper(
                         for v in (request.get("ips") or [])
                         if str(v).strip()
                     ]
-                    for ip in new_ips:
-                        if ip not in spec.bypass:
-                            spec.bypass.append(ip)
+                    prune = bool(request.get("prune"))
+                    to_add, to_remove = bypass_route_changes(
+                        spec.bypass, new_ips, prune=prune
+                    )
                     try:
+                        if to_add or to_remove:
+                            await asyncio.to_thread(apply_bypass, to_add, to_remove)
+                        if prune:
+                            spec.bypass[:] = [
+                                ip for ip in spec.bypass if ip in new_ips
+                            ]
+                        for ip in to_add:
+                            if ip not in spec.bypass:
+                                spec.bypass.append(ip)
+                            live_bypass_routes.add(ip)
+                        for ip in to_remove:
+                            live_bypass_routes.discard(ip)
                         build_sidecar_command(
                             spec, config_path=singbox_config_path, setup=True
                         )
@@ -1874,7 +2051,21 @@ async def run_helper(
     _write_journal(PHASE_STOPPING, child_pid=child_pid, adapter_guid=adapter_guid)
     await asyncio.to_thread(terminate, proc)
 
-    # Residual check
+    # Remove the runtime bypass routes this helper added; sing-box removes the
+    # ones it created from the initial config itself.
+    if live_bypass_routes:
+        try:
+            await asyncio.to_thread(
+                apply_bypass, [], sorted(live_bypass_routes)
+            )
+        except Exception as exc:  # noqa: BLE001 - teardown continues
+            logger.warning("could not remove live bypass routes: %s", exc)
+        live_bypass_routes.clear()
+
+    # Residual check.  Windows unpublishes the adapter and its routes
+    # asynchronously after the process exits, so snapshot only once the table
+    # has settled; otherwise a clean teardown looks like leftover state.
+    await sleep(RESIDUAL_SETTLE_SECONDS)
     residual_managed_ifaces = [adapter_ifindex] if adapter_ifindex else []
     post_snap = None
     try:

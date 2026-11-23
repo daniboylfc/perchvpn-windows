@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import types
 from pathlib import Path
 
 import pytest
@@ -450,6 +451,7 @@ class TestRunHelper:
         terminate=None,
         spec=None,
         stop_path=None,
+        apply_bypass=None,
     ):
         monkeypatch.setattr(
             tun_helper, "compare_snapshots", compare or (lambda a, b: [])
@@ -511,6 +513,11 @@ class TestRunHelper:
                 terminate=terminate or (lambda p: p.terminate()),
                 startup_timeout=5.0,
                 poll_interval=1.0,
+                **(
+                    {"apply_bypass": apply_bypass}
+                    if apply_bypass is not None
+                    else {}
+                ),
             )
 
         return asyncio.run(run()), proc, spawned, commands, clock
@@ -1355,6 +1362,65 @@ class TestRecoveryOwnership:
 # ---------------------------------------------------------------------------
 
 
+class TestLiveBypassRoutes:
+    """Runtime /32 host routes for post-start bypass updates."""
+
+    def test_changes_only_adds_new_ips(self):
+        add, remove = tun_helper.bypass_route_changes(
+            ["203.0.113.9"], ["203.0.113.9", "198.51.100.5"]
+        )
+        assert add == ["198.51.100.5"]
+        assert remove == []
+
+    def test_prune_removes_dropped_ips(self):
+        add, remove = tun_helper.bypass_route_changes(
+            ["203.0.113.9", "198.51.100.5"], ["198.51.100.7"], prune=True
+        )
+        assert add == ["198.51.100.7"]
+        assert remove == ["198.51.100.5", "203.0.113.9"]
+
+    def test_without_prune_nothing_is_ever_removed(self):
+        add, remove = tun_helper.bypass_route_changes(
+            ["203.0.113.9"], [], prune=False
+        )
+        assert (add, remove) == ([], [])
+
+    def test_non_windows_apply_is_a_noop(self, monkeypatch):
+        monkeypatch.setattr(tun_helper.sys, "platform", "linux")
+
+        def boom(*_a, **_k):
+            raise AssertionError("route.exe must not run off-Windows")
+
+        monkeypatch.setattr(tun_helper, "run_hidden", boom)
+        tun_helper.apply_bypass_routes(["203.0.113.9"], ["198.51.100.5"])
+
+    def test_ipv6_and_garbage_are_ignored(self, monkeypatch):
+        monkeypatch.setattr(tun_helper.sys, "platform", "linux")
+        tun_helper.apply_bypass_routes(["2001:db8::1", "not-an-ip"], [])
+
+    def test_route_failure_raises_coexistence_error(self, monkeypatch):
+        monkeypatch.setattr(
+            tun_helper,
+            "run_hidden",
+            lambda *a, **k: types.SimpleNamespace(
+                returncode=1, stdout="", stderr="The route addition failed"
+            ),
+        )
+        with pytest.raises(tun_helper.CoexistenceError) as excinfo:
+            tun_helper._route_op("add", "203.0.113.9", "192.168.1.1", 7)
+        assert "route add 203.0.113.9" in str(excinfo.value)
+
+    def test_missing_route_on_delete_is_tolerated(self, monkeypatch):
+        monkeypatch.setattr(
+            tun_helper,
+            "run_hidden",
+            lambda *a, **k: types.SimpleNamespace(
+                returncode=1, stdout="", stderr="Element not found."
+            ),
+        )
+        tun_helper._route_op("delete", "203.0.113.9", "192.168.1.1", 7)
+
+
 class TestRunHelperP0:
     def test_intent_is_journaled_before_mutation(self, tmp_path, monkeypatch):
         seen = {}
@@ -1394,6 +1460,90 @@ class TestRunHelperP0:
         assert final["bypass_error"] == ""
         cfg = json.loads(Path(spawned[0][-1]).read_text(encoding="utf-8"))
         assert "203.0.113.77/32" in cfg["inbounds"][0]["route_exclude_address"]
+
+    def test_bypass_update_applies_live_route_and_removes_it_on_teardown(
+        self, tmp_path, monkeypatch
+    ):
+        """A post-start bypass update must reach the OS, not just the JSON.
+
+        ``route_exclude_address`` is read only when sing-box starts, so
+        rewriting the sidecar config alone left the new /32 inside the TUN.
+        """
+        bypass = tmp_path / "bypass.json"
+        bypass.write_text(json.dumps({"version": 1, "ips": ["203.0.113.77"]}))
+        alive = {"n": 0}
+
+        def parent_alive(pid):
+            alive["n"] += 1
+            return alive["n"] <= 6
+
+        calls: list[tuple[list[str], list[str]]] = []
+        final, _proc, _spawned, _commands, _ = TestRunHelper()._run(
+            tmp_path,
+            monkeypatch,
+            probe=lambda a: _evidence(),
+            bypass_path=bypass,
+            parent_alive=parent_alive,
+            spec=_spec(bypass=[]),
+            apply_bypass=lambda add, remove: calls.append(
+                (list(add), list(remove))
+            ),
+        )
+        assert final["phase"] == tun_helper.PHASE_STOPPED
+        assert final["bypass_error"] == ""
+        assert (["203.0.113.77"], []) in calls
+        assert ([], ["203.0.113.77"]) in calls
+
+    def test_prune_removes_stale_bypass_routes(self, tmp_path, monkeypatch):
+        bypass = tmp_path / "bypass.json"
+        bypass.write_text(
+            json.dumps({"version": 1, "ips": ["203.0.113.77"], "prune": True})
+        )
+        alive = {"n": 0}
+
+        def parent_alive(pid):
+            alive["n"] += 1
+            return alive["n"] <= 6
+
+        calls: list[tuple[list[str], list[str]]] = []
+        final, _proc, _spawned, _commands, _ = TestRunHelper()._run(
+            tmp_path,
+            monkeypatch,
+            probe=lambda a: _evidence(),
+            bypass_path=bypass,
+            parent_alive=parent_alive,
+            spec=_spec(bypass=["198.51.100.5"]),
+            apply_bypass=lambda add, remove: calls.append(
+                (list(add), list(remove))
+            ),
+        )
+        assert final["bypass_error"] == ""
+        assert (["203.0.113.77"], ["198.51.100.5"]) in calls
+
+    def test_route_failure_is_reported_instead_of_claiming_success(
+        self, tmp_path, monkeypatch
+    ):
+        bypass = tmp_path / "bypass.json"
+        bypass.write_text(json.dumps({"version": 1, "ips": ["203.0.113.77"]}))
+        alive = {"n": 0}
+
+        def parent_alive(pid):
+            alive["n"] += 1
+            return alive["n"] <= 6
+
+        def failing(add, remove):
+            raise tun_helper.CoexistenceError("route add 203.0.113.77 failed")
+
+        final, _proc, _spawned, _commands, _ = TestRunHelper()._run(
+            tmp_path,
+            monkeypatch,
+            probe=lambda a: _evidence(),
+            bypass_path=bypass,
+            parent_alive=parent_alive,
+            spec=_spec(bypass=[]),
+            apply_bypass=failing,
+        )
+        assert "route add 203.0.113.77 failed" in final["bypass_error"]
 
 
 class TestClientBypassAck:
