@@ -18,6 +18,17 @@ _MUTEX_NAME = "Local\\PerchVPN-Desktop-Instance"
 _handle: Optional[int] = None
 
 
+def _kernel32():
+    """Kernel32 with ctypes-managed last-error state.
+
+    ``ctypes.windll`` saves/restores the thread's last-error around every call,
+    so a separate ``GetLastError()`` call reads the *pre-call* value.  Only a
+    library created with ``use_last_error=True`` paired with
+    ``ctypes.get_last_error()`` reports the result of ``CreateMutexW``.
+    """
+    return ctypes.WinDLL("kernel32", use_last_error=True)
+
+
 def acquire() -> bool:
     """Return False when another GUI instance already owns the mutex."""
     global _handle
@@ -25,20 +36,20 @@ def acquire() -> bool:
         return True
     if _handle:
         return True
-    kernel32 = ctypes.windll.kernel32
+    kernel32 = _kernel32()
     kernel32.CreateMutexW.restype = ctypes.c_void_p
     kernel32.CreateMutexW.argtypes = [
         ctypes.c_void_p,
         ctypes.c_bool,
         ctypes.c_wchar_p,
     ]
-    kernel32.GetLastError.restype = ctypes.c_ulong
     kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
     kernel32.CloseHandle.restype = ctypes.c_bool
     handle = kernel32.CreateMutexW(None, False, _MUTEX_NAME)
+    last_error = ctypes.get_last_error()
     if not handle:
         return True
-    if kernel32.GetLastError() == _ERROR_ALREADY_EXISTS:
+    if last_error == _ERROR_ALREADY_EXISTS:
         kernel32.CloseHandle(handle)
         return False
     _handle = handle

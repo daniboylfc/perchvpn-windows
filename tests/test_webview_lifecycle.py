@@ -127,21 +127,35 @@ class TestLaunchWebviewShutdown:
         assert server.force_exit is True
         assert stuck.join_calls == [webview_identity.SHUTDOWN_JOIN_TIMEOUT, 5.0]
 
-    def test_auth_failure_returns_before_api_start(self, monkeypatch):
-        """When re-authentication is required and the interactive auth flow
-        fails, no API server is started and no shutdown signaling is
-        required — launch_webview must return 1 without touching the
-        server lifecycle."""
+    def test_auth_failure_does_not_block_the_window(self, monkeypatch):
+        """Re-authentication runs off the launch path: a failed interactive
+        auth flow must not stop the API from starting or the window from
+        opening (the app stays signed out instead of exiting silently)."""
+        ran: list[bool] = []
 
-        def boom():
-            raise AssertionError("start_api_server must not be called")
+        def failing_auth() -> bool:
+            ran.append(True)
+            return False
 
-        monkeypatch.setitem(sys.modules, "webview", types.ModuleType("webview"))
+        thread, server = self._wire(monkeypatch, ready=True)
         monkeypatch.setattr(webview_identity, "_preflight_interactive_auth", lambda: True)
-        monkeypatch.setattr(webview_identity, "_run_auth_flow", lambda: False)
-        monkeypatch.setattr(webview_identity, "start_api_server", boom)
+        monkeypatch.setattr(webview_identity, "_run_auth_flow", failing_auth)
 
-        assert webview_identity.launch_webview() == 1
+        assert webview_identity.launch_webview() == 0
+        assert ran == [True]
+        assert server.should_exit is True
+
+    def test_auth_preflight_skipped_when_no_reauth_needed(self, monkeypatch):
+        """A valid token must not spawn the preflight thread at all."""
+        monkeypatch.setattr(
+            webview_identity, "_preflight_interactive_auth", lambda: False
+        )
+
+        def boom() -> bool:
+            raise AssertionError("auth flow must not run with a valid token")
+
+        monkeypatch.setattr(webview_identity, "_run_auth_flow", boom)
+        assert webview_identity._start_auth_preflight() is None
 
 
 class TestWaitForApiReadyProxyOnly:

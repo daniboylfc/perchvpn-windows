@@ -33,6 +33,14 @@ SHUTDOWN_JOIN_TIMEOUT = 30.0  # seconds to wait for the API server thread
 
 
 
+from .startup_diagnostics import (
+    append_startup_log as _append_startup_log,
+    install_excepthook as _install_excepthook,
+    install_startup_logging as _install_startup_logging,
+    report_startup_failure as _report_startup_failure,
+    show_info_dialog as _show_info_dialog,
+    startup_log_path as _startup_log_path,
+)
 from .winconsole import (
     ensure_interactive_console as _ensure_interactive_console,
     restore_streams as _restore_streams,
@@ -273,6 +281,41 @@ def _preflight_interactive_auth() -> bool:
     return False
 
 
+def _start_auth_preflight() -> Optional[threading.Thread]:
+    """Run the interactive auth gate off the launch path.
+
+    Returns the daemon thread when re-authentication is required, else None.
+    Blocking window creation on an interactive console helper made a slow or
+    failed sign-in indistinguishable from a crash: no window, no message.  The
+    window now always appears and the app simply stays signed out when the
+    preflight does not complete.
+    """
+    if not _preflight_interactive_auth():
+        return None
+
+    def _run() -> None:
+        try:
+            ok = _run_auth_flow()
+        except Exception as exc:  # noqa: BLE001 - never kill the GUI
+            logger.error("Authentication preflight failed: %s", exc)
+            ok = False
+        if ok:
+            logger.info("Authentication preflight completed")
+            return
+        logger.error("Authentication preflight did not complete; staying signed out")
+        _show_info_dialog(
+            "Sign-in did not complete, so PerchVPN opened signed out.\n"
+            "Use the Sign in button in the window to try again.\n\n"
+            f"Log file: {_startup_log_path()}"
+        )
+
+    thread = threading.Thread(
+        target=_run, daemon=True, name="perchvpn-auth-preflight"
+    )
+    thread.start()
+    return thread
+
+
 def _web_icon_path() -> Optional[str]:
     """Resolve the packaged window/taskbar icon (editable and frozen)."""
     base = getattr(sys, "_MEIPASS", None)
@@ -281,26 +324,124 @@ def _web_icon_path() -> Optional[str]:
     return str(candidate) if candidate.is_file() else None
 
 
+WEBVIEW2_DOWNLOAD_URL = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
+
+
+def _port_available(host: str = API_HOST, port: int = API_PORT) -> bool:
+    """Return True when a loopback listener can bind ``host:port``.
+
+    A hardcoded port with no preflight turned a collision into a 30 s silent
+    wait and a windowless exit.  No ``SO_REUSEADDR``: on Windows that would
+    make the probe succeed while another process is listening.
+    """
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        try:
+            sock.bind((host, int(port)))
+        except OSError:
+            return False
+    return True
+
+
+def _webview2_runtime_available() -> bool:
+    """Best-effort check for the WebView2 Evergreen Runtime.
+
+    pywebview logs a missing runtime on its own logger, which the windowed
+    build never shows; the user sees a blank window or nothing at all.  Check
+    the Edge Update client entries (machine and per-user) and the installed
+    runtime directories before creating the window.
+    """
+    if sys.platform != "win32":
+        return True
+    try:
+        import winreg
+    except ImportError:  # pragma: no cover - win32 always has winreg
+        return True
+    registry_paths = (
+        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients"),
+        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\EdgeUpdate\Clients"),
+        (winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\EdgeUpdate\Clients"),
+    )
+    for root, path in registry_paths:
+        try:
+            with winreg.OpenKey(root, path) as clients:
+                count = winreg.QueryInfoKey(clients)[0]
+                for index in range(count):
+                    try:
+                        key_name = winreg.EnumKey(clients, index)
+                        with winreg.OpenKey(clients, key_name) as client:
+                            display_name, _ = winreg.QueryValueEx(client, "name")
+                    except OSError:
+                        continue
+                    if "webview2" in str(display_name).lower():
+                        return True
+        except OSError:
+            continue
+    for env in ("ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"):
+        base = os.environ.get(env)
+        if base and (Path(base) / "Microsoft" / "EdgeWebView" / "Application").is_dir():
+            return True
+    return False
+
+
 def launch_webview() -> int:
-    """Launch the WebView2 window. Returns exit code."""
+    """Launch the WebView2 window. Returns exit code.
+
+    Durable logging and an exception hook are installed before any GUI import:
+    the frozen build has no console, so an unlogged failure used to exit the
+    process silently.  Every non-zero path now surfaces a native dialog with
+    the reason and the log file location.
+    """
+    _install_startup_logging()
+    _install_excepthook()
+    _append_startup_log("INFO", "GUI launch requested")
+    try:
+        return _launch_webview()
+    except Exception as exc:  # noqa: BLE001 - last-resort visibility
+        _report_startup_failure(
+            "PerchVPN could not start the desktop window.",
+            f"{type(exc).__name__}: {exc}",
+        )
+        return 1
+
+
+def _launch_webview() -> int:
     url = f"http://{API_HOST}:{API_PORT}/"
+
+    if not _port_available():
+        logger.error("port %s:%s is already in use", API_HOST, API_PORT)
+        _report_startup_failure(
+            f"Port {API_PORT} on {API_HOST} is already in use.",
+            "PerchVPN's local service cannot start, so the window was not opened.",
+            hint=(
+                "Close whatever is using that port (often another PerchVPN.exe) "
+                "and start PerchVPN again."
+            ),
+        )
+        return 1
+
+    if not _webview2_runtime_available():
+        logger.error("Microsoft Edge WebView2 Runtime is not installed")
+        _report_startup_failure(
+            "Microsoft Edge WebView2 Runtime is missing.",
+            "PerchVPN needs the free WebView2 Evergreen Runtime to draw its window.",
+            hint=f"Install it from {WEBVIEW2_DOWNLOAD_URL} and start PerchVPN again.",
+        )
+        return 1
 
     try:
         import webview
-    except ImportError:
-        logger.warning("pywebview not installed; WebView2 GUI unavailable")
-        logger.info("Open %s in a browser, or use --no-dashboard", url)
-        # Keep API alive so the browser can talk to it
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            return 0
-
-    # Authentication first — but only when re-authentication is genuinely
-    # required. A signed-out first run opens the GUI directly (see
-    # _preflight_interactive_auth) and the GUI drives sign-in.
-    if _preflight_interactive_auth() and not _run_auth_flow():
+    except ImportError as exc:
+        logger.error("pywebview not installed; WebView2 GUI unavailable: %s", exc)
+        _report_startup_failure(
+            "The desktop GUI backend (pywebview) is not available.",
+            f"{type(exc).__name__}: {exc}",
+            hint=(
+                "Reinstall PerchVPN. To use the browser dashboard instead, run "
+                f"{url} while `PerchVPN.exe --dashboard` is running from a terminal."
+            ),
+        )
         return 1
 
     # Start the API before opening the window. The finally block below
@@ -308,13 +449,25 @@ def launch_webview() -> int:
     # frontend/controller teardown) executes on every exit path: ready
     # timeout, WebView2 failure, or normal window close.
     api_thread, api_server = start_api_server()
+    # Interactive re-authentication runs in the background so the window can
+    # open immediately; the app serves a signed-out UI until it completes.
+    _start_auth_preflight()
     try:
         # Wait for application initialization to complete
         if not _wait_for_api_ready():
+            _report_startup_failure(
+                "The local PerchVPN service did not start in time.",
+                f"http://{API_HOST}:{API_PORT}/api/status did not answer within "
+                f"{STARTUP_TIMEOUT:.0f}s.",
+                hint=(
+                    f"Another program may already be using port {API_PORT}, or "
+                    "security software is blocking the app."
+                ),
+            )
             return 1
 
         # Create the WebView2 window
-        window = webview.create_window(
+        webview.create_window(
             title="Perch VPN",
             url=url,
             width=1100,
@@ -327,6 +480,14 @@ def launch_webview() -> int:
             webview.start(icon=_web_icon_path())
         except Exception as exc:  # noqa: BLE001
             logger.error("WebView2 failed to start: %s", exc)
+            _report_startup_failure(
+                "The WebView2 window could not be created.",
+                f"{type(exc).__name__}: {exc}",
+                hint=(
+                    "Install the free Microsoft Edge WebView2 Evergreen Runtime "
+                    f"({WEBVIEW2_DOWNLOAD_URL}), then start PerchVPN again."
+                ),
+            )
             return 1
 
         return 0

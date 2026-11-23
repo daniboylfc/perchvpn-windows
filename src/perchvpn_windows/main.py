@@ -14,6 +14,25 @@ import sys
 _GUI_ONLY_FLAGS = frozenset({"--dashboard"})
 
 
+def _install_startup_reporting() -> None:
+    """Install durable logging + exception hooks before any fallible import.
+
+    A ``--windowed`` build has no console: without this, a failure in the
+    GUI/API/auth imports exits the process with no window, no dialog and no
+    trace.  Import failures here must never block the real dispatch.
+    """
+    try:
+        from perchvpn_windows.startup_diagnostics import (
+            install_excepthook,
+            install_startup_logging,
+        )
+
+        install_startup_logging()
+        install_excepthook()
+    except Exception:  # noqa: BLE001 - last-resort reporter must not break launch
+        pass
+
+
 def _helper_spec(argv) -> str:
     """Return the ``--tun-helper`` spec path, or ``""`` when not requested.
 
@@ -45,6 +64,12 @@ def _dispatch(argv=None) -> int:
     from perchvpn_windows.webview import launch_webview
 
     if not acquire():
+        # A second GUI instance used to exit silently (exit 0, no window, no
+        # log) which looks like a broken double-click.  Record it durably and
+        # bring the existing window forward when Windows allows it.
+        from perchvpn_windows.startup_diagnostics import report_second_instance
+
+        report_second_instance()
         return 0
     try:
         return launch_webview()
@@ -53,4 +78,5 @@ def _dispatch(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    _install_startup_reporting()
     sys.exit(_dispatch())
