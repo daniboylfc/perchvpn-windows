@@ -1362,6 +1362,42 @@ class TestBaselineRestoration:
         assert frontend.status == RECOVERY_UNVERIFIED
         assert commands == [], "no blind rollback when recovery is unverified"
 
+    @pytest.mark.asyncio
+    async def test_later_stop_rederives_an_unverified_verdict(self, tmp_path):
+        """A latched UNVERIFIED used to block every later disconnect/restart.
+
+        Once the in-process run is consumed, the next stop re-derives the
+        verdict from the durable ownership record instead of returning early
+        with the stale failure.
+        """
+        executed: list[str] = []
+
+        def executor(cmd: str) -> str:
+            executed.append(cmd)
+            return "ok"
+
+        gate = _gate(tmp_path, probe=lambda guid, name: False, rollback_executor=executor)
+        frontend = _frontend(gate)
+        proc = _FakeProcess()
+
+        with self._run_flow(frontend, proc):
+            await frontend.start()
+            self._swap_capture(
+                gate, [_drifted_snapshot_dict(), _drifted_snapshot_dict()]
+            )
+            await frontend.stop()
+            assert frontend.recovery_state == RECOVERY_UNVERIFIED
+
+            # Next teardown: the sidecar is dead, the adapter is gone and the
+            # table is clean, so the durable record reconciles and the verdict
+            # must not stay latched.
+            gate._creation_time_probe = lambda pid: None
+            self._swap_capture(gate, [_snapshot_dict()])
+            assert await frontend.stop() is True
+
+        assert frontend.recovery_state == CLEAN
+        assert frontend.status == "stopped"
+
 
 class _FakeApp:
     def __init__(self) -> None:

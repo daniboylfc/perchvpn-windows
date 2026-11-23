@@ -223,6 +223,9 @@ class TunFrontend:
         self._recovery_state = CLEAN
         self._recovery_lock: Optional[asyncio.Lock] = None
         self._spawn_confirmed = False
+        # True once a spawned run's verdict was consumed in-process: only then
+        # is an UNVERIFIED verdict re-derivable from the durable record.
+        self._recovery_run_consumed = False
         self._graceful_stop = bool(graceful_stop)
         # Truthful readiness evidence. ``status`` keeps its historical
         # process-lifecycle meaning; ``state`` is the evidence-based TUN
@@ -1501,6 +1504,17 @@ class TunFrontend:
         async with self._get_recovery_lock():
             run = self._recovery_run
             if run is None:
+                # A previous verification already consumed the run.  Returning
+                # with the stale UNVERIFIED verdict latched this frontend (and
+                # therefore every later disconnect/restart) forever, so
+                # re-derive the verdict from the durable ownership record.
+                # Only when a run really was consumed: a start that never
+                # spawned has nothing to reconcile and must stay failed closed.
+                if (
+                    self._recovery_run_consumed
+                    and self._recovery_state == RECOVERY_UNVERIFIED
+                ):
+                    await self._reverify_without_run()
                 return
             if not self._spawn_confirmed:
                 self._recovery_run = None
@@ -1521,6 +1535,7 @@ class TunFrontend:
                 result = RECOVERY_UNVERIFIED
             self._recovery_run = None
             self._spawn_confirmed = False
+            self._recovery_run_consumed = True
             if result == RECOVERY_UNVERIFIED:
                 self._recovery_state = RECOVERY_UNVERIFIED
                 self._status = RECOVERY_UNVERIFIED
@@ -1546,6 +1561,35 @@ class TunFrontend:
                     self._status = RECOVERY_UNVERIFIED
                 else:
                     self._recovery_state = CLEAN
+
+    async def _reverify_without_run(self) -> None:
+        """Re-derive an UNVERIFIED verdict from the durable ownership record.
+
+        ``TunRecoveryGate.reconcile_stale_ownership`` is the cold-start path
+        for exactly this situation (no in-process run left).  It validates the
+        recorded process/adapter, restores the persisted baseline when the
+        owned adapter is gone, and clears the record only when that succeeds.
+        """
+        try:
+            result = await asyncio.to_thread(
+                self._recovery_gate.reconcile_stale_ownership
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - keep the verdict, retry later
+            logger.warning("TUN recovery re-check failed: %s", exc)
+            return
+        if str(result) == CLEAN:
+            self._recovery_state = CLEAN
+            self._status = "stopped"
+            logger.info("TUN recovery re-check converged: ownership record clean")
+        else:
+            self._recovery_state = RECOVERY_UNVERIFIED
+            self._status = RECOVERY_UNVERIFIED
+            logger.warning(
+                "TUN recovery re-check still unverified (%s); ownership retained",
+                result,
+            )
 
     async def stop(self) -> bool:
         if self._graceful_stop:
