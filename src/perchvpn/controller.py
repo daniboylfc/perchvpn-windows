@@ -20,7 +20,6 @@ from typing import TYPE_CHECKING, Awaitable, Callable, Dict, Iterable, List, Opt
 from . import auth as auth_module
 from . import guardian
 from .exceptions import ProxyError, QuotaExceededError, TokenInvalidError
-from .proxy.h3_session import H3ProxySession
 from .proxy.http1_session import H1ProxySession
 from .proxy.pool import ProxySession, SessionPool
 from .proxy.session import H2ProxySession
@@ -119,6 +118,29 @@ def _is_ip_literal(value: str) -> bool:
     except ValueError:
         return False
     return True
+
+
+def __getattr__(name: str):
+    """Resolve ``H3ProxySession`` lazily for monkeypatch compatibility.
+
+    ``h3_session`` imports aioquic (~140 ms of the boot chain) and only an
+    HTTP/3 dial needs it.  Keeping the module attribute resolvable means
+    ``patch.object(controller_module, "H3ProxySession")`` keeps working.
+    """
+    if name == "H3ProxySession":
+        from .proxy.h3_session import H3ProxySession
+
+        globals()["H3ProxySession"] = H3ProxySession
+        return H3ProxySession
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def _h3_session_class():
+    """The H3 session class, honouring a module-level patch if one exists."""
+    cls = globals().get("H3ProxySession")
+    if cls is None:
+        cls = __getattr__("H3ProxySession")
+    return cls
 
 
 class ProxyController:
@@ -249,7 +271,7 @@ class ProxyController:
                 options=options,
             )
         elif effective_http3:
-            session: ProxySession = H3ProxySession(
+            session: ProxySession = _h3_session_class()(
                 candidate.host,
                 candidate.port,
                 self.proxy_pass.raw_token,

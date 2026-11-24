@@ -13,20 +13,48 @@ import itertools
 import logging
 import time
 from collections import deque
-from typing import Awaitable, Callable, List, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    Awaitable,
+    Callable,
+    List,
+    Optional,
+    Union,
+)
 
 from ..exceptions import ProxyError
-from .h3_session import H3ProxySession, H3Stream
 from .http1_session import H1ProxySession, H1Stream, SessionAtCapacity
 from .session import H2ProxySession, H2Stream
 
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from .h3_session import H3ProxySession, H3Stream
+
 logger = logging.getLogger("perchvpn.proxy.pool")
+
+# ``h3_session`` pulls in aioquic (~140 ms measured on the dev host, ~186 ms
+# in the frozen bundle) and nothing on the boot/API path needs it: HTTP/3 is
+# only constructed once a controller dials with ``transport_version="h3"``.
+# Importing it lazily keeps the boot chain fast while preserving the public
+# names (``pool.H3ProxySession``) for callers and tests that monkeypatch
+# them.
+_LAZY_H3_NAMES = ("H3ProxySession", "H3Stream")
+
+
+def __getattr__(name: str):
+    if name in _LAZY_H3_NAMES:
+        from . import h3_session
+
+        value = getattr(h3_session, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 # Both session classes expose the same duck-typed interface (connect,
 # update_token, open_stream, close, is_closed, active_streams); which one a
 # given pool uses is decided by ProxyController based on transport_version.
-ProxySession = Union[H2ProxySession, H3ProxySession, H1ProxySession]
-ProxyStream = Union[H2Stream, H3Stream, H1Stream]
+ProxySession = Union[H2ProxySession, "H3ProxySession", H1ProxySession]
+ProxyStream = Union[H2Stream, "H3Stream", H1Stream]
 SessionFactory = Callable[[], Awaitable[ProxySession]]
 CloseStormCallback = Callable[[], Awaitable[None]]
 
