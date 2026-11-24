@@ -113,6 +113,12 @@ _PROVIDER_ENDPOINTS = {
     "quad9": ("9.9.9.9", "149.112.112.112"),
 }
 
+# Quad9 answers an HTTP/1.1 POST /dns-query with "505 HTTP Version Not
+# Supported": its DoH service only speaks HTTP/2.  Every Quad9 query failed
+# (silently, at debug level) while its endpoints kept being raced.  Endpoints
+# in this set are dialled with HTTP/2 negotiated via ALPN.
+_HTTP2_DOH_ENDPOINTS = frozenset({"9.9.9.9", "149.112.112.112"})
+
 
 def _is_ip(value: str) -> bool:
     try:
@@ -227,7 +233,9 @@ async def _query_endpoint(
     async with httpx.AsyncClient(
         timeout=timeout,
         verify=True,
-        transport=httpx.AsyncHTTPTransport(**_local_addr_kwargs(local_address)),
+        transport=httpx.AsyncHTTPTransport(
+            http2=endpoint in _HTTP2_DOH_ENDPOINTS, **_local_addr_kwargs(local_address)
+        ),
     ) as client:
         responses = await asyncio.gather(
             client.post(url, content=query_a, headers={"content-type": "application/dns-message", "accept": "application/dns-message"}),
@@ -270,17 +278,32 @@ async def _race_endpoints(
         asyncio.create_task(_query_endpoint(host, endpoint, timeout, local_address))
         for endpoint in endpoints
     ]
-    pending = set(tasks)
-    while pending:
-        done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
-        for task in done:
-            if task.exception() is None:
-                result = task.result()
-                for other in pending:
-                    other.cancel()
-                await asyncio.gather(*pending, return_exceptions=True)
-                return result
-    raise ResolverError("all DoH endpoints failed")
+    if not tasks:
+        raise ResolverError("all DoH endpoints failed")
+    try:
+        pending = set(tasks)
+        last_error = ""
+        while pending:
+            done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            for task in done:
+                if task.cancelled():
+                    # A cancelled loser is not an answer, not a failure.
+                    continue
+                exc = task.exception()
+                if exc is None:
+                    return task.result()
+                last_error = str(exc) or type(exc).__name__
+        raise ResolverError(
+            "all DoH endpoints failed" + (": %s" % last_error if last_error else "")
+        )
+    finally:
+        # Every task must be awaited to completion: a losing (or aborted)
+        # query that later raises produced "Task exception was never
+        # retrieved" whenever the caller timed out or was cancelled.
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
 
 
 async def resolve_hostname(
