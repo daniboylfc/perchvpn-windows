@@ -19,7 +19,8 @@ class TestWaitForApiReady:
         self, mock_get: Mock, mock_sleep: Mock, mock_monotonic: Mock
     ):
         """HTTP 200 with positive uptime returns True immediately."""
-        mock_monotonic.side_effect = [0.0, 0.1]
+        # loop-top clock, then the post-response readiness stamp
+        mock_monotonic.side_effect = [0.0, 0.1, 0.2]
         mock_resp = Mock()
         mock_resp.status_code = 200
         mock_resp.json.return_value = {"uptime": 1.5, "status": "connected"}
@@ -42,7 +43,8 @@ class TestWaitForApiReady:
         Proxy-only mode has no controller, so /api/status reports uptime
         0.0 forever while the API is fully live; readiness must not wait
         for uptime > 0."""
-        mock_monotonic.side_effect = [0.0, 0.1]
+        # loop-top clock, then the post-response readiness stamp
+        mock_monotonic.side_effect = [0.0, 0.1, 0.2]
         resp = Mock()
         resp.status_code = 200
         resp.json.return_value = {"uptime": 0.0, "status": "disconnected"}
@@ -170,7 +172,8 @@ class TestWaitForApiReady:
         self, mock_get: Mock, mock_sleep: Mock, mock_monotonic: Mock, caplog
     ):
         """Success logs readiness at INFO level with uptime."""
-        mock_monotonic.side_effect = [0.0, 0.1]
+        # loop-top clock, then the post-response readiness stamp
+        mock_monotonic.side_effect = [0.0, 0.1, 0.2]
         mock_resp = Mock()
         mock_resp.status_code = 200
         mock_resp.json.return_value = {"uptime": 2.5, "status": "connected"}
@@ -192,7 +195,8 @@ class TestWaitForApiReady:
         self, mock_get: Mock, mock_sleep: Mock, mock_monotonic: Mock
     ):
         """HTTP 200 with a recognized status but no uptime key is ready."""
-        mock_monotonic.side_effect = [0.0, 0.1]
+        # loop-top clock, then the post-response readiness stamp
+        mock_monotonic.side_effect = [0.0, 0.1, 0.2]
         resp = Mock()
         resp.status_code = 200
         resp.json.return_value = {"status": "disconnected"}

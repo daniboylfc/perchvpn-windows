@@ -333,10 +333,14 @@ def _wait_for_api_ready() -> bool:
                     logger.info(
                         "API ready (status=%s, uptime=%.2fs)", data["status"], uptime
                     )
+                    # Stamp readiness *after* the answered request: the first
+                    # attempt can sit in the listen backlog until uvicorn
+                    # finishes its lifespan, so `now` (captured before the
+                    # request) understated real readiness by ~0.6 s.
                     _mark(
                         "api_ready",
                         "status=%s" % data["status"],
-                        elapsed=now - _PROCESS_STARTED,
+                        elapsed=time.monotonic() - _PROCESS_STARTED,
                     )
                     return True
                 # No recognized status yet: app still initializing.
