@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -155,14 +156,43 @@ def load_cached_server_list(cache_path: Optional[Union[str, Path]]) -> List[Coun
         return []
 
 
-def fetch_server_list(cache_path: Optional[Union[str, Path]] = None) -> List[Country]:
+def _fresh_cached_server_list(
+    cache_path: Union[str, Path], max_age: float
+) -> List[Country]:
+    """Cached countries when the cache file is younger than ``max_age``."""
+    path = _cache_path(cache_path)
+    if path is None or max_age <= 0:
+        return []
+    try:
+        age = time.time() - path.stat().st_mtime
+    except OSError:
+        return []
+    if age > max_age:
+        return []
+    return load_cached_server_list(path)
+
+
+def fetch_server_list(    cache_path: Optional[Union[str, Path]] = None,
+    *,
+    max_cache_age: Optional[float] = None,
+) -> List[Country]:
     """Fetch the server list from Remote Settings.
 
     When ``cache_path`` is given, a successful non-empty result is cached
     (atomically) and a network/parse failure transparently falls back to that
     cache, so a transient control-plane outage does not prevent startup.
     Without a ``cache_path`` the behaviour is unchanged: failures propagate.
+
+    ``max_cache_age`` (seconds) makes a *fresh* cache authoritative: Connect
+    runs right after the GUI's own server-list fetch, and paying a second
+    control-plane round trip there is pure click latency.  Staleness is
+    bounded by the caller (country lists change rarely); a stale or missing
+    cache still takes the network path.
     """
+    if max_cache_age is not None and cache_path is not None:
+        cached = _fresh_cached_server_list(cache_path, max_cache_age)
+        if cached:
+            return cached
     client = get_client()
     try:
         response = client.get(REMOTE_SETTINGS_URL, headers=apply_mozilla_vpn_headers({}))

@@ -42,6 +42,10 @@ COUNTRY_SWITCH_PIN_TIMEOUT_SECONDS = 5.0
 # Startup route/DNS probes are a hint only.  Never let a foreign tunnel or a
 # slow PowerShell route lookup hold the API/UI boot open.
 PREFLIGHT_TIMEOUT_SECONDS = 1.0
+# Connect runs immediately after the GUI's own server-list fetch (and after
+# the boot warm); a cache this fresh is authoritative, so the click does not
+# pay a second Remote Settings round trip.
+_CONNECT_SERVERLIST_MAX_AGE_SECONDS = 120.0
 # A mode switch must acknowledge the UI quickly; readiness evidence can take
 # minutes on a cold/AV-scanned host and continues in the background.
 MODE_APPLY_ACK_SECONDS = 5.0
@@ -605,6 +609,7 @@ class PerchVPNApp:
                 countries = await asyncio.to_thread(
                     serverlist.fetch_server_list,
                     self.config.serverlist_cache_path,
+                    max_cache_age=_CONNECT_SERVERLIST_MAX_AGE_SECONDS,
                 )
 
             state_store = ProxyStateStore(self.config.proxy_state_path)
