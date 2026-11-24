@@ -324,9 +324,9 @@
     "semantic_hash": "ce435a4d02e5f02eddd87956ae75a14a"
   },
   "src/perchvpn_windows/webview.py": {
-    "mtime": 1795471549.1116583,
-    "seen": 1795472477.4732447,
-    "ast_hash": "88424a8740952d9f355c0ea53536ee20",
+    "mtime": 1795543167.1611228,
+    "seen": 1795543383.3986871,
+    "ast_hash": "77c30e6fbf717050b00acb3711322a2d",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/winconsole.py": {
@@ -726,9 +726,9 @@
     "semantic_hash": ""
   },
   "tests/test_webview_readiness.py": {
-    "mtime": 1795471608.2388673,
-    "seen": 1795472477.4735157,
-    "ast_hash": "169e4d9c4de87e03905b18436305a6d1",
+    "mtime": 1795539046.2167099,
+    "seen": 1795543383.3989694,
+    "ast_hash": "709d62fdf0b3d7cc23d5898bfeaf1e81",
     "semantic_hash": ""
   },
   "tests/test_winconsole.py": {
