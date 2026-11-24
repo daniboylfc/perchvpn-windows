@@ -818,7 +818,7 @@
                     else set(c, 'inactive');
                 } else if (c.key === 'tun') {
                     if (!this.apiUp || !tunEnabled) { set(c, 'inactive'); return; }
-                    if (tunState === 'traffic_verified') set(c, 'ok');
+                    if (tunState === 'traffic_verified' || tunState === 'tunnel_operational') set(c, 'ok');
                     else if (['failed', 'not_elevated', 'not_configured', 'recovery_required', 'degraded'].indexOf(tunState) >= 0) set(c, 'failed');
                     else set(c, 'degraded');
                 } else if (c.key === 'pool') {
@@ -855,6 +855,7 @@
                 let text;
                 if (!this.apiUp) text = 'OFFLINE · instrument self-sweep';
                 else if (status === 'failed') text = 'ATTENTION · ' + (tunnel.detail || 'tunnel failed');
+                else if (tunEnabled && !verified && tunState === 'tunnel_operational') text = 'LIVE · TUN egress observed';
                 else if (tunEnabled && !verified) text = 'SYNC · TUN ' + String(tunState).replace(/_/g, ' ');
                 else if (proxyOnly) text = 'LIVE · SOCKS5 only';
                 else if (verified) text = 'LIVE · verified exit';
@@ -1716,7 +1717,7 @@
                 let cls = 'info-value';
                 if (tun.enabled) {
                     text = String(tun.state || 'starting').replace(/_/g, ' ') + (tun.detail ? ' · ' + tun.detail : '');
-                    cls += tun.state === 'traffic_verified'
+                    cls += (tun.state === 'traffic_verified' || tun.state === 'tunnel_operational')
                         ? ' info-value--connected'
                         : (tun.state === 'starting' || tun.state === 'adapter_ready' || tun.state === 'routes_configured'
                             ? ' info-value--connecting'

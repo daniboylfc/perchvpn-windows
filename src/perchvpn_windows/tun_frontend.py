@@ -680,16 +680,25 @@ class TunFrontend:
                 )
                 if not (
                     identity.get("ok")
-                    and (identity.get("ipv4") or {}).get("ok")
+                    and (
+                        (identity.get("ipv4") or {}).get("ok")
+                        or (identity.get("ipv6") or {}).get("ok")
+                    )
                 ):
                     continue
                 self._egress_identity = identity
-                self._egress = dict(
-                    self._egress or {},
-                    ipv4=identity["ipv4"],
-                    ipv6=identity.get("ipv6")
-                    or (self._egress or {}).get("ipv6"),
-                )
+                # Publish both observed families: the expected exit may be
+                # IPv6 while only the IPv4 probe used to be kept, which made
+                # the comparison permanently inconclusive.
+                previous = self._egress or {}
+                merged = dict(previous)
+                for family in ("ipv4", "ipv6"):
+                    observed = identity.get(family) or {}
+                    if observed.get("ok"):
+                        merged[family] = observed
+                    elif family not in merged:
+                        merged[family] = observed
+                self._egress = merged
                 self._update_classification()
                 if self._state == tun_status.STATE_TRAFFIC_VERIFIED:
                     self._identity_retry_at = float("inf")

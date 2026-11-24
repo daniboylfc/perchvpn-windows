@@ -787,8 +787,10 @@ async def _status_payloads_async(app_obj) -> tuple[dict, dict, dict]:
 def ui_status_from_controller(controller_status: str, tunnel: dict) -> str:
     """Translate controller lifecycle + TUN evidence into the UI status contract.
 
-    "connected" is reserved for a system-wide tunnel with verified system
-    egress. Without TUN, the honest label is "proxy_active" (SOCKS5 only).
+    "connected" is reserved for a system-wide tunnel carrying observed system
+    egress (``traffic_verified``) or one whose exit comparison is inconclusive
+    (``tunnel_operational``). Without TUN, the honest label is "proxy_active"
+    (SOCKS5 only).
     """
     base = {"ok": "connected", "starting": "connecting"}.get(
         controller_status, controller_status
@@ -798,17 +800,18 @@ def ui_status_from_controller(controller_status: str, tunnel: dict) -> str:
     if not tunnel.get("enabled"):
         return "proxy_active"
     state = str(tunnel.get("state") or "")
-    if state == "traffic_verified":
+    if state in ("traffic_verified", "tunnel_operational"):
+        # "tunnel_operational" means the adapter and split routes are up and
+        # system traffic is observed leaving through a non-baseline exit; only
+        # the exit identity comparison is still inconclusive (IPv6 exit vs an
+        # IPv4-only observation, or anycast GeoIP disagreement).  Traffic is
+        # flowing, so the connection is Connected - keeping "connecting" here
+        # left the GUI spinning on a working tunnel indefinitely.
         return "connected"
     if state in (
         "starting",
         "adapter_ready",
         "routes_configured",
-        # Adapter and split default routes are up while exit verification is
-        # still running (or has not produced a verdict yet): that is normal
-        # TUN startup progress, never a failure. Reporting "degraded" here
-        # made the UI flash "Connection degraded" on every healthy start.
-        "tunnel_operational",
     ):
         return "connecting"
     if state == "degraded":

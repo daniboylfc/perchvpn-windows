@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import socket
 
 import pytest
 
@@ -134,6 +135,37 @@ class TestEgressProbe:
         )
         assert result["ok"] is True
         assert sleeps == [0.25, 0.25]
+
+    def test_identity_probe_covers_both_families(self, monkeypatch):
+        # An IPv6 expectation can only be confirmed by an IPv6 observation, so
+        # the identity probe must not stop after a successful IPv4 trace.
+        seen = []
+
+        def fake_trace(family, timeout):
+            seen.append(family)
+            if family == socket.AF_INET:
+                return {"ok": True, "family": family, "ip": "45.58.233.124", "country": "US"}
+            return {"ok": True, "family": family, "ip": "2a00:8c40::1", "country": "US"}
+
+        monkeypatch.setattr(tun_status, "_direct_https_trace", fake_trace)
+        result = asyncio.run(tun_status.probe_system_egress_identity(timeout=0.1))
+        assert socket.AF_INET in seen and socket.AF_INET6 in seen
+        assert result["ipv4"]["ip"] == "45.58.233.124"
+        assert result["ipv6"]["ip"] == "2a00:8c40::1"
+
+    def test_identity_probe_can_restrict_families(self, monkeypatch):
+        seen = []
+        monkeypatch.setattr(
+            tun_status, "_direct_https_trace",
+            lambda family, timeout: seen.append(family) or {"ok": False, "error": "x"},
+        )
+        result = asyncio.run(
+            tun_status.probe_system_egress_identity(timeout=0.1, families=(4,))
+        )
+        assert seen == [socket.AF_INET]
+        assert result["ok"] is False
+        assert result["ipv6"]["ok"] is False
+        assert result["ipv6"]["error"] == "IPv6 identity not probed"
 
 
 class TestAdapterParsing:
@@ -318,9 +350,40 @@ class TestClassification:
         assert r["state"] != tun_status.STATE_TRAFFIC_VERIFIED
 
     def test_matching_system_egress_verifies_traffic(self):
+        # Same family, same address: the only comparison that can confirm an
+        # exit address.
         egress = {
-            "ipv4": {"ok": True, "ip": "2a00:8c40::1", "country": "FI"},
-            "ipv6": {"ok": False},
+            "ipv4": {"ok": True, "ip": "203.0.113.9", "country": "FI"},
+            "ipv6": {"ok": True, "ip": "2a00:8c40::1", "country": "FI"},
+        }
+        r = tun_status.classify(**self.BASE, evidence=self._evidence(), egress=egress)
+        assert r["state"] == tun_status.STATE_TRAFFIC_VERIFIED
+
+    def test_expected_ipv6_matches_ipv6_observation(self):
+        egress = {
+            "ipv4": {"ok": True, "ip": "45.58.233.124", "country": "US"},
+            "ipv6": {"ok": True, "ip": "2a00:8c40::1", "country": "US"},
+        }
+        r = tun_status.classify(**self.BASE, evidence=self._evidence(), egress=egress)
+        assert r["state"] == tun_status.STATE_TRAFFIC_VERIFIED
+
+    def test_cross_family_string_match_does_not_count(self):
+        # An IPv6 expectation is never satisfied by an IPv4 observation that
+        # happens to be a different exit (competing tunnel on another family).
+        base = {**self.BASE, "expected_exit_ip": "2a00:8c40::1"}
+        egress = {
+            "ipv4": {"ok": True, "ip": "203.0.113.9", "country": "US"},
+            "ipv6": {"ok": True, "ip": "2a00:8c40::9", "country": "US"},
+        }
+        r = tun_status.classify(**base, evidence=self._evidence(), egress=egress)
+        assert r["state"] == tun_status.STATE_TUNNEL_OPERATIONAL
+
+    def test_anycast_country_variance_still_verifies_on_ip_match(self):
+        # Fastly/anycast edges land in different GeoIP databases: the address
+        # match is the evidence, the country label is an opinion.
+        egress = {
+            "ipv4": {"ok": True, "ip": "45.58.233.124", "country": "US"},
+            "ipv6": {"ok": True, "ip": "2a00:8c40::1", "country": "DE"},
         }
         r = tun_status.classify(**self.BASE, evidence=self._evidence(), egress=egress)
         assert r["state"] == tun_status.STATE_TRAFFIC_VERIFIED
@@ -345,13 +408,38 @@ class TestClassification:
         assert r["state"] == tun_status.STATE_DEGRADED
         assert "physical" in r["detail"].lower()
 
-    def test_unknown_exit_is_operational_not_verified(self):
+    def test_unobservable_expected_family_still_verifies(self):
+        # Live 2026-11-24: the SOCKS exit check reported an IPv6 exit while the
+        # system path only produced an IPv4 identity.  The comparison is
+        # impossible, not failed - holding "tunnel_operational" pinned the GUI
+        # at "connecting" on a fully working tunnel.
         egress = {
             "ipv4": {"ok": True, "ip": "203.0.113.9", "country": "US"},
-            "ipv6": {"ok": False},
+            "ipv6": {"ok": False, "error": "no IPv6 route"},
         }
         r = tun_status.classify(**self.BASE, evidence=self._evidence(), egress=egress)
+        assert r["state"] == tun_status.STATE_TRAFFIC_VERIFIED
+        assert "not observable" in r["detail"]
+
+    def test_same_family_mismatch_stays_operational(self):
+        base = {**self.BASE, "expected_exit_ip": "203.0.113.9", "expected_country": "FI"}
+        egress = {
+            "ipv4": {"ok": True, "ip": "198.51.100.7", "country": "US"},
+            "ipv6": {"ok": False},
+        }
+        r = tun_status.classify(**base, evidence=self._evidence(), egress=egress)
         assert r["state"] == tun_status.STATE_TUNNEL_OPERATIONAL
+
+    def test_unobservable_family_with_baseline_leak_is_degraded(self):
+        baseline = {"ipv4": {"ok": True, "ip": "192.0.2.44"}, "ipv6": {"ok": False}}
+        egress = {
+            "ipv4": {"ok": True, "ip": "192.0.2.44", "country": "US"},
+            "ipv6": {"ok": False},
+        }
+        r = tun_status.classify(
+            **self.BASE, evidence=self._evidence(), egress=egress, baseline=baseline
+        )
+        assert r["state"] == tun_status.STATE_DEGRADED
 
     def test_tcp_egress_without_identity_verifies_traffic(self):
         egress = {
@@ -392,12 +480,20 @@ class TestUiStatusContract:
             "ok", {"enabled": True, "state": "routes_configured"}
         ) == "connecting"
 
-    def test_tun_operational_but_unverified_is_connecting(self):
-        # Normal TUN startup (adapter + split routes up, exit check still
-        # pending) is progress, not a degraded connection.
+    def test_tun_operational_is_connected(self):
+        # Adapter + split routes up with observed non-baseline egress: the
+        # tunnel carries traffic, only the exit-identity comparison is
+        # inconclusive (IPv6 exit vs IPv4-only observation / anycast GeoIP).
+        # Reporting "connecting" here left a working tunnel spinning forever.
         assert ui_status_from_controller(
             "ok", {"enabled": True, "state": "tunnel_operational"}
-        ) == "connecting"
+        ) == "connected"
+
+    def test_tun_startup_states_are_connecting(self):
+        for state in ("starting", "adapter_ready", "routes_configured"):
+            assert ui_status_from_controller(
+                "ok", {"enabled": True, "state": state}
+            ) == "connecting"
 
     def test_explicit_verification_failure_is_degraded(self):
         assert ui_status_from_controller(

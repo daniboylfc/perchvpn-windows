@@ -783,27 +783,34 @@ async def probe_system_egress(*, timeout: float = _EGRESS_TIMEOUT) -> Dict[str, 
 
 
 async def probe_system_egress_identity(
-    *, timeout: float = _EGRESS_TIMEOUT
+    *, timeout: float = _EGRESS_TIMEOUT, families: Tuple[int, ...] = (4, 6)
 ) -> Dict[str, Any]:
     """Best-effort observed exit identity, without the TCP fast path.
 
     Used after :func:`probe_system_egress` has already proved connectivity but
-    the fast result carried no address.  IPv4 is tried first; IPv6 is only
-    attempted when IPv4 produced no identity, keeping the common path short.
+    the fast result carried no address.  Every requested family is probed, so
+    the observed identity carries the same families the expected exit can be
+    compared against: the SOCKS exit check often reports an IPv6 address while
+    the system path only has an IPv4 observation, and two families compared as
+    one string is how a working tunnel gets stuck at "connecting".
     """
-    v4 = await asyncio.to_thread(_direct_https_trace, socket.AF_INET, timeout)
-    if v4.get("ok"):
-        return {
-            "ok": True,
-            "error": None,
-            "ipv4": v4,
-            "ipv6": {"ok": False, "error": "skipped after IPv4 identity"},
-            "checked_at": asyncio.get_running_loop().time(),
-        }
-    v6 = await asyncio.to_thread(_direct_https_trace, socket.AF_INET6, timeout)
+    requested = [family for family in families if family in (4, 6)] or [4]
+    probes = [
+        asyncio.to_thread(
+            _direct_https_trace,
+            socket.AF_INET if family == 4 else socket.AF_INET6,
+            timeout,
+        )
+        for family in requested
+    ]
+    results = await asyncio.gather(*probes)
+    by_family = dict(zip(requested, results))
+    v4 = by_family.get(4) or {"ok": False, "error": "IPv4 identity not probed"}
+    v6 = by_family.get(6) or {"ok": False, "error": "IPv6 identity not probed"}
+    ok = bool(v4.get("ok") or v6.get("ok"))
     return {
-        "ok": bool(v6.get("ok")),
-        "error": None if v6.get("ok") else (v4.get("error") or v6.get("error")),
+        "ok": ok,
+        "error": None if ok else (v4.get("error") or v6.get("error")),
         "ipv4": v4,
         "ipv6": v6,
         "checked_at": asyncio.get_running_loop().time(),
@@ -908,8 +915,31 @@ def classify(
     observed_ips = {str(v4.get("ip") or ""), str(v6.get("ip") or "")} - {""}
     observed_countries = {str(v4.get("country") or ""), str(v6.get("country") or "")} - {""}
 
-    matches_exit = bool(expected_exit_ip and expected_exit_ip in observed_ips)
-    matches_country = bool(expected_country and expected_country.upper() in observed_countries)
+    def _family_version(value: str) -> int:
+        try:
+            return ipaddress.ip_address(str(value)).version
+        except ValueError:
+            return 0
+
+    # An exit address can only be confirmed by an observation of the same
+    # address family.  The SOCKS exit check routinely reports an IPv6 exit
+    # (Cloudflare answers AAAA first) while the direct egress probe observes
+    # IPv4 - comparing them as one string made a healthy tunnel look wrong for
+    # as long as it stayed up.
+    observed_by_family: Dict[int, str] = {}
+    for family, entry in ((4, v4), (6, v6)):
+        address = str(entry.get("ip") or "")
+        if address:
+            observed_by_family[family] = address
+    expected_exit = str(expected_exit_ip or "")
+    expected_family = _family_version(expected_exit)
+    same_family_observed = observed_by_family.get(expected_family, "") if expected_family else ""
+
+    matches_exit = bool(expected_exit) and same_family_observed == expected_exit
+    # A country label is a GeoIP opinion, not an address: anycast edges put
+    # the same exit in different databases, so a country match anywhere in the
+    # observation confirms the exit even when the IP comparison cannot.
+    matches_country = bool(expected_country) and expected_country.upper() in observed_countries
     baseline_ips = set()
     if baseline:
         for key in ("ipv4", "ipv6"):
@@ -923,7 +953,12 @@ def classify(
             "state": STATE_DEGRADED,
             "detail": "System traffic still exits through the physical path (%s) - routes are not effective." % ", ".join(sorted(observed_ips)),
         }
-    if (matches_exit or matches_country) or (not expected_exit_ip and not expected_country and observed_ips):
+    if matches_exit or matches_country:
+        return {
+            "state": STATE_TRAFFIC_VERIFIED,
+            "detail": "System traffic exits through the VPN (%s)." % ", ".join(sorted(observed_ips)),
+        }
+    if not expected_exit and not expected_country and observed_ips:
         return {
             "state": STATE_TRAFFIC_VERIFIED,
             "detail": "System traffic exits through the VPN (%s)." % ", ".join(sorted(observed_ips)),
@@ -932,6 +967,17 @@ def classify(
         return {
             "state": STATE_TRAFFIC_VERIFIED,
             "detail": "System traffic exits through the VPN (verified).",
+        }
+    # The expected exit is IPv6 but this network produced no IPv6 identity at
+    # all: the comparison is impossible, not failed.  Egress is confirmed on a
+    # non-baseline exit, so the tunnel is carrying traffic; reporting
+    # "operational" forever would hold the GUI at "connecting".
+    family_unobservable = bool(expected_family) and not same_family_observed and bool(observed_ips)
+    if family_unobservable:
+        return {
+            "state": STATE_TRAFFIC_VERIFIED,
+            "detail": "System traffic exits through the VPN (%s); the expected IPv%d exit %s is not observable on this network."
+            % (", ".join(sorted(observed_ips)), expected_family, expected_exit),
         }
     return {
         "state": STATE_TUNNEL_OPERATIONAL,
