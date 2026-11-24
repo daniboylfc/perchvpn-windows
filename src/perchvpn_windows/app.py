@@ -509,6 +509,14 @@ class PerchVPNApp:
         started_pool: Optional[SessionPool] = None
         started_frontend: Optional[Socks5Frontend] = None
         started_exit_check_task: Optional[asyncio.Task] = None
+        # Connect-phase timing (see the summary line at the end).  A cold
+        # Connect is a click-to-usable-tunnel budget; without per-phase
+        # numbers every optimisation is a guess.
+        connect_started_at = time.monotonic()
+        connect_phases: list[tuple[str, float]] = []
+
+        def mark_phase(label: str) -> None:
+            connect_phases.append((label, time.monotonic() - connect_started_at))
         self._boot_idle = not auto_connect
         # Honest early status: while an explicit Connect is dialling, claim
         # "connecting" up front.  Idle boot must stay disconnected.
@@ -554,6 +562,7 @@ class PerchVPNApp:
             # API/UI from coming up.  Activation re-runs the strict checks.
             if self.config.tun_enabled:
                 await self._startup_physical_preflight()
+            mark_phase("preflight")
 
             try:
                 # The backend never performs an interactive login
@@ -562,6 +571,7 @@ class PerchVPNApp:
                 # InteractiveLoginRequired and the boot completes fully
                 # signed out so the GUI can drive sign-in via the helper.
                 self._runtime_auth = await self._obtain_auth(False)
+                mark_phase("auth")
             except auth_module.InteractiveLoginRequired as exc:
                 self._runtime_auth = None
                 self._signed_out_boot = True
@@ -619,6 +629,7 @@ class PerchVPNApp:
                 country_code=self.config.country,
                 state_store=state_store,
             )
+            mark_phase("serverlist")
             logger.info("selected upstream proxy %s (%s)", self._candidate.authority, self._candidate.country_code or "explicit")
 
             alternates = [] if self.config.explicit_proxy else alternate_candidates(countries, self._candidate)
@@ -669,6 +680,7 @@ class PerchVPNApp:
             started_controller = self._controller = ProxyController(ctrl_config, self._runtime_auth)
             started_controller.on_pool_replaced = self._repoint_frontend_pool
             self._pool = started_pool = await started_controller.start()
+            mark_phase("controller")
             # Reflect the edge actually in use (failover may have selected an
             # alternate) for status and exit verification; the persisted
             # primary selection is deliberately left untouched.
@@ -696,8 +708,10 @@ class PerchVPNApp:
                     local_proxy_users=self._local_proxy_users(),
                 )
                 await self._http_proxy.start()
+            mark_phase("proxy")
             if self.config.tun_enabled:
                 await self._start_tun_frontend()
+                mark_phase("tun")
             if self.config.verify_exit and self._candidate and self._candidate.country_code and (
                 self._exit_check_task is None or self._exit_check_task.done()
             ):
@@ -709,6 +723,17 @@ class PerchVPNApp:
                 local_proxy_url = f"socks5h://{host}:{self.config.listen_port}"
                 self._exit_check_task = started_exit_check_task = asyncio.create_task(
                     self._run_exit_check(local_proxy_url)
+                )
+            if connect_phases:
+                previous = 0.0
+                spans = []
+                for label, at in connect_phases:
+                    spans.append("%s=%.2fs" % (label, at - previous))
+                    previous = at
+                logger.info(
+                    "connect phases: total=%.2fs %s",
+                    connect_phases[-1][1],
+                    " ".join(spans),
                 )
         except BaseException as exc:
             if not isinstance(exc, asyncio.CancelledError):

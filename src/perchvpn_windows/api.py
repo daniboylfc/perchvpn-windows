@@ -942,6 +942,30 @@ async def post_devwatch(payload: dict):
     return {"ok": True}
 
 
+_STARTUP_MARK_STAGES = frozenset({"first_paint", "countries_rendered"})
+
+
+@app.post("/api/startup-mark")
+async def post_startup_mark(payload: dict):
+    """Frontend startup marks in the durable startup log.
+
+    ``window_created`` only proves the WebView2 window was queued; without a
+    mark from inside the page there is no number for "the user can see the
+    UI".  Best effort: an unknown stage or an import failure never affects
+    the response.
+    """
+    stage = str(payload.get("stage") or "")
+    if stage not in _STARTUP_MARK_STAGES:
+        return {"ok": False, "detail": "unknown stage"}
+    try:
+        from .webview import _mark as _startup_mark
+
+        _startup_mark(stage, "web ui")
+    except Exception:  # noqa: BLE001 - diagnostics must never fail a request
+        pass
+    return {"ok": True}
+
+
 @app.get("/api/devwatch")
 async def get_devwatch():
     """Last UI state string received from the frontend diagnostics."""

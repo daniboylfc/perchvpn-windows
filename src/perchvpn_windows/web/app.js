@@ -478,6 +478,29 @@
             this.connectLogWebSocket();
             this.bindDiagnostics();
             this.updateOnboarding();
+            this.markStartup('first_paint');
+        }
+
+        // Startup marks in the durable startup log (window_created only proves
+        // the window was queued; this is the first frame the user can see).
+        markStartup(stage) {
+            this._startupMarks = this._startupMarks || {};
+            if (this._startupMarks[stage]) return;
+            this._startupMarks[stage] = true;
+            const send = () => {
+                try {
+                    fetch('/api/startup-mark', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ stage })
+                    }).catch(() => {});
+                } catch (e) { /* diagnostics only */ }
+            };
+            if (window.requestAnimationFrame) {
+                window.requestAnimationFrame(() => window.requestAnimationFrame(send));
+            } else {
+                send();
+            }
         }
 
         // ------------------------------------------------------------
@@ -1806,6 +1829,7 @@
                 this.sortCountryLists();
                 this.refreshCountrySelection();
                 this.updateServerDetails(this._lastStatus || null);
+                this.markStartup('countries_rendered');
                 this.countriesLatencyCycle();
             } catch (e) {
                 lists.forEach(list => { list.innerHTML = `<div class="loading">Failed to load countries: ${this.esc(e.message)}</div>`; });
@@ -2055,6 +2079,10 @@
 
         _latencyShouldProbe() {
             if (document.hidden) return false;
+            // A connect/disconnect is the user's foreground operation: the
+            // per-country sweep is one TCP probe per row and must never
+            // compete with the tunnel coming up or going down.
+            if (this._actionBusy) return false;
             if (this.currentTab !== 'dashboard' && this.currentTab !== 'countries') return false;
             if (this._authenticated !== true) return false;
             const state = this._uiState;
