@@ -40,6 +40,9 @@ _DEFAULT_GRACEFUL_STOP_TIMEOUT_SECONDS = 8.0
 # recovery gate restores the route/adapter baseline.
 _GRACEFUL_ESCALATION_SECONDS = 1.5
 _POST_STOP_WINTUN_CLEANUP_DELAY_SECONDS = 1.0
+# Cadence for waiting on a PnP ghost node after the sidecar exits (native
+# scan, ~1 ms per attempt).
+_STALE_WINTUN_POLL_SECONDS = 0.1
 # Evidence cadence. Full captures are native iphlpapi reads (~80 ms measured
 # on the production host, where the batched PowerShell probe cost 6.3-7.6 s
 # and dominated both startup latency and idle CPU), so the transition cadence
@@ -1501,10 +1504,11 @@ class TunFrontend:
             self._status = "stopped"
         return self._recovery_state != RECOVERY_UNVERIFIED
 
-    async def _cleanup_stale_wintun(self) -> None:
+    async def _cleanup_stale_wintun(self):
+        """Remove this adapter's stale PnP nodes; returns the helper payload."""
         if os.name != "nt":
-            return
-        await asyncio.to_thread(
+            return None
+        return await asyncio.to_thread(
             tun_helper.cleanup_stale_wintun_adapters,
             self._adapter_name(),
         )
@@ -1559,11 +1563,26 @@ class TunFrontend:
                 # The adapter is gone; remove the now-orphaned PnP node so the
                 # next start cannot collide with it.  Windows can publish the
                 # node slightly after Get-NetAdapter stops listing the adapter,
-                # so give PnP a moment before the first scan.
-                if os.name == "nt":
-                    await asyncio.sleep(_POST_STOP_WINTUN_CLEANUP_DELAY_SECONDS)
+                # so the first scan may legitimately find nothing.  The scan is
+                # a ~1 ms native registry/cfgmgr32 read, so poll for the ghost
+                # instead of paying a fixed 1.0 s sleep on every Disconnect
+                # (live 2026-11-24 run: the node was already visible and the
+                # sleep was pure latency).
                 try:
-                    await self._cleanup_stale_wintun()
+                    result = await self._cleanup_stale_wintun()
+                    if os.name == "nt" and not (result or {}).get("removed") and not (
+                        result or {}
+                    ).get("remaining"):
+                        deadline = (
+                            time.monotonic() + _POST_STOP_WINTUN_CLEANUP_DELAY_SECONDS
+                        )
+                        while time.monotonic() < deadline:
+                            await asyncio.sleep(_STALE_WINTUN_POLL_SECONDS)
+                            result = await self._cleanup_stale_wintun()
+                            if (result or {}).get("removed") or (result or {}).get(
+                                "remaining"
+                            ):
+                                break
                 except Exception as exc:  # noqa: BLE001
                     logger.error("post-stop Wintun cleanup failed: %s", exc)
                     self._recovery_state = RECOVERY_UNVERIFIED
