@@ -54,10 +54,10 @@
     "semantic_hash": ""
   },
   "src/perchvpn/doh_resolver.py": {
-    "mtime": 1793637488.8587852,
-    "seen": 1794050528.7556021,
-    "ast_hash": "93203ee35df1efc81691127a3204dd9b",
-    "semantic_hash": "93203ee35df1efc81691127a3204dd9b"
+    "mtime": 1795509724.3354266,
+    "seen": 1795510326.4206994,
+    "ast_hash": "c866275426c3682b985a0694b91fa7ce",
+    "semantic_hash": ""
   },
   "src/perchvpn/exceptions.py": {
     "mtime": 1795022313.5549004,
@@ -126,15 +126,15 @@
     "semantic_hash": ""
   },
   "src/perchvpn/proxy/relay.py": {
-    "mtime": 1793399082.5068362,
-    "seen": 1794050528.756696,
-    "ast_hash": "86cbd4e67d3a6cbcbc08a2fdcf17e91c",
-    "semantic_hash": "86cbd4e67d3a6cbcbc08a2fdcf17e91c"
+    "mtime": 1795509703.443422,
+    "seen": 1795510326.4207845,
+    "ast_hash": "0774618cf99731a4ab14a0763de0e69d",
+    "semantic_hash": ""
   },
   "src/perchvpn/proxy/session.py": {
-    "mtime": 1795272283.7537327,
-    "seen": 1795276375.254233,
-    "ast_hash": "6488ae81504769dcbae4dd7a0ba861e6",
+    "mtime": 1795509694.9434264,
+    "seen": 1795510326.4207892,
+    "ast_hash": "3065ada2c339c19f0193a306f6eb90a1",
     "semantic_hash": ""
   },
   "src/perchvpn/proxy/socks.py": {
@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/api.py": {
-    "mtime": 1795471494.093416,
-    "seen": 1795472477.4731638,
-    "ast_hash": "1a4ed7a513991593e1aa149b5b75a0d2",
+    "mtime": 1795509631.407604,
+    "seen": 1795510326.4208493,
+    "ast_hash": "6072e0616d52648dea986402e68fb931",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/app.py": {
@@ -258,9 +258,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_frontend.py": {
-    "mtime": 1795436303.13528,
-    "seen": 1795436571.1481915,
-    "ast_hash": "1673fc4c6e92fc926f2b24cc917d11a3",
+    "mtime": 1795509612.303815,
+    "seen": 1795510326.4209478,
+    "ast_hash": "fa5680ec3f64d8d19a8e791a0596b40b",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_helper.py": {
@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_status.py": {
-    "mtime": 1795033968.5419822,
-    "seen": 1795109815.1482997,
-    "ast_hash": "80a11d88169acfb9ad353955a4b095ef",
+    "mtime": 1795509605.0199773,
+    "seen": 1795510326.4209685,
+    "ast_hash": "beb62d9f0d1cabc93a6f0694a5a12b96",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/tun_trial_journal.py": {
@@ -306,9 +306,9 @@
     "semantic_hash": "a286e343d22e291252ccfda699bfb1f8"
   },
   "src/perchvpn_windows/web/app.js": {
-    "mtime": 1795471413.7948895,
-    "seen": 1795472477.4732363,
-    "ast_hash": "cb59018bc33c2c708d01b8280eb72a9e",
+    "mtime": 1795509665.1994774,
+    "seen": 1795510326.4209902,
+    "ast_hash": "1ed9d4dc98e6d36ca908b04afabc0be6",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/web/country-sort.js": {
@@ -546,10 +546,10 @@
     "semantic_hash": "9f01f36f2b8401508dbb2d4ae8e86fdc"
   },
   "tests/test_resolver_dns.py": {
-    "mtime": 1793399082.5188363,
-    "seen": 1794050528.7613785,
-    "ast_hash": "eaa6e0fe5b8a36dc67b2884ee42857ed",
-    "semantic_hash": "eaa6e0fe5b8a36dc67b2884ee42857ed"
+    "mtime": 1795510161.6220071,
+    "seen": 1795510326.4212737,
+    "ast_hash": "385dbfed98962e2e290eed2708cf796c",
+    "semantic_hash": ""
   },
   "tests/test_runtime_fixes.py": {
     "mtime": 1794847827.1868916,
@@ -636,9 +636,9 @@
     "semantic_hash": ""
   },
   "tests/test_tun_status.py": {
-    "mtime": 1794584094.3828528,
-    "seen": 1794655366.5668693,
-    "ast_hash": "f0585c03acfc7f9c561c828238c2a921",
+    "mtime": 1795509834.5464234,
+    "seen": 1795510326.4213593,
+    "ast_hash": "cc38a82bdd3c3aeabe4f97ec603a2f4d",
     "semantic_hash": ""
   },
   "tests/test_tun_trial_journal.py": {
@@ -1347,6 +1347,12 @@
     "mtime": 1795446365.9184468,
     "seen": 1795447165.8072262,
     "ast_hash": "9c294b94eb355c6d74f0d601f794ceec",
+    "semantic_hash": ""
+  },
+  "tests/test_h2_upload_flow_control.py": {
+    "mtime": 1795509931.625992,
+    "seen": 1795510326.4211805,
+    "ast_hash": "23434beaa039334b9195147abdf998f2",
     "semantic_hash": ""
   }
 }
