@@ -70,6 +70,13 @@ async def relay_bidirectional(
 
     done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
     first_error = next(iter(done)).exception()
+    if first_error is not None:
+        # A torn-down direction used to vanish without a trace, so an upload
+        # that died mid-stream looked like a silent stall.  Keep it at debug
+        # level (client-side resets are routine) but never silent.
+        logger.debug(
+            "tunnel relay ended with %s: %s", type(first_error).__name__, first_error
+        )
 
     if first_error is not None or not pending:
         for task in pending:

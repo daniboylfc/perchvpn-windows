@@ -25,6 +25,7 @@ from h2.events import (
     ResponseReceived,
     StreamEnded,
     StreamReset,
+    WindowUpdated,
 )
 from h2.exceptions import ProtocolError, StreamClosedError, TooManyStreamsError
 
@@ -143,6 +144,9 @@ class H2ProxySession:
         self._last_activity = time.monotonic()
         self._pending_ping: Optional[bytes] = None
         self._pending_ping_sent_at: float = 0.0
+        # Set by every WINDOW_UPDATE from the peer: an upload that fills the
+        # flow-control window waits on it instead of failing the stream.
+        self._window_event = asyncio.Event()
 
     async def connect(self, timeout: float = DEFAULT_HANDSHAKE_TIMEOUT) -> None:
         ssl_context = ssl.create_default_context()
@@ -289,6 +293,12 @@ class H2ProxySession:
                 )
             return
 
+        if isinstance(event, WindowUpdated):
+            # The peer consumed buffered upload bytes (or raised its window):
+            # release any writer waiting for stream capacity.
+            self._window_event.set()
+            return
+
         if isinstance(event, StreamEnded):
             stream = self._streams.pop(event.stream_id, None)
             if stream is not None:
@@ -379,9 +389,75 @@ class H2ProxySession:
         self._closed = True
 
     async def _send_data(self, stream_id: int, data: bytes) -> None:
+        """Write tunnel payload, honouring HTTP/2 flow control frame by frame.
+
+        hyper-h2 refuses to buffer: ``send_data`` raises ``FlowControlError``
+        when the payload exceeds the stream's remaining window and
+        ``FrameTooLargeError`` when it exceeds the peer's maximum frame size.
+        The relay hands over whatever a socket read produced (up to 64 KiB),
+        which is already past the 65 535-byte initial window and far past the
+        16 KiB default max frame size, so any sustained upload - a file
+        transfer, video call, or Telegram media upload - tore the stream down
+        instead of flowing.  Split the payload into admissible frames and wait
+        for the peer's WINDOW_UPDATE when the window runs dry.
+        """
+        if not data:
+            return
         assert self._conn is not None
-        self._conn.send_data(stream_id, data, end_stream=False)
-        await self._flush()
+        if stream_id not in self._streams:
+            raise ProxyError(f"upstream stream {stream_id} is not open")
+        view = memoryview(data)
+        deadline = time.monotonic() + WRITE_TIMEOUT
+        while view:
+            async with self._write_lock:
+                try:
+                    window = self._conn.local_flow_control_window(stream_id)
+                except StreamClosedError as exc:
+                    raise ProxyError(
+                        f"upstream {self.host}:{self.port} closed stream {stream_id} during upload"
+                    ) from exc
+                size = min(window, self._conn.max_outbound_frame_size)
+                if size > 0:
+                    frame = bytes(view[:size])
+                    try:
+                        self._conn.send_data(stream_id, frame, end_stream=False)
+                    except StreamClosedError as exc:
+                        raise ProxyError(
+                            f"upstream {self.host}:{self.port} closed stream {stream_id} during upload"
+                        ) from exc
+                    view = view[size:]
+                    await self._flush()
+                    # Progress: the timeout bounds a stalled write, not the
+                    # total transfer time of a large upload.
+                    deadline = time.monotonic() + WRITE_TIMEOUT
+                    continue
+            # Window exhausted. Clear before re-checking so a WINDOW_UPDATE
+            # that lands between the check and the wait cannot be missed.
+            self._window_event.clear()
+            async with self._write_lock:
+                try:
+                    available = self._conn.local_flow_control_window(stream_id)
+                except StreamClosedError as exc:
+                    raise ProxyError(
+                        f"upstream {self.host}:{self.port} closed stream {stream_id} during upload"
+                    ) from exc
+            if available > 0:
+                continue
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or self._closed:
+                self._mark_unhealthy()
+                raise ProxyError(
+                    f"upstream {self.host}:{self.port} upload stalled: no flow-control "
+                    f"window for {WRITE_TIMEOUT}s"
+                )
+            try:
+                await asyncio.wait_for(self._window_event.wait(), remaining)
+            except asyncio.TimeoutError:
+                self._mark_unhealthy()
+                raise ProxyError(
+                    f"upstream {self.host}:{self.port} upload stalled: no flow-control "
+                    f"window for {WRITE_TIMEOUT}s"
+                )
 
     async def _end_stream(self, stream_id: int) -> None:
         assert self._conn is not None
