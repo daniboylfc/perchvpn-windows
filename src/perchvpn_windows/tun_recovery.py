@@ -57,6 +57,12 @@ DEFAULT_ADAPTER_NAME = "PerchVPN"
 
 _RECORD_VERSION = 2  # v2 adds "network_baseline" for DNS/route-metric restoration
 _VERIFY_WINDOW_SECONDS = 8.0
+# A row that is provably ours and Down cannot carry traffic; waiting out the
+# whole verification window for it to disappear only delays Disconnect (live
+# 2026-11-24 run: 8.0 s of the 9.44 s teardown).  Once the baseline restore
+# has finished, a down row is released this much later, which still gives a
+# promptly-removed row the tidy "record cleared" path.
+_DOWN_ROW_RELEASE_GRACE_SECONDS = 0.75
 _POLL_INTERVAL_SECONDS = 0.1
 _CREATE_TIME_TOLERANCE_SECONDS = 0.05
 
@@ -678,6 +684,7 @@ class TunRecoveryGate:
                 asyncio.to_thread(self._restore_from_baseline, current)
             )
             deadline = self._clock() + self._window_seconds
+            down_since: Optional[float] = None
             while True:
                 # Two questions per poll: does the row still exist, and is it
                 # Up?  A Wintun device that the driver has torn down can sit
@@ -712,6 +719,24 @@ class TunRecoveryGate:
                     return CLEAN
 
                 now = self._clock()
+                if up is False:
+                    if down_since is None:
+                        down_since = now
+                else:
+                    down_since = None
+                if (
+                    down_since is not None
+                    and (now - down_since) >= _DOWN_ROW_RELEASE_GRACE_SECONDS
+                    and restore_task.done()
+                ):
+                    # Same verdict as the deadline branch, decided as soon as
+                    # it is provable: a down row plus a finished baseline
+                    # restore is a clean teardown.  The released record keeps
+                    # the next Connect fail-closed against a live sidecar or
+                    # an Up adapter.
+                    if self._restore_failed(restore_task):
+                        return self._mark_unverified(current)
+                    return self._release_down_row(current, name, now - down_since)
                 if now >= deadline:
                     await self._settle_restore(restore_task)
                     if self._restore_failed(restore_task):
@@ -721,29 +746,34 @@ class TunRecoveryGate:
                         # cannot carry traffic, so keep a released record for
                         # pre_start() to validate and consume.  A latch here
                         # would need an operator (reboot) for no safety gain.
-                        released = dict(current)
-                        released["state"] = "released"
-                        released["updated_at"] = self._clock()
-                        try:
-                            self._write_record(released)
-                        except Exception:  # noqa: BLE001
-                            logger.error(
-                                "could not persist released TUN ownership record",
-                                exc_info=True,
-                            )
-                            return self._mark_unverified(current)
-                        logger.warning(
-                            "TUN adapter %r is down but still listed after "
-                            "%.1fs; keeping a released ownership record for the "
-                            "next start",
-                            name,
-                            self._window_seconds,
+                        return self._release_down_row(
+                            current, name, self._window_seconds
                         )
-                        return CLEAN
                     return self._mark_unverified(current)
                 await self._sleep(
                     min(_POLL_INTERVAL_SECONDS, max(0.0, deadline - now))
                 )
+
+    def _release_down_row(self, current: dict, name: str, waited: float) -> str:
+        """Persist the ``released`` ownership record for a lingering down row."""
+        released = dict(current)
+        released["state"] = "released"
+        released["updated_at"] = self._clock()
+        try:
+            self._write_record(released)
+        except Exception:  # noqa: BLE001
+            logger.error(
+                "could not persist released TUN ownership record",
+                exc_info=True,
+            )
+            return self._mark_unverified(current)
+        logger.info(
+            "TUN adapter %r is down but still listed after %.1fs; keeping a "
+            "released ownership record for the next start",
+            name,
+            waited,
+        )
+        return CLEAN
 
     @staticmethod
     def _restore_failed(restore_task: "asyncio.Future") -> bool:

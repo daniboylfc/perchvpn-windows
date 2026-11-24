@@ -6,6 +6,7 @@ import asyncio
 import json
 import os
 import sys
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -13,6 +14,7 @@ import pytest
 from src.perchvpn_windows.tun_frontend import TunFrontend
 from src.perchvpn_windows.tun_recovery import (
     CLEAN,
+    _DOWN_ROW_RELEASE_GRACE_SECONDS,
     DEFAULT_ADAPTER_GUID,
     DEFAULT_ADAPTER_NAME,
     RECOVERY_UNVERIFIED,
@@ -1860,3 +1862,86 @@ class TestReleasedOwnershipAfterTeardown:
         assert await gate.verify_after_exit(run) == CLEAN
         with pytest.raises(RecoveryUnverified):
             gate.pre_start("/fake/tun2proxy.exe")
+
+    @pytest.mark.asyncio
+    async def test_down_row_releases_early_instead_of_waiting_the_whole_window(
+        self, tmp_path
+    ):
+        """A provably-down row must not hold Disconnect for the whole window.
+
+        Live 2026-11-24 12:56:12 run: the sidecar exited in 0.22 s, the
+        baseline restore finished ~1 s later, and teardown then sat on the
+        adapter-absence poll until the 8.0 s deadline because Windows keeps
+        the torn-down Wintun row listed with IfOperStatus Down.
+        """
+        state = {"row": False, "up": False}
+        creation = {"value": 100.0}
+
+        def probe(guid, name, *, require_up=False):
+            if not state["row"]:
+                return False
+            return state["up"] if require_up else True
+
+        gate = TunRecoveryGate(
+            enabled=True,
+            state_path=tmp_path / "tun-ownership.json",
+            adapter_probe=probe,
+            creation_time_probe=lambda pid: creation["value"],
+            identity_probe=lambda path: _identity(),
+            snapshot_capture=_capture_of(_snapshot_dict()),
+            window_seconds=5.0,
+        )
+
+        run = gate.pre_start("/fake/tun2proxy.exe")
+        gate.mark_running(run, 4242, 100.0)
+        state["row"], state["up"] = True, True
+
+        state["up"] = False
+        creation["value"] = None
+        started = time.monotonic()
+        assert await gate.verify_after_exit(run) == CLEAN
+        elapsed = time.monotonic() - started
+
+        assert elapsed < 3.0, elapsed
+        record = json.loads(
+            (tmp_path / "tun-ownership.json").read_text(encoding="utf-8")
+        )
+        assert record["state"] == "released"
+
+    @pytest.mark.asyncio
+    async def test_early_release_waits_for_the_restore_and_the_grace(
+        self, tmp_path
+    ):
+        """Fail closed: release only after a settled restore, never on tick 1."""
+        state = {"row": False, "up": False}
+        creation = {"value": 100.0}
+
+        def probe(guid, name, *, require_up=False):
+            if not state["row"]:
+                return False
+            return state["up"] if require_up else True
+
+        gate = TunRecoveryGate(
+            enabled=True,
+            state_path=tmp_path / "tun-ownership.json",
+            adapter_probe=probe,
+            creation_time_probe=lambda pid: creation["value"],
+            identity_probe=lambda path: _identity(),
+            snapshot_capture=_capture_of(_snapshot_dict()),
+            window_seconds=5.0,
+        )
+        run = gate.pre_start("/fake/tun2proxy.exe")
+        gate.mark_running(run, 4242, 100.0)
+        creation["value"] = None
+        state["row"], state["up"] = True, False
+
+        started = time.monotonic()
+        assert await gate.verify_after_exit(run) == CLEAN
+        elapsed = time.monotonic() - started
+
+        assert elapsed >= _DOWN_ROW_RELEASE_GRACE_SECONDS, elapsed
+        assert elapsed < 3.0, elapsed
+        record = json.loads(
+            (tmp_path / "tun-ownership.json").read_text(encoding="utf-8")
+        )
+        assert record["state"] == "released"
