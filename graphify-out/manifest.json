@@ -1,8 +1,8 @@
 {
   "pyproject.toml": {
-    "mtime": 1795178463.893212,
-    "seen": 1795179162.8769312,
-    "ast_hash": "76eff96c477ebf421af3c999d1b0fb14",
+    "mtime": 1795612744.0554767,
+    "seen": 1795613047.7638183,
+    "ast_hash": "2e3324d02dd8e8916c778e0ea8ded22a",
     "semantic_hash": ""
   },
   "scripts/build-candidate.ps1": {
@@ -36,9 +36,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn/buildinfo.py": {
-    "mtime": 1795001715.0338469,
-    "seen": 1795002086.2840893,
-    "ast_hash": "101059d83c0f20fb054dc84733a3c711",
+    "mtime": 1795612744.0570228,
+    "seen": 1795613047.7639053,
+    "ast_hash": "0e4463fdb79e7a457f840dbdc5831797",
     "semantic_hash": ""
   },
   "src/perchvpn/cli.py": {
@@ -174,9 +174,9 @@
     "semantic_hash": "37bd3d890f0808e2f24493434aabfb1e"
   },
   "src/perchvpn_windows/__init__.py": {
-    "mtime": 1795254008.5157945,
-    "seen": 1795255502.4215975,
-    "ast_hash": "379a8aeaaa4673e8a113bb611395934e",
+    "mtime": 1795612744.0572038,
+    "seen": 1795613047.764005,
+    "ast_hash": "d3f79c4714f9222e96b333e24b6feaf4",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/api.py": {
@@ -438,9 +438,9 @@
     "semantic_hash": "220a1cf31d26633d0134bf9fde07fef4"
   },
   "tests/test_frozen_entry.py": {
-    "mtime": 1795253966.9638176,
-    "seen": 1795255502.4217741,
-    "ast_hash": "0a085c57766cbc9f5565f14fbed24041",
+    "mtime": 1795612744.0668857,
+    "seen": 1795613047.7641964,
+    "ast_hash": "1d68e73969404aede0c8792acd21ad4b",
     "semantic_hash": ""
   },
   "tests/test_fxa_identity.py": {
@@ -498,9 +498,9 @@
     "semantic_hash": ""
   },
   "tests/test_packaging.py": {
-    "mtime": 1795001721.2300522,
-    "seen": 1795002086.2844462,
-    "ast_hash": "01f5e4e398cc1431de022bbc8294bbc3",
+    "mtime": 1795612744.0660062,
+    "seen": 1795613047.7643945,
+    "ast_hash": "851be98b4cd21e8f0a18b81418404297",
     "semantic_hash": ""
   },
   "tests/test_physical_bootstrap.py": {
@@ -774,9 +774,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn_windows/web/index.html": {
-    "mtime": 1795182112.0008745,
-    "seen": 1795182674.6141117,
-    "ast_hash": "3d3440a1e549e69d3ff38640d42edcf2",
+    "mtime": 1795612744.059568,
+    "seen": 1795613047.7646143,
+    "ast_hash": "e96e90fb2cfac462d0cc96ecdf55dcad",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/web/assets/flags/4x3/ar.svg": {
@@ -1026,9 +1026,9 @@
     "semantic_hash": ""
   },
   "tests/test_api_parity.py": {
-    "mtime": 1795290951.2051885,
-    "seen": 1795291449.660075,
-    "ast_hash": "4ae433a1d5ea09010f94265e3d9c4b80",
+    "mtime": 1795612888.782395,
+    "seen": 1795613047.7641308,
+    "ast_hash": "dddfa2166c83b5db21f72221c5f30b6e",
     "semantic_hash": ""
   },
   "tests/test_config_parity.py": {
@@ -1254,9 +1254,9 @@
     "semantic_hash": ""
   },
   "src/perchvpn/fxa_pkce.py": {
-    "mtime": 1795171077.6702836,
-    "seen": 1795172012.7688909,
-    "ast_hash": "e55dee9a4bcff4f154e8d4e118e1c439",
+    "mtime": 1795612744.057653,
+    "seen": 1795613047.7639327,
+    "ast_hash": "c09c727c393fe7975772095525829f07",
     "semantic_hash": ""
   },
   "tests/test_fxa_pkce.py": {
@@ -1308,9 +1308,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/release-windows.yml": {
-    "mtime": 1795444200.9798727,
-    "seen": 1795445365.1700363,
-    "ast_hash": "fa903c4a7f3785c8e2cdfda3f375d192",
+    "mtime": 1795612744.0638032,
+    "seen": 1795613047.763805,
+    "ast_hash": "53b2c0e02192f1cadf973b416f05fbd4",
     "semantic_hash": ""
   },
   "src/perchvpn_windows/startup_diagnostics.py": {
