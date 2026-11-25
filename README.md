@@ -2,153 +2,186 @@
 
 # PerchVPN
 
-**A Windows desktop client for the Firefox VPN / Mozilla VPN proxy service — full-tunnel TUN or a local SOCKS5/HTTP proxy, with live country switching.**
+**Windows client for the Firefox VPN / Mozilla VPN service** — local SOCKS5/HTTP proxy by default, whole-system Wintun tunnel as an opt-in, live country switching in both.
 
-![Version](https://img.shields.io/badge/release-2.0.4-2f6f4f?style=flat-square)
+![Release](https://img.shields.io/badge/release-2.0.4-2f6f4f?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-2f6f4f?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-2f6f4f?style=flat-square)
 
 </div>
 
-> **PerchVPN is an unofficial client.** It is not affiliated with, endorsed by, or supported by Mozilla. It authenticates with *your own* Firefox Account against the same service the official clients use, and it never ships, proxies, or shares credentials.
+> **Unofficial client.** Not affiliated with, endorsed by, or supported by Mozilla. PerchVPN authenticates with *your own* Firefox Account against the same service the official clients use. It ships no credentials and never proxies them.
 
 ---
 
 ## Contents
 
-- [Install](#install)
-- [Networking modes at a glance](#networking-modes-at-a-glance)
-- [TUN mode](#tun-mode)
-- [Proxy mode](#proxy-mode)
-- [Country hot-swap](#country-hot-swap)
-- [DoH resolver pool](#doh-resolver-pool)
-- [Operating mechanics](#operating-mechanics)
+- [Architecture](#architecture)
+- [Quickstart](#quickstart)
+- [Networking modes](#networking-modes)
+  - [Proxy mode (default)](#proxy-mode-default)
+  - [System-wide TUN mode (opt-in)](#system-wide-tun-mode-opt-in)
+  - [Country hot-swap](#country-hot-swap)
+  - [DoH resolver pool](#doh-resolver-pool)
+- [Operating lifecycle](#operating-lifecycle)
   - [1. Startup and readiness](#1-startup-and-readiness)
   - [2. Connect](#2-connect)
   - [3. Sustained transfer and upload flow control](#3-sustained-transfer-and-upload-flow-control)
-  - [4. Disconnect and fail-closed recovery](#4-disconnect-and-fail-closed-recovery)
-  - [5. System tray and cold-path hygiene](#5-system-tray-and-cold-path-hygiene)
+  - [4. Disconnect and ownership handoff](#4-disconnect-and-ownership-handoff)
+  - [5. Tray, single instance, cold path](#5-tray-single-instance-cold-path)
 - [Configuration reference](#configuration-reference)
-- [Development](#development)
+- [Development and tests](#development-and-tests)
+- [License](#license)
 
 ---
 
-## Install
+## Architecture
+
+```
+WebView2 UI (web/index.html)
+   │  HTTP + WebSocket on 127.0.0.1:8765
+   ▼
+FastAPI (uvicorn, lifespan-gated)  ·  status · config · lifecycle
+   │
+   ├─ proxy mode (default) ──▶ SOCKS5 127.0.0.1:1080 (+ HTTP 8080 opt-in)
+   └─ TUN mode (opt-in) ────▶ helper → Wintun "PerchVPN" → sing-box
+                                 └─ outbound "perch-socks" → 127.0.0.1:1080
+   ▼
+ProxyController → SessionPool (H2 · H3 · H1) → MASQUE edge (Fastly) → exit
+```
+
+Three invariants hold end to end:
+
+- **One transport, two scopes.** TUN mode does not reimplement the tunnel: `sing-box` hands every captured flow to the same loopback SOCKS5 listener that proxy-aware apps use. A transport fix applies to both modes.
+- **Fail closed.** The client claims a state only when it can prove it. A half-built tunnel is torn down or refused, never reported as connected.
+- **No writes beside the executable.** All state lives under `%APPDATA%\PerchVPN` and `%LOCALAPPDATA%\PerchVPN`, which makes an MSI install under `Program Files` and a portable extract equally safe.
+
+---
+
+## Quickstart
 
 | Channel | Artifact | Notes |
 |---|---|---|
-| Installer | `PerchVPN-2.0.4-win64.msi` | Per-machine install, upgrade-aware. Requires elevation. |
-| Portable | `PerchVPN-2.0.4-win64-portable.zip` | Extract anywhere writable and run `PerchVPN.exe`. No installer and no footprint under `Program Files`. |
+| Installer | `PerchVPN-2.0.4-win64.msi` | Per-machine, upgrade-aware, requires elevation. |
+| Portable | `PerchVPN-2.0.4-win64-portable.zip` | Extract anywhere writable and run `PerchVPN.exe`. No installer, no `Program Files` footprint. |
 | Verify | `SHA256SUMS.txt` | `Get-FileHash <file> -Algorithm SHA256` and compare. |
 
-> **Prerequisite:** Microsoft Edge **WebView2 Evergreen Runtime** (already present on current Windows 10/11). The MSI refuses to install without it and points at the download; the portable build reports the same reason in a dialog instead of exiting silently.
+> **Prerequisite:** Microsoft Edge **WebView2 Evergreen Runtime** (already present on current Windows 10/11). The MSI refuses to install without it and links the download; the portable build reports the same reason in a dialog instead of exiting silently.
 
-**First run.** Sign in with your Firefox Account in the app window, pick a country, press **Connect**. Proxy mode is the default; enable **TUN** in settings to route the whole machine. The window's `X` hides PerchVPN to the tray and keeps the tunnel alive; quitting is explicit (**Quit** in the tray menu). Launching `PerchVPN.exe` again focuses the instance that is already running instead of starting a second one.
+**First run.** Sign in with your Firefox Account, pick a country, press **Connect**. Proxy mode is the default. Enable **TUN** in settings to route the whole machine.
+
+**Window and tray.** `X` hides to the notification area and keeps the tunnel running; quitting is explicit via the tray menu. Launching `PerchVPN.exe` while it runs focuses the existing instance instead of starting a second one.
 
 **Where data lives.** Nothing is written next to the executable.
 
 | Path | Contents |
 |---|---|
-| `%APPDATA%\PerchVPN` | `config.json`, `status.json`, `proxy-state.json`, tokens, generated `sing-box.json`, TUN ownership record, app log |
-| `%LOCALAPPDATA%\PerchVPN` | Startup/early-boot log, WebView2 profile |
-| `%LOCALAPPDATA%\PerchVPN\webview2` | Persistent WebView2 user-data folder (keeps cold start fast) |
+| `%APPDATA%\PerchVPN` | `config.json`, `status.json`, `proxy-state.json`, `tokens.json`, `sing-box.json`, `tun-ownership.json`, `perchvpn.log` |
+| `%LOCALAPPDATA%\PerchVPN` | Early-boot `perchvpn.log`, crash / faulthandler logs |
+| `%LOCALAPPDATA%\PerchVPN\webview2` | Persistent WebView2 profile (keeps cold start fast) |
 
 ---
 
-## Networking modes at a glance
+## Networking modes
 
-| Mode | Scope | Transport to the edge | DNS | IPv6 | On failure |
-|---|---|---|---|---|---|
-| **TUN** | Whole system (all apps) | `sing-box` → local proxy → MASQUE (HTTP/1.1, HTTP/2 or HTTP/3/QUIC) | Tunnel DoH via the proxy (`remote-dns`), direct resolver for bypassed names | Full dual-stack, or forced `ipv4_only` / `ipv6_only` / preferred family | Fails closed: no partial tunnel, baseline restored or refused |
-| **Proxy (SOCKS5)** | Proxy-aware apps | `H2ProxySession` / `H3ProxySession` / `H1ProxySession` → MASQUE | The app's own resolver | Follows the app and the dial | Connection refused / error surfaced, never a silent direct leak |
-| **Proxy (HTTP)** | Proxy-aware apps | Same engine via the local HTTP proxy listener | The app's own resolver | Follows the app and the dial | As above |
-| **Proxy-only mode** | Proxy-aware apps, TUN disabled | Same engine | App resolver | Follows the app and the dial | No TUN state to clean up |
-
-> **One transport, two scopes.** Proxy mode is the default; TUN is opt-in. TUN mode does not reimplement the tunnel: `sing-box` forwards every captured flow into PerchVPN's own loopback SOCKS5 listener, which is the single MASQUE client. Fixing or tuning the transport therefore fixes both modes at once.
+| Mode | Default | Scope | Transport to the edge | DNS | IPv6 | On failure |
+|---|---|---|---|---|---|---|
+| **Proxy — SOCKS5** | **yes** | Proxy-aware apps | Configured transport: H2 (default), H3, or H1 | The app's resolver | Follows the app | Dial error returned; no silent direct fallback |
+| **Proxy — HTTP** | opt-in | Proxy-aware apps | Same engine, local HTTP `CONNECT` listener | The app's resolver | Follows the app | As above |
+| **Proxy-only** | opt-in | Proxy-aware apps, TUN suppressed | Same engine | The app's resolver | Follows the app | No TUN state to clean up |
+| **System-wide TUN** | opt-in | Every app on the machine | `sing-box` → loopback SOCKS5 → same engine | Tunnel DoH via the proxy (`remote-dns`) + `local-dns` for bypassed names | `dual_stack` or a forced/preferred family | Fails closed; baseline restored or the operation is refused |
 
 ---
 
-## TUN mode
+### Proxy mode (default)
 
-TUN mode gives every application on the machine a system-wide tunnel, including apps that know nothing about proxies.
+The engine is a MASQUE client for Fastly's relay edges. Each session type maps to one upstream protocol:
 
-```
-app traffic ──▶ Wintun adapter ──▶ sing-box (TUN inbound)
-                                     │  auto_route, strict_route, stack=system
-                                     ▼
-                            perch-socks outbound
-                                     │  127.0.0.1:1080 (SOCKS5)
-                                     ▼
-                      PerchVPN proxy engine ──▶ MASQUE ──▶ Fastly edge
-```
+| Session | Protocol | Role |
+|---|---|---|
+| `H2ProxySession` | HTTP/2 `CONNECT` | Default. Multiplexed streams over one TLS connection. |
+| `H3ProxySession` | HTTP/3 (QUIC) | Selected with `transport_version="h3"`; `use_http3` is the legacy alias. |
+| `H1ProxySession` | HTTP/1.1 `CONNECT` | Explicit `transport_version="h1"` parity mode. |
 
-**Adapter and routes.** `sing-box` creates a Wintun adapter and installs the default route; `172.19.0.1/30` (IPv4) and `fdfe:dcba:9876::/126` (IPv6) are the in-tunnel addresses. `auto_route` handles route installation and `strict_route` blocks traffic that would otherwise escape the tunnel, so the system cannot quietly fall back to the physical path.
+Transport is chosen by configuration (`transport_version`), not negotiated. HTTP/3 downgrades to HTTP/2 automatically on a QUIC timeout or a close storm (4 session closes in 10 s) unless the transport is pinned.
 
-**Split routing.** A curated exclusion list is emitted as `route_exclude_address`, keeping these on the physical adapter:
+**Pool behaviour.** `SessionPool` grows on demand up to a stream-capacity ceiling, spaces replacement dials by at least 0.25 s so a burst of short-lived flows cannot storm the edge with parallel TLS handshakes, and replaces sessions marked unhealthy — a stalled upload or a stream the peer closed marks the session so the drain happens on the next acquire.
 
-- private and link-local ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `169.254.0.0/16`, `127.0.0.0/8`, `fc00::/7`, `fe80::/10`) so LAN devices, printers and NAS stay reachable;
-- host-local WSL `vEthernet` subnets, which `strict_route` would otherwise black-hole;
-- the control-plane / edge `/32` bypass routes the elevated helper keeps on the physical gateway, so a mid-session country switch can dial the new edge without entering its own tunnel.
-
-**Tunnel DNS.** `remote-dns` is DoH to a tunnel resolver, dialled through `perch-socks` — the query rides the VPN instead of leaking on the physical adapter. Presets: Cloudflare, Google, Quad9, AdGuard. A local resolver (`local-dns`, direct) serves bypassed names, and DNS hijack rules capture stray port-53 traffic.
-
-**Port policy.** Fastly MASQUE edges only accept CONNECT to **80** and **443**; anything else is refused with HTTP 502 upstream. `sing-box` rejects other TCP ports locally instead of poisoning live `:443` streams, so an app asking for an unsupported port gets an immediate refusal rather than a stalled connection.
-
-**Fail-closed ownership.** TUN bring-up and teardown are guarded by a persisted ownership record and a recovery engine:
-
-- a *prepared* record is validated before any mutation, so a crash mid-setup cannot orphan routes or DNS;
-- a live sidecar, an `Up` stale adapter, or an ambiguous probe **refuses** the operation rather than guessing;
-- every baseline mutation is journaled and can be rolled back.
-
-> **Why this matters:** a TUN client that half-connects is worse than one that does not connect. PerchVPN prefers a clean "not connected" to a system with a leaked default route.
-
----
-
-## Proxy mode
-
-Proxy mode exposes the same MASQUE engine to applications that speak proxies.
+**Listeners.**
 
 | Listener | Default | Purpose |
 |---|---|---|
-| SOCKS5 | `127.0.0.1:1080` | Primary entry point; used by `sing-box` in TUN mode and by any SOCKS-aware app. |
-| HTTP proxy | `127.0.0.1:8080` (opt-in) | For apps that only speak HTTP `CONNECT`; loopback bind is enforced. |
+| SOCKS5 | `127.0.0.1:1080` | Primary entry point; also consumed by `sing-box`. |
+| HTTP proxy | `127.0.0.1:8080`, opt-in | For apps that only speak HTTP `CONNECT`. Loopback bind is enforced. |
 
-**Sessions.** The engine negotiates the best transport the edge offers and keeps it alive across many flows:
+**Proxy-only mode.** `proxy_only_mode` runs the engine alone — no Wintun adapter, no routes, no ownership record. It is mutually exclusive with upstream-proxy chaining by design.
 
-- `H2ProxySession` — HTTP/2 CONNECT, multiplexed streams over one TLS connection;
-- `H3ProxySession` — HTTP/3 (QUIC) with the same stream model;
-- `H1ProxySession` — HTTP/1.1 CONNECT fallback.
-
-Sessions are pooled, health-tracked and replaced on failure; a single bad upstream does not tear down the pool.
-
-**Proxy-only mode.** With `proxy_only_mode` enabled, PerchVPN runs the proxy engine alone — no Wintun adapter, no route changes, no TUN ownership record. It is mutually exclusive with upstream-proxy chaining by design.
-
-> **Leak posture:** a refused dial surfaces as an error to the client. The engine never silently falls back to a direct connection.
+> **Leak posture:** a refused dial is an error to the client. The engine never falls back to a direct connection.
 
 ---
 
-## Country hot-swap
+### System-wide TUN mode (opt-in)
 
-Switching country mid-session replaces the upstream relay without re-running the whole bootstrap: the TUN adapter, routes, and local listener stay up while the exit changes.
+Every application gets the tunnel, including apps that know nothing about proxies.
 
-**Sequence**
+```
+app traffic ──▶ Wintun "PerchVPN" ──▶ sing-box (TUN inbound)
+                                        │ auto_route · strict_route · stack=system
+                                        ▼
+                               outbound "perch-socks"
+                                        │ 127.0.0.1:1080 (SOCKS5)
+                                        ▼
+                    PerchVPN proxy engine ──▶ MASQUE ──▶ Fastly edge
+```
 
-1. The UI acknowledges the new selection on the **first frame** (optimistic state) and shows the switch as in progress — the app never looks frozen while the backend works.
-2. A monotonic `switch_id` is issued. Every later step checks it; work from a superseded switch is marked `stale` and discarded instead of overwriting the newer result.
-3. The candidate relay is resolved and dialled on the physical path through the bypass routes, then swapped into the pool.
-4. The old controller and pool are finalized in the background; the switch reports its phases (`plan`, `resolve`, `pin_upstream`, `dial`, `swap`, `verify_start`) with durations.
+**Adapter and routes.** `sing-box` owns the Wintun adapter and the default route. In-tunnel addresses are `172.19.0.1/30` (IPv4) and `fdfe:dcba:9876::1/126` (IPv6). `auto_route` installs routes; `strict_route` blocks traffic that would otherwise escape, so the system cannot silently fall back to the physical path.
 
-**Verification.** The new exit is confirmed by comparing the observed system egress against the expected exit **per address family**: an IPv6 exit from the SOCKS probe is compared with an IPv6 observation, never string-matched against an IPv4 observation. Country labels are treated as GeoIP opinions — an anycast edge can legitimately appear under several country databases — so a country match confirms the exit when an address comparison cannot.
+**Split routing.** `route_exclude_address` keeps these off the tunnel:
 
-**Rollback.** If the candidate never becomes active, the previous country's pins are kept and only the candidate's temporary pins are dropped. The live tunnel is never left in a half-switched state.
+- RFC1918, link-local and loopback ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `169.254.0.0/16`, `127.0.0.0/8`, `fc00::/7`, `fe80::/10`), so LAN devices, printers and NAS stay reachable;
+- host-local WSL `vEthernet` subnets, which `strict_route` would otherwise black-hole (detected live via the native IP Helper);
+- the control-plane and edge `/32` bypass routes the elevated helper keeps on the physical gateway, so a mid-session switch can reach the new edge without entering its own tunnel.
 
-> **Result states:** `traffic_verified` (address or country confirmed) and `tunnel_operational` (traffic provably leaving through a non-baseline exit, exit identity inconclusive) both report **Connected**; only a baseline leak or an unverifiable state keeps the UI honest about it.
+**Tunnel DNS.** `remote-dns` is DoH to a tunnel resolver, dialled through `perch-socks`, so queries ride the VPN instead of leaking on the physical adapter. Presets: Cloudflare (default), Google, Quad9, AdGuard. `local-dns` (direct) serves bypassed names; hijack rules capture stray protocol-DNS and port-53 traffic.
+
+**Port policy.** MASQUE edges accept `CONNECT` only to **80** and **443**; other ports come back as HTTP 502 and can poison live `:443` streams. `sing-box` therefore rejects every other TCP port locally, giving the app an immediate refusal instead of a stalled connection. UDP is rejected, and port 853 is blocked.
+
+**Fail-closed ownership.** A persisted record plus a recovery engine guard bring-up and teardown:
+
+- a `prepared` record is validated before any mutation, so a crash mid-setup cannot orphan routes or DNS;
+- a live sidecar, an `Up` stale adapter, or an inconclusive probe **refuses** the operation rather than guessing;
+- every baseline mutation is journaled, and restoration completes before the record is cleared.
+
+> A TUN client that half-connects is worse than one that does not connect. PerchVPN prefers an honest "not connected" to a leaked default route.
 
 ---
 
-## DoH resolver pool
+### Country hot-swap
 
-Hostnames that must resolve *before* the tunnel exists (control plane, relay endpoints, edge discovery) go through a racing DoH resolver.
+A switch replaces the upstream relay without re-bootstrapping: the Wintun adapter, routes and listener stay up.
+
+1. **Frame 1 is optimistic.** The country row repaints on the click, before any network call; a rejected request rolls the row back, so the UI never claims a country the backend refused.
+2. **Monotonic `switch_id`.** Each step re-checks it; work from a superseded switch is marked `stale` and discarded instead of overwriting the newer result.
+3. **Candidate on the physical path.** The new relay is resolved and dialled through the bypass routes, then swapped into the pool.
+4. **Background handoff.** The old controller and pool are finalized asynchronously. Phases are timed (`plan`, `resolve`, `pin_upstream`, `dial`, `swap`, `verify_start`).
+
+**Verification is per address family.** An IPv6 exit from the SOCKS probe is compared with an IPv6 observation, never string-matched against an IPv4 address. Country labels are treated as GeoIP opinions — an anycast edge can legitimately appear under several databases — so a country match confirms the exit when address comparison cannot. Both sides of the comparison read Cloudflare's `/cdn-cgi/trace`; proxy responses are capped at 64 KiB. `REC` selects the service's rotating recommended server.
+
+**Prewarm.** Hovering or keyboard-focusing a country fires `POST /api/prewarm`, which resolves that relay's host into the DoH cache so the switch itself is a dial, not a lookup. `system` as `resolver_dns_provider` disables prewarm.
+
+**Rollback.** If the candidate never becomes active, the previous country's pins are kept and only the candidate's temporary pins are dropped.
+
+| State | Meaning | UI |
+|---|---|---|
+| `traffic_verified` | Exit identity confirmed | Connected |
+| `tunnel_operational` | Adapter and routes up; traffic leaves via a non-baseline exit; identity inconclusive | Connected |
+| `degraded` | System traffic still exits through the physical path — routes are not effective | Degraded |
+
+---
+
+### DoH resolver pool
+
+Hostnames that must resolve before the tunnel exists (control plane, relay endpoints, edge discovery) go through a racing DoH resolver.
 
 | Provider | Endpoints | Dial |
 |---|---|---|
@@ -156,83 +189,86 @@ Hostnames that must resolve *before* the tunnel exists (control plane, relay end
 | Google | `8.8.8.8`, `8.8.4.4` | HTTP/1.1 |
 | Quad9 | `9.9.9.9`, `149.112.112.112` | **HTTP/2** (ALPN) |
 
-Quad9's DoH service rejects HTTP/1.1 with `505 HTTP Version Not Supported`, so its endpoints are dialled with HTTP/2 negotiated via ALPN while the others stay on HTTP/1.1.
+Quad9 rejects HTTP/1.1 with `505 HTTP Version Not Supported`, so those two endpoints are dialled over HTTP/2 via ALPN; the others stay on HTTP/1.1.
 
-**Racing and cancellation.** All endpoints for a provider are queried concurrently and the first success wins. Losers are always cancelled *and awaited* — a losing query that later raised used to produce "Task exception was never retrieved" whenever the caller timed out. Results are cached with a short TTL, and every query is bounded by a timeout.
+`automatic` (the default `bootstrap_dns_provider` and `resolver_dns_provider`) races **all six endpoints across all three providers**; a named provider races its own two. The first success wins; losers are cancelled *and awaited*, so a losing query that later raises cannot surface as "Task exception was never retrieved". Results are cached with a TTL and every query is timeout-bounded. `system` delegates to the OS resolver.
 
 ---
 
-## Operating mechanics
+## Operating lifecycle
 
 ### 1. Startup and readiness
 
 ```
 PerchVPN.exe
   ├─ durable logging + excepthook installed before any GUI import
-  ├─ API thread: FastAPI + uvicorn  ── lifespan runs before serving
+  ├─ working directory moved to %LOCALAPPDATA%\PerchVPN
+  ├─ API thread: FastAPI + uvicorn — lifespan completes before serving
   ├─ readiness probe: GET /api/status, 50 ms → 250 ms backoff
-  └─ pywebview window created ──▶ first paint ──▶ countries rendered
+  └─ pywebview window ──▶ first paint ──▶ countries rendered
 ```
 
-**Lifespan-accurate readiness.** The API is only considered ready once `uvicorn` has completed the FastAPI lifespan *and* `/api/status` returns a recognized status. The readiness timestamp is stamped **after** the answered request, so the log records the moment the service actually served, not the moment the probe started.
+**Idle boot.** The lifespan calls `initialize_idle()`: logging, token migration and an optional source-bind only. No auth dial, proxy listener, TUN helper or mode switch runs until Connect.
 
-**Idle boot.** Startup prepares logging and token migration only. No auth dial, no proxy listener, no TUN helper, and no mode switch runs until you press Connect.
+**Lifespan-accurate readiness.** Ready means the uvicorn lifespan completed *and* `/api/status` answered with a recognized payload. The readiness mark is stamped **after** the answered request, so the log records when the service actually served, not when the probe started.
 
-**Lazy imports.** The boot chain does not import `aioquic` or the HTTP/3 session module: `pool` and `controller` resolve `H3ProxySession` through a module `__getattr__`, so QUIC support is loaded only when an HTTP/3 dial needs it.
+**Lazy imports.** The boot chain never imports `aioquic` or the HTTP/3 session module: `pool` and `controller` resolve `H3ProxySession` through module-level `__getattr__`, so QUIC code loads only when an HTTP/3 dial needs it.
 
-**Server-list cache reuse.** A server list the UI fetched seconds ago is authoritative for Connect (120-second freshness window), so pressing Connect does not repeat the same Remote Settings round trip. A background refresh still warms the snapshot at boot.
+**Server-list cache reuse.** A list the UI fetched within 120 s is authoritative for Connect, so pressing Connect does not repeat the Remote Settings round trip. A non-blocking refresh still warms the snapshot at boot.
 
 **Latency sweep pausing.** The per-country latency sweep pauses while a connect, disconnect or switch is in flight, so probe traffic never competes with the transition the user is waiting on.
 
 ### 2. Connect
 
-1. **Optimistic UI.** The status flips to *connecting* immediately, before any network work, so the click always produces feedback.
-2. **Fail-closed preconditions.** In TUN mode the pre-start gate validates the ownership record, the physical egress, and adapter state. Any ambiguity stops the attempt.
-3. **Transport.** The proxy engine dials the selected relay; the pool negotiates HTTP/2 or HTTP/3 (HTTP/1.1 fallback) and the local SOCKS5 listener comes up.
-4. **TUN bring-up.** The elevated helper starts the sidecar, creates the Wintun adapter, applies routes/DNS, and journals every mutation.
-5. **Egress verification.** System traffic is probed per family and compared with the expected exit, with a baseline-leak check. Only then does the UI report **Connected**.
+1. **Optimistic paint, deferred dial.** The UI paints *Connecting* and returns, then issues `POST /api/restart` on the next task — the click always produces feedback before any blocking work.
+2. **Fail-closed preconditions.** In TUN mode the pre-start gate validates the ownership record, the physical path and adapter state. Ambiguity stops the attempt.
+3. **Transport.** The controller dials the selected candidate (configured transport) and brings up the loopback SOCKS5 listener.
+4. **TUN bring-up.** The elevated helper starts the sidecar, creates the Wintun adapter and applies routes/DNS, journaling each mutation.
+5. **Exit verification.** System egress is probed per family, compared with the expected exit, and checked against the pre-connect baseline for leaks. Only then does the UI report **Connected**.
 
-A per-phase summary (`preflight`, `auth`, `serverlist`, `controller`, `proxy`, `tun`) is written to the log for every connect.
+Each connect writes a per-phase summary to the log: `preflight`, `auth`, `serverlist`, `controller`, `proxy`, `tun`.
 
 ### 3. Sustained transfer and upload flow control
 
-Downloads and small requests are straightforward streams. Uploads are where HTTP/2 flow control actually bites, and it is handled explicitly:
+Downloads and small requests stream directly. Uploads are where HTTP/2 flow control bites, and it is handled explicitly:
 
 ```python
-size = min(local_flow_control_window(stream_id), max_outbound_frame_size)
-send_data(stream_id, payload[:size])
-# window exhausted → clear, re-check, then wait for WINDOW_UPDATE
+window = conn.local_flow_control_window(stream_id)
+size   = min(window, conn.max_outbound_frame_size)   # admissible frame
+conn.send_data(stream_id, view[:size]); view = view[size:]
+# window dry → clear, re-check, then wait for WINDOW_UPDATE
 ```
 
 - payloads are split into admissible frames instead of being sent as one oversized frame;
-- when the window runs dry the session waits for `WINDOW_UPDATE`, re-checking after clearing the event so a wakeup cannot be missed;
-- a stalled write is bounded by a write timeout and raises `ProxyError`; a stream closed by the peer during upload raises immediately with the host and port;
-- the write timeout is refreshed on progress, so it bounds a stall rather than the total duration of a large transfer.
+- the event is cleared **before** re-checking, so a `WINDOW_UPDATE` arriving between check and wait cannot be missed;
+- a stalled write is bounded by `WRITE_TIMEOUT` (30 s) and marks the session unhealthy; a stream closed by the peer raises `ProxyError` naming host, port and stream;
+- the deadline is refreshed on progress, so it bounds a stall rather than the total transfer time.
 
-> **Before this:** a 4 MiB upload raised `FlowControlError` and tore the stream down. Large uploads, video calls and media sends now complete.
+> A 4 MiB upload used to raise `FlowControlError` and tear the stream down. Large uploads, video calls and media sends now complete.
 
-### 4. Disconnect and fail-closed recovery
+### 4. Disconnect and ownership handoff
 
 Disconnect is fast, but never at the cost of a truthful state.
 
 1. **Teardown.** The sidecar is asked to stop; routes, DNS and adapter state are restored from the journaled baseline.
-2. **Stale-adapter handling.** Windows keeps a removed Wintun device listed for a short while. The PnP ghost scan is polled at **100 ms** instead of sleeping a fixed second, so teardown finishes as soon as the device is really gone.
-3. **Provably-owned rows.** A `Down` adapter row that is provably ours is released after a **0.75 s** grace once the baseline restore has finished — instead of waiting out the full 8-second absence window.
-4. **Ownership handoff.** Teardown keeps a `released` ownership record so the next Connect can validate and consume it. This is what makes a clean reconnect possible without either latching fail-closed or blindly trusting a leftover row.
-5. **Refusal, not guesswork.** A live sidecar, an `Up` stale adapter, or an ambiguous probe refuses the release. The app reports the failure and stays closed rather than claiming a clean state.
+2. **Ghost-adapter polling.** Windows keeps a removed Wintun device listed for a while. The PnP scan polls every **100 ms** instead of sleeping a fixed second, so teardown finishes when the device is really gone.
+3. **Provably-owned rows.** A `Down` row that is provably ours is released **0.75 s** after a finished baseline restore, instead of waiting out the **8 s** verification window.
+4. **Ownership handoff.** Teardown persists a `released` record. The next Connect validates and consumes it — a clean reconnect without either latching fail-closed or blindly trusting a leftover row.
+5. **Refusal, not guesswork.** A live sidecar, an `Up` stale adapter, or an inconclusive probe refuses the release. The app reports the failure and stays closed.
 
-> **Fail-closed rule of thumb:** PerchVPN only declares success for state it can prove. Everything else is an error the UI shows.
+> **Rule of thumb:** only provable state is success. Everything else is an error the UI shows.
 
-### 5. System tray and cold-path hygiene
+### 5. Tray, single instance, cold path
 
 | Action | Behaviour |
 |---|---|
-| Window `X` | Hides to the notification area; the tunnel and API keep running. |
+| Window `X` | Hides to the notification area; tunnel and API keep running. |
 | Tray → **Open Perch VPN** | Restores the window. |
-| Tray → Connect / Disconnect | Same action as the main button. |
-| Tray → **Quit** | Explicit quit: ends the GUI loop so the API lifespan shutdown, TUN teardown and helper stop all run. |
+| Tray → **Connect** / **Disconnect** | Same action as the main button. |
+| Tray → **Quit** | Ends the GUI loop, so the API lifespan shutdown, TUN teardown and helper stop all run. |
+| Second launch | Focuses the running instance; no second process. |
 
-**Cold-path hygiene.** At startup the process moves its working directory to `%LOCALAPPDATA%\PerchVPN`, so nothing is ever written beside the executable — a requirement for an MSI install under `Program Files` and the reason the portable build leaves its folder untouched. Release artifacts are additionally checked for forbidden files (logs, token files, `.env`) before packaging.
+**Cold-path hygiene.** Startup moves the working directory to `%LOCALAPPDATA%\PerchVPN`, so nothing is ever written beside the executable. Release packaging additionally rejects any bundle containing `auth.json`, `tokens.json`, `settings.json`, `.env` or `*.log`.
 
 ---
 
@@ -241,19 +277,23 @@ Disconnect is fast, but never at the cost of a truthful state.
 | Option | Default | Meaning |
 |---|---|---|
 | `listen_host` / `listen_port` | `127.0.0.1` / `1080` | SOCKS5 listener used by apps and by `sing-box`. |
-| `http_proxy_enabled` / `http_proxy_port` | `false` / `8080` | Optional HTTP proxy listener (loopback only). |
-| `proxy_only_mode` | `false` | Proxy engine only; ignores TUN even when enabled. |
-| `tun_enabled` | `false` | Opt-in system-wide tunnel via Wintun + `sing-box`. |
+| `http_proxy_enabled` / `http_proxy_port` | `false` / `8080` | Optional HTTP proxy listener; loopback only. |
+| `tun_enabled` | `false` | Opt-in system-wide tunnel (Wintun + `sing-box`). |
+| `proxy_only_mode` | `false` | Proxy engine only; TUN is ignored even when enabled. |
+| `transport_version` | `h2` | `h1`, `h2` or `h3` upstream transport. |
+| `use_http3` | `false` | Legacy HTTP/3 override; ignored while `transport_version` is `h2` or `h3`. |
 | `ip_mode` | `dual_stack` | `dual_stack`, `prefer_ipv4`, `prefer_ipv6`, `ipv4_only`, `ipv6_only`. |
-| `tunnel_dns_provider` | `default` | Cloudflare, Google, Quad9 or AdGuard DoH inside the tunnel. |
-| `source_bind_ip` | auto | Pin control-plane egress to a physical address; auto-detected otherwise. |
-| `upstream_proxy` | none | Chain through an upstream proxy (mutually exclusive with proxy-only mode). |
+| `tunnel_dns_provider` | `default` | Tunnel DoH: Cloudflare, Google, Quad9, AdGuard or `custom`. |
+| `bootstrap_dns_provider` | `automatic` | DoH pool used before the tunnel exists. |
+| `resolver_dns_provider` | `automatic` | DoH provider for relay-host pre-resolution; `system` uses the OS resolver. |
+| `source_bind_ip` | auto | Pin control-plane egress to a physical address. |
+| `upstream_proxy_enabled` / `upstream_proxy` | `false` / none | Chain through an upstream proxy (mutually exclusive with proxy-only mode). |
 
-Settings are stored in `%APPDATA%\PerchVPN\config.json` and are editable from the app.
+Settings live in `%APPDATA%\PerchVPN\config.json` and are editable from the app.
 
 ---
 
-## Development
+## Development and tests
 
 ```powershell
 python -m venv .venv
@@ -262,11 +302,11 @@ python -m venv .venv
 ```
 
 ```powershell
-# Reproducible Windows bundle (same flags the release workflow enforces)
+# Reproducible Windows bundle with the flags the release workflow enforces
 powershell -ExecutionPolicy Bypass -File scripts\build-candidate.ps1 -NoUpx
 ```
 
-The suite covers the transport sessions, TUN lifecycle and recovery, DoH racing, hot-swap state machine, GUI/API contract and the packaging invariants. Windows-specific behaviour (Wintun, NDIS timing, WebView2) is unit-tested against fakes; live tunnel behaviour requires a real Windows host.
+The suite covers transport sessions and flow control, the TUN lifecycle and recovery engine, DoH racing, the hot-swap state machine, the GUI/API contract and packaging invariants. Windows-only behaviour (Wintun, NDIS timing, WebView2) is unit-tested against fakes; live tunnel behaviour requires a real Windows host.
 
 ## License
 
