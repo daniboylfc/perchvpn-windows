@@ -68,16 +68,16 @@ class TestUpdatesEndpoint:
         from src.perchvpn_windows import __version__
 
         release = {
-            "tag": "v2.0.4",
-            "name": "FoxyVPN v2.0.4",
-            "url": "https://github.com/daniboylfc/perchvpn-windows/releases/tag/v2.0.4",
+            "tag": "v2.0.5",
+            "name": "FoxyVPN v2.0.5",
+            "url": "https://github.com/daniboylfc/perchvpn-windows/releases/tag/v2.0.5",
             "body": "notes",
         }
         with patch.object(api_module, "_fetch_latest_release", return_value=release):
             result = await api_module.check_updates()
         assert result["update_available"] is True
         assert result["current_version"] == __version__
-        assert result["latest_tag"] == "v2.0.4"
+        assert result["latest_tag"] == "v2.0.5"
 
     @pytest.mark.asyncio
     async def test_up_to_date(self):

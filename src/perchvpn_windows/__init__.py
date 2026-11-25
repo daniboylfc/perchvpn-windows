@@ -29,7 +29,7 @@ __all__ = [
     "ensure_config_dir",
 ]
 
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 
 _LAZY_ATTRS = {
     "PerchVPNApp": (".app", "PerchVPNApp"),

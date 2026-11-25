@@ -23,7 +23,7 @@ DESKTOP_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) "
     "Gecko/20100101 Firefox/128.0"
 )
-PRODUCT_USER_AGENT = "perchvpn/2.0.3 (windows)"
+PRODUCT_USER_AGENT = "perchvpn/2.0.4 (windows)"
 USER_AGENTS = (DESKTOP_USER_AGENT, PRODUCT_USER_AGENT)
 
 

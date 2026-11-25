@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 env:
-  VERSION: "2.0.3"
+  VERSION: "2.0.4"
   PRODUCT_NAME: "PerchVPN"
   MANUFACTURER: "Vauth"
   SING_BOX_VERSION: "1.14.4"
@@ -248,7 +248,7 @@ jobs:
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PerchVPN-2.0.3-win64
+          name: PerchVPN-2.0.4-win64
           path: artifacts/*
           if-no-files-found: error
 

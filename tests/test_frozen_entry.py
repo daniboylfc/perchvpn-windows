@@ -24,7 +24,7 @@ import perchvpn_windows.webview as webview_identity
 class TestEntrypointDispatch:
     def test_version_flag_prints_and_returns_zero(self, capsys):
         assert _dispatch(["--version"]) == 0
-        assert capsys.readouterr().out.strip() == "perchvpn 2.0.3"
+        assert capsys.readouterr().out.strip() == "perchvpn 2.0.4"
 
     def test_help_flag_exits_zero(self):
         # argparse raises SystemExit(0) for -h/--help; the entry must not

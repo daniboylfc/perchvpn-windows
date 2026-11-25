@@ -6,7 +6,7 @@ may overwrite; they default to "unknown" for editable/source installs.
 
 from __future__ import annotations
 
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 BUILD_COMMIT = "a1426f86d381cf73909f8713d922d2bd1c168dfa"
 BUILD_DATE = "2026-09-01T10:24:42Z"
 
